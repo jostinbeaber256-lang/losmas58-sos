@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import type { Route } from "next";
 import { usePathname } from "next/navigation";
 import {
   BellAlertIcon,
@@ -10,7 +11,11 @@ import {
 } from "@heroicons/react/24/solid";
 import { cn } from "@/lib/utils";
 
-const items = [
+const items: Array<{
+  href: Route;
+  label: string;
+  icon: typeof HomeIcon;
+}> = [
   { href: "/", label: "Inicio", icon: HomeIcon },
   { href: "/mapa", label: "Mapa", icon: MapIcon },
   { href: "/alertas", label: "SOS", icon: BellAlertIcon },
