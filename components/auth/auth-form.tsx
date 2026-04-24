@@ -2,15 +2,24 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import type { Route } from "next";
 import { useRouter, useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/browser";
 
 type AuthMode = "login" | "register";
 
+function getSafeRedirectTo(value: string | null): Route {
+  if (!value || !value.startsWith("/") || value.startsWith("//")) {
+    return "/";
+  }
+
+  return value as Route;
+}
+
 export function AuthForm({ mode }: { mode: AuthMode }) {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const redirectTo = searchParams.get("next") || "/";
+  const redirectTo = getSafeRedirectTo(searchParams.get("next"));
   const [supabase] = useState(createClient);
 
   const [email, setEmail] = useState("");
