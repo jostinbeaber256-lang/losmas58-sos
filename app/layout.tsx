@@ -5,6 +5,7 @@ import "leaflet.markercluster/dist/MarkerCluster.css";
 import "leaflet.markercluster/dist/MarkerCluster.Default.css";
 import { MobileShell } from "@/components/mobile-shell";
 import { RoutePresenceProvider } from "@/components/providers/route-presence-provider";
+import { getIsUserAdmin } from "@/lib/admin/access";
 import { getCurrentSession } from "@/lib/supabase/auth";
 
 export const metadata: Metadata = {
@@ -51,12 +52,15 @@ export default async function RootLayout({
   children: React.ReactNode;
 }>) {
   const session = await getCurrentSession();
+  const initialIsAdmin = await getIsUserAdmin(session?.user.id);
 
   return (
     <html lang="es">
       <body>
         <RoutePresenceProvider session={session}>
-          <MobileShell session={session}>{children}</MobileShell>
+          <MobileShell session={session} initialIsAdmin={initialIsAdmin}>
+            {children}
+          </MobileShell>
         </RoutePresenceProvider>
       </body>
     </html>

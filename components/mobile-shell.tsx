@@ -1,27 +1,25 @@
 "use client";
 
 import { usePathname } from "next/navigation";
-import Link from "next/link";
-import type { Route } from "next";
 import type { Session } from "@supabase/supabase-js";
-import { ShieldExclamationIcon } from "@heroicons/react/24/solid";
+import { AdminAccessButton } from "@/components/admin-access-button";
 import { AlertToastStack } from "@/components/alert-toast-stack";
 import { AuthStatus } from "@/components/auth/auth-status";
 import { BottomNav } from "@/components/bottom-nav";
 import { NotificationCenter } from "@/components/notification-center";
-import { useRoutePresence } from "@/components/providers/route-presence-provider";
 import { AppBadge } from "@/components/ui/app-badge";
 import { cn } from "@/lib/utils";
 
 export function MobileShell({
   children,
-  session
+  session,
+  initialIsAdmin = false
 }: {
   children: React.ReactNode;
   session: Session | null;
+  initialIsAdmin?: boolean;
 }) {
   const pathname = usePathname();
-  const { profile } = useRoutePresence();
   const isHome = pathname === "/";
   const hideNav = pathname.startsWith("/login") || pathname.startsWith("/registro");
 
@@ -38,15 +36,7 @@ export function MobileShell({
         <header className="mb-5 flex items-center justify-between gap-3 rounded-[1.75rem] border border-white/5 bg-black/10 px-2 py-2 backdrop-blur-sm md:px-3">
           <AppBadge />
           <div className="flex shrink-0 items-center gap-2">
-            {profile?.is_admin ? (
-              <Link
-                href={"/admin" as Route}
-                className="grid h-10 w-10 place-items-center rounded-2xl border border-accent/25 bg-accent/10 text-accent transition hover:bg-accent/15"
-                aria-label="Abrir panel admin"
-              >
-                <ShieldExclamationIcon className="h-5 w-5" />
-              </Link>
-            ) : null}
+            <AdminAccessButton initialIsAdmin={initialIsAdmin} />
             <NotificationCenter />
             <AuthStatus initialSession={session} />
           </div>
