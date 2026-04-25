@@ -25,6 +25,7 @@ export type SosAlert = {
   resolved_at: string | null;
   response_count?: number;
   helper_names?: string[];
+  latest_response_at?: string | null;
   current_user_response_status?: "on_the_way" | null;
 };
 

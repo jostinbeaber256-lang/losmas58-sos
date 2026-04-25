@@ -30,6 +30,7 @@ type RoutePresenceContextValue = {
   medicalProfile: MedicalProfile | null;
   activeRiders: ActiveRider[];
   alerts: SosAlert[];
+  sosAlertEvents: SosAlert[];
   activeSosAlert: SosAlert | null;
   isOnRoute: boolean;
   latestPosition: Coordinates | null;
@@ -166,6 +167,7 @@ export function RoutePresenceProvider({
   const [medicalProfile, setMedicalProfile] = useState<MedicalProfile | null>(null);
   const [activeRiders, setActiveRiders] = useState<ActiveRider[]>([]);
   const [rawAlerts, setRawAlerts] = useState<SosAlert[]>([]);
+  const [sosAlertEvents, setSosAlertEvents] = useState<SosAlert[]>([]);
   const [responses, setResponses] = useState<SosResponse[]>([]);
   const [latestPosition, setLatestPosition] = useState<Coordinates | null>(null);
   const [loading, setLoading] = useState(false);
@@ -758,6 +760,7 @@ export function RoutePresenceProvider({
       setLatestPosition(null);
       setActiveRiders([]);
       setRawAlerts([]);
+      setSosAlertEvents([]);
       setResponses([]);
       return;
     }
@@ -772,12 +775,36 @@ export function RoutePresenceProvider({
   useEffect(() => {
     if (!userId) {
       setRawAlerts([]);
+      setSosAlertEvents([]);
       setResponses([]);
       return;
     }
 
     const alertChannel = supabase
       .channel("live-sos-alerts")
+      .on(
+        "postgres_changes",
+        {
+          event: "INSERT",
+          schema: "public",
+          table: "sos_alerts"
+        },
+        (payload) => {
+          const newAlert = payload.new as SosAlert;
+
+          if (newAlert.status === "active") {
+            setSosAlertEvents((current) => {
+              if (current.some((alert) => alert.id === newAlert.id)) {
+                return current;
+              }
+
+              return [newAlert, ...current].slice(0, 20);
+            });
+          }
+
+          loadAlerts();
+        }
+      )
       .on(
         "postgres_changes",
         {
@@ -874,6 +901,13 @@ export function RoutePresenceProvider({
         helper_names: alertResponses
           .map((response) => response.helper_name)
           .filter((value): value is string => Boolean(value)),
+        latest_response_at: alertResponses.length
+          ? alertResponses.reduce((latest, response) =>
+              new Date(response.created_at).getTime() > new Date(latest).getTime()
+                ? response.created_at
+                : latest
+            , alertResponses[0].created_at)
+          : null,
         current_user_response_status: alertResponses.some(
           (response) =>
             response.helper_user_id === userId && response.status === "on_the_way"
@@ -895,6 +929,7 @@ export function RoutePresenceProvider({
       medicalProfile,
       activeRiders,
       alerts,
+      sosAlertEvents,
       activeSosAlert,
       isOnRoute: Boolean(profile?.is_on_route),
       latestPosition,
@@ -924,6 +959,7 @@ export function RoutePresenceProvider({
       alertUpdatingId,
       activeSosAlert,
       alerts,
+      sosAlertEvents,
       userId,
       error,
       isAuthenticated,

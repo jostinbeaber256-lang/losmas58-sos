@@ -8,17 +8,33 @@ import { RoutePresenceProvider } from "@/components/providers/route-presence-pro
 import { getCurrentSession } from "@/lib/supabase/auth";
 
 export const metadata: Metadata = {
-  title: "Los+58",
-  description: "PWA de seguridad y ruta para comunidad motera.",
-  applicationName: "Los+58",
+  title: {
+    default: "Los+58 SOS",
+    template: "%s | Los+58 SOS"
+  },
+  description: "PWA de emergencia, ruta y apoyo en tiempo real para comunidad motera.",
+  applicationName: "Los+58 SOS",
   manifest: "/manifest.webmanifest",
+  icons: {
+    icon: [
+      { url: "/icon-192.svg", sizes: "192x192", type: "image/svg+xml" },
+      { url: "/icon-512.svg", sizes: "512x512", type: "image/svg+xml" }
+    ],
+    apple: [{ url: "/apple-icon", sizes: "180x180", type: "image/png" }]
+  },
   appleWebApp: {
     capable: true,
-    title: "Los+58",
+    title: "Los+58 SOS",
     statusBarStyle: "black-translucent"
   },
   formatDetection: {
     telephone: false
+  },
+  other: {
+    "mobile-web-app-capable": "yes",
+    "apple-mobile-web-app-capable": "yes",
+    "apple-mobile-web-app-title": "Los+58 SOS",
+    "apple-mobile-web-app-status-bar-style": "black-translucent"
   }
 };
 

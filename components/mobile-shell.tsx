@@ -5,6 +5,7 @@ import type { Session } from "@supabase/supabase-js";
 import { AlertToastStack } from "@/components/alert-toast-stack";
 import { AuthStatus } from "@/components/auth/auth-status";
 import { BottomNav } from "@/components/bottom-nav";
+import { NotificationCenter } from "@/components/notification-center";
 import { AppBadge } from "@/components/ui/app-badge";
 import { cn } from "@/lib/utils";
 
@@ -31,7 +32,10 @@ export function MobileShell({
       >
         <div className="mb-5 flex items-center justify-between">
           <AppBadge />
-          <AuthStatus initialSession={session} />
+          <div className="flex items-center gap-2">
+            <NotificationCenter />
+            <AuthStatus initialSession={session} />
+          </div>
         </div>
 
         {children}

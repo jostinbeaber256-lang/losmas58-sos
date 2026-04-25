@@ -1,13 +1,13 @@
 import { ImageResponse } from "next/og";
 
 export const size = {
-  width: 512,
-  height: 512
+  width: 180,
+  height: 180
 };
 
 export const contentType = "image/png";
 
-export default function Icon() {
+export default function AppleIcon() {
   return new ImageResponse(
     (
       <div
@@ -18,11 +18,11 @@ export default function Icon() {
           alignItems: "center",
           justifyContent: "center",
           background:
-            "radial-gradient(circle at top, rgba(255,77,109,0.28), transparent 32%), linear-gradient(180deg, #08101f 0%, #050816 100%)",
+            "radial-gradient(circle at top, rgba(255,77,109,0.28), transparent 34%), linear-gradient(180deg, #08101f 0%, #050816 100%)",
           color: "#e6eefc",
-          fontSize: 142,
+          fontSize: 54,
           fontWeight: 800,
-          letterSpacing: 10
+          letterSpacing: 4
         }}
       >
         SOS
