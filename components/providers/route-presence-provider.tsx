@@ -802,6 +802,14 @@ export function RoutePresenceProvider({
         (payload) => {
           const newAlert = payload.new as SosAlert;
 
+          setRawAlerts((current) => {
+            if (current.some((alert) => alert.id === newAlert.id)) {
+              return current;
+            }
+
+            return [newAlert, ...current];
+          });
+
           if (newAlert.status === "active") {
             setSosAlertEvents((current) => {
               if (current.some((alert) => alert.id === newAlert.id)) {
@@ -811,19 +819,43 @@ export function RoutePresenceProvider({
               return [newAlert, ...current].slice(0, 20);
             });
           }
-
-          loadAlerts();
         }
       )
       .on(
         "postgres_changes",
         {
-          event: "*",
+          event: "UPDATE",
           schema: "public",
           table: "sos_alerts"
         },
-        () => {
-          loadAlerts();
+        (payload) => {
+          const updatedAlert = payload.new as SosAlert;
+
+          setRawAlerts((current) => {
+            const exists = current.some((alert) => alert.id === updatedAlert.id);
+
+            if (!exists) {
+              return [updatedAlert, ...current];
+            }
+
+            return current.map((alert) =>
+              alert.id === updatedAlert.id ? updatedAlert : alert
+            );
+          });
+        }
+      )
+      .on(
+        "postgres_changes",
+        {
+          event: "DELETE",
+          schema: "public",
+          table: "sos_alerts"
+        },
+        (payload) => {
+          const deletedAlert = payload.old as Pick<SosAlert, "id">;
+          setRawAlerts((current) =>
+            current.filter((alert) => alert.id !== deletedAlert.id)
+          );
         }
       )
       .subscribe();
@@ -863,12 +895,57 @@ export function RoutePresenceProvider({
       .on(
         "postgres_changes",
         {
-          event: "*",
+          event: "INSERT",
           schema: "public",
           table: "sos_responses"
         },
-        () => {
-          loadResponses();
+        (payload) => {
+          const newResponse = payload.new as SosResponse;
+
+          setResponses((current) => {
+            if (current.some((response) => response.id === newResponse.id)) {
+              return current;
+            }
+
+            return [...current, newResponse];
+          });
+        }
+      )
+      .on(
+        "postgres_changes",
+        {
+          event: "UPDATE",
+          schema: "public",
+          table: "sos_responses"
+        },
+        (payload) => {
+          const updatedResponse = payload.new as SosResponse;
+
+          setResponses((current) => {
+            const exists = current.some((response) => response.id === updatedResponse.id);
+
+            if (!exists) {
+              return [...current, updatedResponse];
+            }
+
+            return current.map((response) =>
+              response.id === updatedResponse.id ? updatedResponse : response
+            );
+          });
+        }
+      )
+      .on(
+        "postgres_changes",
+        {
+          event: "DELETE",
+          schema: "public",
+          table: "sos_responses"
+        },
+        (payload) => {
+          const deletedResponse = payload.old as Pick<SosResponse, "id">;
+          setResponses((current) =>
+            current.filter((response) => response.id !== deletedResponse.id)
+          );
         }
       )
       .subscribe();
