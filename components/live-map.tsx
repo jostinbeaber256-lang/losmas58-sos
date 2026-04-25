@@ -3,7 +3,13 @@
 import dynamic from "next/dynamic";
 import { useMemo } from "react";
 import { useSearchParams } from "next/navigation";
-import { ExclamationTriangleIcon, MapPinIcon, SignalIcon } from "@heroicons/react/24/solid";
+import {
+  ExclamationTriangleIcon,
+  MapPinIcon,
+  ShieldCheckIcon,
+  SignalIcon,
+  UserGroupIcon
+} from "@heroicons/react/24/solid";
 import { SosAlertCard } from "@/components/sos-alert-card";
 import { useRoutePresence } from "@/components/providers/route-presence-provider";
 import {
@@ -20,7 +26,7 @@ const LeafletMapCanvas = dynamic(
   {
     ssr: false,
     loading: () => (
-      <div className="flex h-[420px] w-full items-center justify-center bg-surface text-sm text-muted">
+      <div className="flex h-[430px] w-full items-center justify-center bg-surface text-sm text-muted md:h-[560px]">
         Inicializando mapa...
       </div>
     )
@@ -91,87 +97,115 @@ export function LiveMap() {
     return distances.length ? Math.min(...distances) : null;
   }, [emergencyAlerts, latestPosition]);
 
+  const mapStats = [
+    {
+      label: "Ruta",
+      value: isOnRoute ? "Compartiendo" : "Inactiva",
+      detail: tracking ? "Sync cada 10s" : "Activa ruta para publicar",
+      icon: SignalIcon,
+      tone: isOnRoute ? "text-accent" : "text-muted"
+    },
+    {
+      label: "Companeros",
+      value: visibleRiders.length,
+      detail:
+        nearestRiderDistance !== null
+          ? `Mas cercano a ${formatDistanceKm(nearestRiderDistance)}`
+          : "Visibles en ruta",
+      icon: UserGroupIcon,
+      tone: "text-warning"
+    },
+    {
+      label: "SOS activos",
+      value: emergencyAlerts.length,
+      detail:
+        nearestAlertDistance !== null
+          ? `Mas cercano a ${formatDistanceKm(nearestAlertDistance)}`
+          : "Alertas en el mapa",
+      icon: ExclamationTriangleIcon,
+      tone: "text-danger"
+    },
+    {
+      label: "Mi posicion",
+      value: latestPosition
+        ? formatCoordinatesCompact(latestPosition.latitude, latestPosition.longitude)
+        : "Sin coordenadas",
+      detail: profile?.location_updated_at
+        ? `Actualizada ${new Date(profile.location_updated_at).toLocaleTimeString("es-VE", {
+            hour: "2-digit",
+            minute: "2-digit"
+          })}`
+        : "Esperando GPS",
+      icon: MapPinIcon,
+      tone: "text-accent"
+    }
+  ];
+  const legendItems = [
+    {
+      label: "Mi ubicacion",
+      dot: "bg-accent shadow-[0_0_14px_rgba(0,229,168,.7)]"
+    },
+    {
+      label: "Companeros",
+      dot: "bg-warning shadow-[0_0_14px_rgba(255,181,71,.65)]"
+    },
+    {
+      label: "SOS activos",
+      dot: "bg-danger shadow-[0_0_14px_rgba(255,77,109,.7)]"
+    }
+  ];
+
   return (
-    <section className="space-y-4">
-      <div className="panel-blur overflow-hidden rounded-[2rem]">
-        <LeafletMapCanvas
-          latestPosition={latestPosition}
-          focusedPosition={focusedAlertPosition}
-          focusedAlertId={focusedAlertId}
-          visibleRiders={visibleRiders}
-          emergencyAlerts={emergencyAlerts}
-        />
-        <div className="grid grid-cols-3 gap-2 border-t border-white/8 bg-black/25 px-4 py-3 text-xs text-muted">
-          <div className="flex items-center gap-2">
-            <span className="h-3 w-3 rounded-full bg-accent shadow-[0_0_12px_rgba(0,229,168,.6)]" />
-            Tu posicion
-          </div>
-          <div className="flex items-center gap-2">
-            <span className="h-3 w-3 rounded-full bg-warning shadow-[0_0_12px_rgba(255,181,71,.6)]" />
-            Companeros
-          </div>
-          <div className="flex items-center gap-2">
-            <span className="h-3 w-3 rounded-full bg-danger shadow-[0_0_12px_rgba(255,77,109,.65)]" />
-            SOS
-          </div>
-        </div>
+    <section className="space-y-5">
+      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+        {mapStats.map((stat) => {
+          const Icon = stat.icon;
+
+          return (
+            <div
+              key={stat.label}
+              className="rounded-[1.5rem] border border-white/10 bg-[linear-gradient(145deg,rgba(18,27,43,0.94),rgba(8,12,22,0.96))] p-4 shadow-[0_18px_44px_rgba(0,0,0,0.22)]"
+            >
+              <div className="flex items-center gap-3">
+                <span className="grid h-10 w-10 shrink-0 place-items-center rounded-2xl border border-white/10 bg-white/[0.045]">
+                  <Icon className={`h-5 w-5 ${stat.tone}`} />
+                </span>
+                <div className="min-w-0">
+                  <p className="text-xs uppercase tracking-[0.22em] text-muted">
+                    {stat.label}
+                  </p>
+                  <p className="mt-1 truncate text-base font-semibold text-ink">
+                    {stat.value}
+                  </p>
+                </div>
+              </div>
+              <p className="mt-3 text-sm leading-5 text-muted">{stat.detail}</p>
+            </div>
+          );
+        })}
       </div>
 
-      <div className="grid gap-3 sm:grid-cols-2">
-        <div className="panel-blur rounded-[1.5rem] p-4">
-          <div className="flex items-center gap-2 text-muted">
-            <SignalIcon className="h-5 w-5 text-accent" />
-            <span className="text-sm">Estado de ruta</span>
-          </div>
-          <p className="mt-3 text-lg font-semibold text-ink">
-            {isOnRoute ? "Compartiendo" : "Inactivo"}
-          </p>
-          <p className="mt-1 text-sm text-muted">
-            {tracking ? "Actualizando cada 10s" : "Activa tu ruta para publicar posicion"}
-          </p>
+      <div className="relative overflow-hidden rounded-[2rem] border border-white/10 bg-[radial-gradient(circle_at_50%_0%,rgba(32,211,238,0.12),transparent_34%),linear-gradient(180deg,rgba(18,27,43,0.94),rgba(5,8,18,0.98))] p-2 shadow-[0_28px_80px_rgba(0,0,0,0.36)]">
+        <div className="pointer-events-none absolute inset-x-8 top-0 h-24 rounded-full bg-accent/10 blur-3xl" />
+        <div className="relative overflow-hidden rounded-[1.55rem] border border-white/10">
+          <LeafletMapCanvas
+            latestPosition={latestPosition}
+            focusedPosition={focusedAlertPosition}
+            focusedAlertId={focusedAlertId}
+            visibleRiders={visibleRiders}
+            emergencyAlerts={emergencyAlerts}
+          />
         </div>
-
-        <div className="panel-blur rounded-[1.5rem] p-4">
-          <div className="flex items-center gap-2 text-muted">
-            <MapPinIcon className="h-5 w-5 text-warning" />
-            <span className="text-sm">Companeros</span>
-          </div>
-          <p className="mt-3 text-lg font-semibold text-ink">{visibleRiders.length}</p>
-          <p className="mt-1 text-sm text-muted">
-            {nearestRiderDistance !== null
-              ? `Mas cercano a ${formatDistanceKm(nearestRiderDistance)}`
-              : "Activos y visibles en este momento"}
-          </p>
-        </div>
-
-        <div className="panel-blur rounded-[1.5rem] p-4">
-          <div className="flex items-center gap-2 text-muted">
-            <ExclamationTriangleIcon className="h-5 w-5 text-danger" />
-            <span className="text-sm">SOS activos</span>
-          </div>
-          <p className="mt-3 text-lg font-semibold text-danger">{emergencyAlerts.length}</p>
-          <p className="mt-1 text-sm text-muted">
-            {nearestAlertDistance !== null
-              ? `Mas cercano a ${formatDistanceKm(nearestAlertDistance)}`
-              : "Marcados en rojo en el mapa"}
-          </p>
-        </div>
-
-        <div className="panel-blur rounded-[1.5rem] p-4">
-          <p className="text-sm text-muted">Mi posicion</p>
-          <p className="mt-3 text-sm font-medium text-ink">
-            {latestPosition
-              ? formatCoordinatesCompact(latestPosition.latitude, latestPosition.longitude)
-              : "Sin coordenadas publicadas"}
-          </p>
-          <p className="mt-1 text-sm text-muted">
-            {profile?.location_updated_at
-              ? `Actualizada ${new Date(profile.location_updated_at).toLocaleTimeString("es-VE", {
-                  hour: "2-digit",
-                  minute: "2-digit"
-                })}`
-              : "Esperando geolocalizacion"}
-          </p>
+        <div className="relative grid gap-2 px-2 pb-2 pt-3 text-xs text-muted sm:grid-cols-3">
+          {legendItems.map((item) => (
+            <div
+              key={item.label}
+              className="flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.045] px-3 py-2"
+            >
+              <span className={`h-3 w-3 rounded-full ${item.dot}`} />
+              {item.label}
+            </div>
+          ))}
         </div>
       </div>
 
@@ -181,75 +215,120 @@ export function LiveMap() {
         </p>
       ) : null}
 
-      <section className="panel-blur rounded-[1.75rem] p-5">
-        <div className="flex items-center justify-between">
-          <h2 className="text-base font-semibold text-ink">Activos ahora</h2>
-          <span className="text-sm text-muted">Visible solo en ruta</span>
+      <section className="grid gap-5 xl:grid-cols-[0.92fr_1.08fr]">
+        <div className="relative overflow-hidden rounded-[1.85rem] border border-white/10 bg-[linear-gradient(145deg,rgba(18,27,43,0.94),rgba(8,12,22,0.97))] p-5 shadow-[0_22px_60px_rgba(0,0,0,0.28)]">
+          <div className="pointer-events-none absolute -right-20 top-0 h-44 w-44 rounded-full bg-warning/10 blur-3xl" />
+          <div className="relative flex items-start justify-between gap-4">
+            <div>
+              <p className="text-xs uppercase tracking-[0.28em] text-warning/80">
+                En ruta
+              </p>
+              <h2 className="mt-2 text-lg font-semibold text-ink">
+                Activos ahora
+              </h2>
+              <p className="mt-1 text-sm leading-6 text-muted">
+                Companeros visibles mientras mantienen su ruta activa.
+              </p>
+            </div>
+            <span className="rounded-full border border-warning/25 bg-warning/10 px-3 py-1 text-sm font-semibold text-warning">
+              {visibleRiders.length}
+            </span>
+          </div>
+
+          <div className="relative mt-4 space-y-3">
+            {visibleRiders.length ? (
+              visibleRiders.map((rider) => (
+                <div
+                  key={rider.id}
+                  className="flex items-center justify-between gap-4 rounded-2xl border border-white/10 bg-white/[0.045] px-4 py-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]"
+                >
+                  <div className="min-w-0">
+                    <p className="truncate font-medium text-ink">
+                      {formatRiderName(rider)}
+                    </p>
+                    <p className="mt-1 break-words text-sm leading-5 text-muted">
+                      {rider.bike_model || "Moto no registrada"} /{" "}
+                      {rider.city || "Ciudad sin registrar"} /{" "}
+                      {rider.latitude !== null && rider.longitude !== null
+                        ? formatDistanceKm(
+                            getDistanceKm(latestPosition, {
+                              latitude: rider.latitude,
+                              longitude: rider.longitude
+                            })
+                          )
+                        : "Sin referencia"}
+                    </p>
+                  </div>
+                  <span
+                    className={`shrink-0 rounded-full border px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em] ${
+                      rider.emergency_state === "emergency"
+                        ? "border-danger/25 bg-danger/10 text-danger"
+                        : "border-accent/25 bg-accent/10 text-accent"
+                    }`}
+                  >
+                    {rider.emergency_state === "emergency" ? "SOS" : "Activo"}
+                  </span>
+                </div>
+              ))
+            ) : (
+              <div className="rounded-2xl border border-dashed border-white/12 bg-white/[0.035] px-4 py-5 text-sm leading-6 text-muted">
+                Aun no hay companeros activos con ubicacion publicada.
+              </div>
+            )}
+          </div>
         </div>
-        <div className="mt-4 space-y-3">
-          {visibleRiders.length ? (
-            visibleRiders.map((rider) => (
-              <div
-                key={rider.id}
-                className="flex items-center justify-between rounded-2xl border border-line/70 bg-surface/90 px-4 py-3"
-              >
-                <div>
-                  <p className="font-medium text-ink">{formatRiderName(rider)}</p>
-                  <p className="text-sm text-muted">
-                    {rider.bike_model || "Moto no registrada"} · {rider.city || "Ciudad sin registrar"} ·{" "}
-                    {rider.latitude !== null && rider.longitude !== null
-                      ? formatDistanceKm(
-                          getDistanceKm(latestPosition, {
-                            latitude: rider.latitude,
-                            longitude: rider.longitude
-                          })
-                        )
-                      : "Sin referencia"}
+
+        <div className="relative overflow-hidden rounded-[1.85rem] border border-white/10 bg-[linear-gradient(145deg,rgba(18,27,43,0.94),rgba(8,12,22,0.97))] p-5 shadow-[0_22px_60px_rgba(0,0,0,0.28)]">
+          <div className="pointer-events-none absolute -right-20 top-0 h-44 w-44 rounded-full bg-danger/12 blur-3xl" />
+          <div className="relative flex items-start justify-between gap-4">
+            <div>
+              <p className="text-xs uppercase tracking-[0.28em] text-danger/80">
+                Emergencias
+              </p>
+              <h2 className="mt-2 text-lg font-semibold text-ink">
+                SOS activos
+              </h2>
+              <p className="mt-1 text-sm leading-6 text-muted">
+                Alertas abiertas reflejadas tambien en el mapa.
+              </p>
+            </div>
+            <span className="rounded-full border border-danger/25 bg-danger/10 px-3 py-1 text-sm font-semibold text-danger">
+              {emergencyAlerts.length}
+            </span>
+          </div>
+
+          <div className="relative mt-4 space-y-3">
+            {emergencyAlerts.length ? (
+              emergencyAlerts.map((alert) => (
+                <div key={alert.id} className="space-y-2">
+                  <SosAlertCard alert={alert} />
+                  <p className="rounded-full border border-white/10 bg-white/[0.045] px-3 py-2 text-xs text-muted">
+                    Distancia desde ti:{" "}
+                    <span className="font-semibold text-accent">
+                      {formatDistanceKm(
+                        getDistanceKm(latestPosition, {
+                          latitude: alert.latitude,
+                          longitude: alert.longitude
+                        })
+                      )}
+                    </span>
                   </p>
                 </div>
-                <span
-                  className={`text-xs uppercase tracking-[0.24em] ${
-                    rider.emergency_state === "emergency" ? "text-danger" : "text-accent"
-                  }`}
-                >
-                  {rider.emergency_state === "emergency" ? "SOS" : "Activo"}
-                </span>
-              </div>
-            ))
-          ) : (
-            <div className="rounded-2xl border border-line/70 bg-surface/90 px-4 py-4 text-sm text-muted">
-              Aun no hay companeros activos con ubicacion publicada.
-            </div>
-          )}
-        </div>
-      </section>
-
-      <section className="panel-blur rounded-[1.75rem] p-5">
-        <div className="flex items-center justify-between">
-          <h2 className="text-base font-semibold text-ink">Emergencias activas</h2>
-          <span className="text-sm text-danger">{emergencyAlerts.length}</span>
-        </div>
-        <div className="mt-4 space-y-3">
-          {emergencyAlerts.length ? (
-            emergencyAlerts.map((alert) => (
-              <div key={alert.id} className="space-y-2">
-                <SosAlertCard alert={alert} />
-                <p className="px-1 text-xs text-muted">
-                  Distancia desde ti:{" "}
-                  {formatDistanceKm(
-                    getDistanceKm(latestPosition, {
-                      latitude: alert.latitude,
-                      longitude: alert.longitude
-                    })
-                  )}
+              ))
+            ) : (
+              <div className="rounded-2xl border border-dashed border-white/12 bg-white/[0.035] px-4 py-6 text-center">
+                <div className="mx-auto grid h-12 w-12 place-items-center rounded-2xl border border-accent/20 bg-accent/10">
+                  <ShieldCheckIcon className="h-6 w-6 text-accent" />
+                </div>
+                <p className="mt-3 text-sm font-semibold text-ink">
+                  Sin emergencias activas
+                </p>
+                <p className="mx-auto mt-1 max-w-xs text-sm leading-6 text-muted">
+                  Si entra un SOS, aparecera aqui y el mapa lo resaltara.
                 </p>
               </div>
-            ))
-          ) : (
-            <div className="rounded-2xl border border-line/70 bg-surface/90 px-4 py-4 text-sm text-muted">
-              No hay emergencias activas visibles.
-            </div>
-          )}
+            )}
+          </div>
         </div>
       </section>
     </section>

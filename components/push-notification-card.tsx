@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { BellAlertIcon } from "@heroicons/react/24/solid";
+import { BellAlertIcon, CheckCircleIcon, ExclamationTriangleIcon } from "@heroicons/react/24/solid";
 import { useRoutePresence } from "@/components/providers/route-presence-provider";
 import { createClient } from "@/lib/supabase/browser";
 
@@ -162,15 +162,45 @@ export function PushNotificationCard() {
     denied: "Permiso denegado para este navegador.",
     error: "No se pudo activar push."
   }[status];
+  const statusMeta = {
+    idle: {
+      label: "Desactivadas",
+      classes: "border-white/10 bg-white/[0.045] text-muted",
+      icon: BellAlertIcon
+    },
+    loading: {
+      label: "Activando",
+      classes: "border-warning/30 bg-warning/12 text-warning",
+      icon: BellAlertIcon
+    },
+    enabled: {
+      label: "Activadas",
+      classes: "border-accent/30 bg-accent/12 text-accent",
+      icon: CheckCircleIcon
+    },
+    denied: {
+      label: "Denegadas",
+      classes: "border-danger/30 bg-danger/12 text-danger",
+      icon: ExclamationTriangleIcon
+    },
+    error: {
+      label: "Error",
+      classes: "border-danger/30 bg-danger/12 text-danger",
+      icon: ExclamationTriangleIcon
+    }
+  }[status];
+  const StatusIcon = statusMeta.icon;
 
   return (
-    <section className="panel-blur rounded-[2rem] p-5">
-      <div className="flex items-start gap-4">
-        <div className="rounded-2xl bg-danger/12 p-3 text-danger">
+    <section className="relative overflow-hidden rounded-[2rem] border border-white/10 bg-[radial-gradient(circle_at_100%_0%,rgba(32,211,238,0.12),transparent_34%),linear-gradient(145deg,rgba(18,27,43,0.95),rgba(8,12,22,0.98))] p-5 shadow-[0_24px_70px_rgba(0,0,0,0.3)] md:p-6">
+      <div className="pointer-events-none absolute -right-20 -top-16 h-52 w-52 rounded-full bg-accent/10 blur-3xl" />
+      <div className="relative flex items-start justify-between gap-4">
+        <div className="flex items-start gap-4">
+        <div className="rounded-2xl border border-danger/20 bg-danger/12 p-3 text-danger shadow-[0_0_30px_rgba(255,77,109,0.1)]">
           <BellAlertIcon className="h-6 w-6" />
         </div>
         <div className="min-w-0 flex-1">
-          <p className="text-sm uppercase tracking-[0.3em] text-accent">
+          <p className="text-xs uppercase tracking-[0.3em] text-accent">
             Notificaciones
           </p>
           <h2 className="mt-1 text-xl font-semibold text-ink">
@@ -178,11 +208,19 @@ export function PushNotificationCard() {
           </h2>
           <p className="mt-2 text-sm leading-6 text-muted">{statusCopy}</p>
         </div>
+        </div>
+
+        <span
+          className={`inline-flex shrink-0 items-center gap-1.5 rounded-full border px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.2em] ${statusMeta.classes}`}
+        >
+          <StatusIcon className="h-4 w-4" />
+          {statusMeta.label}
+        </span>
       </div>
 
       {message ? (
         <p
-          className={`mt-4 rounded-2xl border px-4 py-3 text-sm ${
+          className={`relative mt-4 rounded-2xl border px-4 py-3 text-sm ${
             status === "enabled"
               ? "border-accent/25 bg-accent/10 text-accent"
               : "border-danger/25 bg-danger/10 text-danger"
@@ -196,7 +234,7 @@ export function PushNotificationCard() {
         type="button"
         onClick={handleEnablePush}
         disabled={status === "loading"}
-        className="mt-5 w-full rounded-2xl bg-danger px-4 py-3 font-semibold text-white shadow-[0_18px_40px_rgba(255,77,109,.25)] transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-70"
+        className="relative mt-5 w-full rounded-2xl bg-danger px-4 py-3.5 font-semibold text-white shadow-[0_18px_40px_rgba(255,77,109,.25)] transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-70"
       >
         {status === "loading" ? "Activando..." : "Activar notificaciones push"}
       </button>

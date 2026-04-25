@@ -275,7 +275,7 @@ export function LeafletMapCanvas({
       center={center}
       zoom={focusedPosition || latestPosition ? 13 : 10}
       scrollWheelZoom
-      className="h-[420px] w-full"
+      className="h-[430px] w-full md:h-[560px] xl:h-[620px]"
       zoomControl={false}
     >
       <TileLayer

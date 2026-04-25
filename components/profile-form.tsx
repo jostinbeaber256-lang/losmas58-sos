@@ -1,6 +1,13 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import {
+  CheckCircleIcon,
+  MapPinIcon,
+  PhoneIcon,
+  ShieldCheckIcon,
+  UserIcon
+} from "@heroicons/react/24/solid";
 import type { ProfileFormValues } from "@/lib/types";
 import { useRoutePresence } from "@/components/providers/route-presence-provider";
 
@@ -51,9 +58,26 @@ export function ProfileForm() {
   }, [initializedProfileId, profile]);
 
   const initials = useMemo(
-    () => getInitials(values.full_name || profile?.full_name || null, values.username || profile?.username || null),
+    () =>
+      getInitials(
+        values.full_name || profile?.full_name || null,
+        values.username || profile?.username || null
+      ),
     [profile?.full_name, profile?.username, values.full_name, values.username]
   );
+  const requiredFields = [
+    { key: "full_name", label: "Nombre" },
+    { key: "username", label: "Username" },
+    { key: "bike_model", label: "Moto" },
+    { key: "city", label: "Ciudad" },
+    { key: "emergency_contact", label: "Contacto SOS" }
+  ] as const;
+  const missingFields = requiredFields.filter((field) => !values[field.key].trim());
+  const completedCount = requiredFields.length - missingFields.length;
+  const profileStatusLabel = missingFields.length ? "Incompleto" : "Completo";
+  const profileStatusClasses = missingFields.length
+    ? "border-warning/30 bg-warning/12 text-warning"
+    : "border-accent/30 bg-accent/12 text-accent";
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -78,44 +102,97 @@ export function ProfileForm() {
 
   return (
     <>
-      <section className="panel-blur rounded-[2rem] p-5">
-        <div className="flex items-center gap-4">
-          <div className="flex h-16 w-16 items-center justify-center rounded-3xl bg-accent/15 text-2xl font-semibold text-accent">
-            {initials}
+      <section className="relative overflow-hidden rounded-[2rem] border border-white/10 bg-[radial-gradient(circle_at_0%_0%,rgba(32,211,238,0.14),transparent_34%),linear-gradient(145deg,rgba(18,27,43,0.96),rgba(7,11,20,0.98))] p-5 shadow-[0_24px_70px_rgba(0,0,0,0.32)] md:p-6">
+        <div className="pointer-events-none absolute -right-20 top-0 h-52 w-52 rounded-full bg-accent/10 blur-3xl" />
+
+        <div className="relative flex flex-col gap-5 sm:flex-row sm:items-start sm:justify-between">
+          <div className="flex items-center gap-4">
+            <div className="relative flex h-20 w-20 shrink-0 items-center justify-center rounded-[1.6rem] border border-accent/25 bg-accent/12 text-2xl font-semibold text-accent shadow-[0_0_36px_rgba(32,211,238,0.16)]">
+              <div className="pointer-events-none absolute inset-2 rounded-[1.2rem] border border-white/10" />
+              {initials}
+            </div>
+            <div className="min-w-0">
+              <p className="text-xs uppercase tracking-[0.28em] text-accent/80">
+                Ficha personal
+              </p>
+              <h2 className="mt-2 break-words text-2xl font-semibold leading-tight text-ink">
+                {values.full_name || values.username || "Completa tu perfil"}
+              </h2>
+              <p className="mt-1 text-sm text-muted">
+                {profile?.emergency_state === "emergency"
+                  ? "Estado de emergencia activo"
+                  : profile?.is_on_route
+                    ? "En ruta"
+                    : "Disponible para ruta"}
+              </p>
+            </div>
           </div>
-          <div>
-            <h2 className="text-xl font-semibold text-ink">
-              {values.full_name || values.username || "Completa tu perfil"}
-            </h2>
-            <p className="text-sm text-muted">
-              {profile?.emergency_state === "emergency"
-                ? "Estado de emergencia activo"
-                : profile?.is_on_route
-                  ? "En ruta"
-                  : "Disponible"}
+
+          <span
+            className={`w-fit rounded-full border px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.22em] ${profileStatusClasses}`}
+          >
+            Perfil {profileStatusLabel}
+          </span>
+        </div>
+
+        <div className="relative mt-5 grid gap-3 sm:grid-cols-3">
+          <div className="rounded-2xl border border-white/10 bg-white/[0.045] px-4 py-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]">
+            <p className="flex items-center gap-1.5 text-[11px] uppercase tracking-[0.22em] text-muted">
+              <UserIcon className="h-3.5 w-3.5 text-accent" />
+              Username
+            </p>
+            <p className="mt-1 break-words font-medium text-ink">
+              {values.username || "Sin definir"}
+            </p>
+          </div>
+          <div className="rounded-2xl border border-white/10 bg-white/[0.045] px-4 py-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]">
+            <p className="flex items-center gap-1.5 text-[11px] uppercase tracking-[0.22em] text-muted">
+              <MapPinIcon className="h-3.5 w-3.5 text-accent" />
+              Ciudad
+            </p>
+            <p className="mt-1 break-words font-medium text-ink">
+              {values.city || "Sin definir"}
+            </p>
+          </div>
+          <div className="rounded-2xl border border-white/10 bg-white/[0.045] px-4 py-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]">
+            <p className="flex items-center gap-1.5 text-[11px] uppercase tracking-[0.22em] text-muted">
+              <PhoneIcon className="h-3.5 w-3.5 text-accent" />
+              Contacto SOS
+            </p>
+            <p className="mt-1 break-words font-medium text-ink">
+              {values.emergency_contact || "Sin definir"}
             </p>
           </div>
         </div>
 
-        <div className="mt-6 grid grid-cols-2 gap-3">
-          <div className="rounded-2xl border border-line/70 bg-surface/90 px-4 py-3">
-            <p className="text-sm text-muted">Username</p>
-            <p className="mt-1 font-medium text-ink">
-              {values.username || "Sin definir"}
-            </p>
-          </div>
-          <div className="rounded-2xl border border-line/70 bg-surface/90 px-4 py-3">
-            <p className="text-sm text-muted">Ciudad</p>
-            <p className="mt-1 font-medium text-ink">
-              {values.city || "Sin definir"}
-            </p>
+        <div className="relative mt-4 rounded-2xl border border-white/10 bg-black/18 px-4 py-3">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <p className="text-sm font-semibold text-ink">
+                {completedCount} de {requiredFields.length} datos completados
+              </p>
+              <p className="mt-1 text-sm leading-5 text-muted">
+                {missingFields.length
+                  ? `Falta completar: ${missingFields.map((field) => field.label).join(", ")}.`
+                  : "Tu ficha de motero esta lista para mapa y SOS."}
+              </p>
+            </div>
+            <CheckCircleIcon
+              className={`h-6 w-6 shrink-0 ${
+                missingFields.length ? "text-warning" : "text-accent"
+              }`}
+            />
           </div>
         </div>
       </section>
 
-      <form onSubmit={handleSubmit} className="panel-blur rounded-[2rem] p-5">
-        <div className="space-y-2">
-          <p className="text-sm uppercase tracking-[0.35em] text-accent">
+      <form
+        onSubmit={handleSubmit}
+        className="relative overflow-hidden rounded-[2rem] border border-white/10 bg-[linear-gradient(145deg,rgba(18,27,43,0.95),rgba(8,12,22,0.98))] p-5 shadow-[0_24px_70px_rgba(0,0,0,0.3)] md:p-6"
+      >
+        <div className="pointer-events-none absolute -right-24 -top-20 h-52 w-52 rounded-full bg-accent/10 blur-3xl" />
+        <div className="relative space-y-2">
+          <p className="text-xs uppercase tracking-[0.35em] text-accent">
             Editar perfil
           </p>
           <h3 className="text-xl font-semibold text-ink">
@@ -126,71 +203,73 @@ export function ProfileForm() {
           </p>
         </div>
 
-        <div className="mt-6 space-y-4">
+        <div className="relative mt-6 grid gap-4 md:grid-cols-2">
           <label className="block space-y-2">
-            <span className="text-sm text-muted">Nombre completo</span>
+            <span className="text-sm font-medium text-muted">Nombre completo</span>
             <input
               type="text"
               value={values.full_name}
               onChange={(event) => updateField("full_name", event.target.value)}
-              className="w-full rounded-2xl border border-line bg-surface px-4 py-3 text-ink outline-none transition focus:border-accent"
+              className="w-full rounded-2xl border border-white/10 bg-white/[0.045] px-4 py-3.5 text-ink outline-none transition placeholder:text-muted/60 focus:border-accent/50 focus:bg-accent/8"
               placeholder="Ej. Jordan Rivas"
             />
           </label>
 
           <label className="block space-y-2">
-            <span className="text-sm text-muted">Username</span>
+            <span className="text-sm font-medium text-muted">Username</span>
             <input
               type="text"
               value={values.username}
               onChange={(event) => updateField("username", event.target.value)}
-              className="w-full rounded-2xl border border-line bg-surface px-4 py-3 text-ink outline-none transition focus:border-accent"
+              className="w-full rounded-2xl border border-white/10 bg-white/[0.045] px-4 py-3.5 text-ink outline-none transition placeholder:text-muted/60 focus:border-accent/50 focus:bg-accent/8"
               placeholder="Ej. jordanrivas"
             />
           </label>
 
           <label className="block space-y-2">
-            <span className="text-sm text-muted">Moto / modelo</span>
+            <span className="text-sm font-medium text-muted">Moto / modelo</span>
             <input
               type="text"
               value={values.bike_model}
               onChange={(event) => updateField("bike_model", event.target.value)}
-              className="w-full rounded-2xl border border-line bg-surface px-4 py-3 text-ink outline-none transition focus:border-accent"
+              className="w-full rounded-2xl border border-white/10 bg-white/[0.045] px-4 py-3.5 text-ink outline-none transition placeholder:text-muted/60 focus:border-accent/50 focus:bg-accent/8"
               placeholder="Ej. Yamaha Tenere 700"
             />
           </label>
 
           <label className="block space-y-2">
-            <span className="text-sm text-muted">Ciudad</span>
+            <span className="text-sm font-medium text-muted">Ciudad</span>
             <input
               type="text"
               value={values.city}
               onChange={(event) => updateField("city", event.target.value)}
-              className="w-full rounded-2xl border border-line bg-surface px-4 py-3 text-ink outline-none transition focus:border-accent"
+              className="w-full rounded-2xl border border-white/10 bg-white/[0.045] px-4 py-3.5 text-ink outline-none transition placeholder:text-muted/60 focus:border-accent/50 focus:bg-accent/8"
               placeholder="Ej. Caracas"
             />
           </label>
 
-          <label className="block space-y-2">
-            <span className="text-sm text-muted">Contacto de emergencia</span>
+          <label className="block space-y-2 md:col-span-2">
+            <span className="text-sm font-medium text-muted">
+              Contacto de emergencia
+            </span>
             <input
               type="text"
               value={values.emergency_contact}
               onChange={(event) => updateField("emergency_contact", event.target.value)}
-              className="w-full rounded-2xl border border-line bg-surface px-4 py-3 text-ink outline-none transition focus:border-accent"
-              placeholder="Ej. Ana Rivas · +58 412 000 0000"
+              className="w-full rounded-2xl border border-white/10 bg-white/[0.045] px-4 py-3.5 text-ink outline-none transition placeholder:text-muted/60 focus:border-accent/50 focus:bg-accent/8"
+              placeholder="Ej. Ana Rivas / +58 412 000 0000"
             />
           </label>
         </div>
 
         {error ? (
-          <p className="mt-4 rounded-2xl border border-danger/25 bg-danger/10 px-4 py-3 text-sm text-danger">
+          <p className="relative mt-4 rounded-2xl border border-danger/25 bg-danger/10 px-4 py-3 text-sm text-danger">
             {error}
           </p>
         ) : null}
 
         {saved ? (
-          <p className="mt-4 rounded-2xl border border-accent/25 bg-accent/10 px-4 py-3 text-sm text-accent">
+          <p className="relative mt-4 rounded-2xl border border-accent/25 bg-accent/10 px-4 py-3 text-sm text-accent">
             {saved}
           </p>
         ) : null}
@@ -198,9 +277,9 @@ export function ProfileForm() {
         <button
           type="submit"
           disabled={profileSaving}
-          className="mt-5 w-full rounded-2xl bg-accent px-4 py-3 font-semibold text-background transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-70"
+          className="relative mt-5 w-full rounded-2xl bg-accent px-4 py-3.5 font-semibold text-background shadow-[0_0_28px_rgba(32,211,238,0.18)] transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-70"
         >
-          {profileSaving ? "Guardando..." : "Guardar perfil"}
+          {profileSaving ? "Guardando..." : isDirty ? "Guardar cambios" : "Perfil guardado"}
         </button>
       </form>
     </>

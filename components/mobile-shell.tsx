@@ -30,13 +30,13 @@ export function MobileShell({
           isHome ? "bg-transparent" : "bg-black/10"
         )}
       >
-        <div className="mb-5 flex items-center justify-between gap-3">
+        <header className="mb-5 flex items-center justify-between gap-3 rounded-[1.75rem] border border-white/5 bg-black/10 px-2 py-2 backdrop-blur-sm md:px-3">
           <AppBadge />
           <div className="flex shrink-0 items-center gap-2">
             <NotificationCenter />
             <AuthStatus initialSession={session} />
           </div>
-        </div>
+        </header>
 
         {children}
       </div>
