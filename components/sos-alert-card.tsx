@@ -118,7 +118,7 @@ export function SosAlertCard({
 
   return (
     <article
-      className={`relative overflow-hidden rounded-[1.85rem] border ${
+      className={`relative w-full min-w-0 overflow-hidden rounded-[1.85rem] border ${
         isActive
           ? "border-white/10 bg-[radial-gradient(circle_at_100%_0%,rgba(255,77,109,.12),transparent_34%),linear-gradient(180deg,rgba(16,21,34,.97),rgba(7,10,19,.99))] shadow-[0_26px_62px_rgba(0,0,0,.36)]"
           : "border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,.045),rgba(11,18,32,.92))] shadow-[0_18px_42px_rgba(0,0,0,.22)]"
@@ -148,40 +148,40 @@ export function SosAlertCard({
         />
       ) : null}
 
-      <div className="relative mb-4 flex flex-wrap items-center justify-between gap-2 pl-1">
-        <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.045] px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.2em] text-muted">
+      <div className="relative mb-4 flex flex-col items-start gap-2 pl-1 sm:flex-row sm:items-center sm:justify-between">
+        <div className="inline-flex max-w-full items-center gap-2 rounded-full border border-white/10 bg-white/[0.045] px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-muted">
           <ClipboardDocumentListIcon className="h-4 w-4 text-accent" />
           {incidentCode}
         </div>
         <span
-          className={`rounded-full border px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.2em] ${priorityClasses}`}
+          className={`rounded-full border px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.16em] ${priorityClasses}`}
         >
           {priorityLabel}
         </span>
       </div>
 
-      <div className="flex items-start gap-3">
-        <div className={`shrink-0 rounded-2xl p-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.06)] ${emergencyMeta.iconClasses}`}>
+      <div className="flex min-w-0 flex-col gap-3 sm:flex-row sm:items-start">
+        <div className={`w-fit shrink-0 rounded-2xl p-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.06)] ${emergencyMeta.iconClasses}`}>
           <EmergencyIcon className="h-5 w-5" />
         </div>
 
         <div className="min-w-0 flex-1">
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-            <div className="min-w-0">
-              <p className="text-[11px] uppercase tracking-[0.26em] text-muted">
+          <div className="flex min-w-0 flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+            <div className="min-w-0 flex-1">
+              <p className="text-[11px] uppercase tracking-[0.22em] text-muted">
                 {heroCopy}
               </p>
-              <h3 className="mt-1 break-words text-lg font-semibold leading-6 text-ink">
+              <h3 className="mt-1 text-lg font-semibold leading-6 text-ink [overflow-wrap:normal] [word-break:normal]">
                 {formatAlertName(alert)}
               </h3>
-              <div className="mt-2 flex flex-wrap items-center gap-2">
+              <div className="mt-2 flex min-w-0 flex-wrap items-center gap-2">
                 <span
-                  className={`rounded-full px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] ${emergencyMeta.chipClasses}`}
+                  className={`max-w-full rounded-full px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.14em] ${emergencyMeta.chipClasses}`}
                 >
                   {emergencyMeta.label}
                 </span>
                 {alertTime ? (
-                  <span className="inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-white/[0.045] px-3 py-1 text-[11px] font-medium text-muted">
+                  <span className="inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full border border-white/10 bg-white/[0.045] px-3 py-1 text-[11px] font-medium text-muted">
                     <ClockIcon className="h-3.5 w-3.5" />
                     {alertTime}
                   </span>
@@ -191,7 +191,7 @@ export function SosAlertCard({
 
             <div className="flex shrink-0 items-start sm:items-end">
               <span
-                className={`rounded-full px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.22em] ${statusMeta.classes} ${
+                className={`rounded-full px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.16em] ${statusMeta.classes} ${
                   isActive && !isResponding ? "animate-pulse" : ""
                 }`}
               >
@@ -202,9 +202,9 @@ export function SosAlertCard({
         </div>
       </div>
 
-      <div className="mt-5 flex items-center justify-between gap-3 border-t border-white/8 pt-4">
-        <div>
-          <p className="text-[11px] uppercase tracking-[0.24em] text-muted">
+      <div className="mt-5 flex flex-col gap-3 border-t border-white/8 pt-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="min-w-0">
+          <p className="text-[11px] uppercase tracking-[0.2em] text-muted">
             Datos operativos
           </p>
           <p className="mt-1 text-sm text-muted">
@@ -216,9 +216,9 @@ export function SosAlertCard({
         </span>
       </div>
 
-      <div className="mt-5 grid gap-3 sm:grid-cols-2">
+      <div className="mt-5 grid min-w-0 grid-cols-1 gap-3 sm:grid-cols-2">
         <div className={`rounded-2xl border px-4 py-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.05)] ${emergencyMeta.panelClasses}`}>
-          <p className="text-[11px] uppercase tracking-[0.24em] text-muted">
+          <p className="text-[11px] uppercase tracking-[0.18em] text-muted">
             Tipo de emergencia
           </p>
           <p className="mt-1 break-words text-sm font-semibold text-ink">
@@ -227,7 +227,7 @@ export function SosAlertCard({
         </div>
 
         <div className="rounded-2xl border border-white/10 bg-white/[0.045] px-4 py-3">
-          <p className="text-[11px] uppercase tracking-[0.24em] text-muted">
+          <p className="text-[11px] uppercase tracking-[0.18em] text-muted">
             Moto / modelo
           </p>
           <p className="mt-1 break-words text-sm font-medium text-ink">
@@ -236,7 +236,7 @@ export function SosAlertCard({
         </div>
 
         <div className="rounded-2xl border border-white/10 bg-white/[0.045] px-4 py-3">
-          <p className="flex items-center gap-1.5 text-[11px] uppercase tracking-[0.24em] text-muted">
+          <p className="flex items-center gap-1.5 text-[11px] uppercase tracking-[0.18em] text-muted">
             <MapPinIcon className="h-3.5 w-3.5 text-accent" />
             Ciudad
           </p>
@@ -246,7 +246,7 @@ export function SosAlertCard({
         </div>
 
         <div className="rounded-2xl border border-white/10 bg-white/[0.045] px-4 py-3">
-          <p className="flex items-center gap-1.5 text-[11px] uppercase tracking-[0.24em] text-muted">
+          <p className="flex items-center gap-1.5 text-[11px] uppercase tracking-[0.18em] text-muted">
             <PhoneIcon className="h-3.5 w-3.5 text-accent" />
             Contacto
           </p>
@@ -257,13 +257,13 @@ export function SosAlertCard({
       </div>
 
       <div className="mt-3 rounded-2xl border border-accent/18 bg-accent/8 px-4 py-3 shadow-[0_0_26px_rgba(32,211,238,0.08)]">
-        <div className="flex items-center justify-between gap-3">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex min-w-0 items-center gap-2">
             <div className="rounded-xl bg-accent/12 p-2 text-accent">
               <UserGroupIcon className="h-4 w-4" />
             </div>
             <div className="min-w-0">
-              <p className="text-[11px] uppercase tracking-[0.24em] text-muted">
+              <p className="text-[11px] uppercase tracking-[0.18em] text-muted">
                 Apoyo en camino
               </p>
               <p className="mt-1 text-sm font-semibold text-ink">
@@ -272,7 +272,7 @@ export function SosAlertCard({
             </div>
           </div>
           {isResponding ? (
-            <span className="shrink-0 rounded-full border border-accent/25 bg-accent/12 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.2em] text-accent">
+            <span className="w-fit shrink-0 rounded-full border border-accent/25 bg-accent/12 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.16em] text-accent">
               Tu respuesta
             </span>
           ) : null}
@@ -287,7 +287,7 @@ export function SosAlertCard({
 
       <div className="mt-3 grid gap-3">
         <div className="rounded-2xl border border-white/10 bg-white/[0.045] px-4 py-3">
-          <p className="text-[11px] uppercase tracking-[0.24em] text-muted">
+          <p className="text-[11px] uppercase tracking-[0.18em] text-muted">
             Ubicacion
           </p>
           <p className="mt-1 break-words text-sm font-medium tracking-[0.05em] text-ink">
@@ -296,7 +296,7 @@ export function SosAlertCard({
         </div>
 
         <div className="rounded-2xl border border-white/10 bg-white/[0.045] px-4 py-3">
-          <p className="text-[11px] uppercase tracking-[0.24em] text-muted">
+          <p className="text-[11px] uppercase tracking-[0.18em] text-muted">
             {detailLabel}
           </p>
           <p
@@ -320,7 +320,7 @@ export function SosAlertCard({
 
         {alert.medical_summary ? (
           <div className="rounded-2xl border border-danger/20 bg-danger/10 px-4 py-3">
-            <p className="text-[11px] uppercase tracking-[0.24em] text-danger">
+            <p className="text-[11px] uppercase tracking-[0.18em] text-danger">
               Ficha medica compartida
             </p>
             <p className="mt-1 break-words text-sm leading-6 text-ink">
@@ -331,12 +331,12 @@ export function SosAlertCard({
       </div>
 
       <div className="mt-5 rounded-[1.35rem] border border-white/10 bg-black/18 p-3">
-        <div className="mb-3 flex items-center justify-between gap-3">
-          <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-muted">
+        <div className="mb-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted">
             Acciones de respuesta
           </p>
           {responseCount > 0 ? (
-            <span className="rounded-full border border-accent/25 bg-accent/10 px-3 py-1 text-[11px] font-semibold text-accent">
+            <span className="w-fit rounded-full border border-accent/25 bg-accent/10 px-3 py-1 text-[11px] font-semibold text-accent">
               {responseCount} en camino
             </span>
           ) : null}

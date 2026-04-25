@@ -20,7 +20,7 @@ import {
 } from "@heroicons/react/24/solid";
 
 export default function HomePage() {
-  const { alerts, activeRiders, activeSosAlert, latestPosition, profile } =
+  const { alerts, activeRiders, activeSosAlert, latestPosition, profile, sosFeedback } =
     useRoutePresence();
   const visibleRiders = activeRiders
     .filter((rider) => rider.id !== profile?.id)
@@ -139,31 +139,43 @@ export default function HomePage() {
             <div className="mt-5 flex justify-center">
               <SosButton />
             </div>
-            <p className="mx-auto mt-5 max-w-sm text-sm leading-6 text-muted">
-              El boton SOS enviara tu ubicacion actual, cambiara tu estado a
-              emergencia y reflejara la alerta en el mapa comunitario.
-            </p>
-            {activeSosAlert ? (
-              <div className="mt-5 rounded-[1.5rem] border border-danger/30 bg-danger/12 p-4 text-left shadow-[0_0_30px_rgba(239,68,68,0.12)]">
-                <div className="flex items-start justify-between gap-3">
-                  <div>
-                    <p className="text-xs uppercase tracking-[0.28em] text-danger">
-                      SOS activo
-                    </p>
-                    <p className="mt-2 text-base font-semibold text-ink">
-                      {profile?.full_name || profile?.username || "Tu perfil"} esta en emergencia activa
-                    </p>
-                  </div>
-                  <span className="rounded-full border border-danger/30 bg-danger/15 px-3 py-1 text-xs font-semibold text-danger">
-                    En vivo
-                  </span>
+
+            <div
+              className={`mx-auto mt-5 max-w-md rounded-[1.5rem] border p-4 text-left shadow-[0_0_30px_rgba(239,68,68,0.10)] ${
+                activeSosAlert || sosFeedback
+                  ? "border-danger/30 bg-danger/12"
+                  : "border-white/10 bg-white/[0.045]"
+              }`}
+            >
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0">
+                  <p
+                    className={`text-[11px] uppercase tracking-[0.22em] ${
+                      activeSosAlert || sosFeedback ? "text-danger" : "text-muted"
+                    }`}
+                  >
+                    Estado SOS
+                  </p>
+                  <p className="mt-2 break-words text-base font-semibold text-ink">
+                    {profile?.full_name || profile?.username || "Tu perfil"}
+                  </p>
                 </div>
-                <p className="mt-3 text-sm leading-6 text-muted">
-                  Tus companeros veran la alerta en mapa y actividad hasta que
-                  la marques como resuelta.
-                </p>
+                <span
+                  className={`shrink-0 rounded-full border px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.16em] ${
+                    activeSosAlert || sosFeedback
+                      ? "border-danger/30 bg-danger/15 text-danger"
+                      : "border-white/10 bg-white/[0.045] text-muted"
+                  }`}
+                >
+                  {activeSosAlert || sosFeedback ? "En vivo" : "Listo"}
+                </span>
               </div>
-            ) : null}
+              <p className="mt-3 text-sm leading-6 text-muted">
+                {activeSosAlert || sosFeedback
+                  ? "Tu ubicacion ya fue compartida y la alerta esta visible para la comunidad."
+                  : "Pulsa el boton solo si necesitas ayuda inmediata en ruta."}
+              </p>
+            </div>
           </div>
         </div>
       </section>

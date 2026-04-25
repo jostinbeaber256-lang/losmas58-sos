@@ -116,7 +116,7 @@ export function AlertPreview({
         </div>
       ) : null}
 
-      <div className="relative mt-5 grid gap-4 xl:grid-cols-2">
+      <div className="relative mt-5 grid min-w-0 grid-cols-1 gap-4 xl:grid-cols-2">
         {filteredAlerts.map((alert) => (
           <SosAlertCard key={alert.id} alert={alert} compact={!expanded && !filterable} />
         ))}

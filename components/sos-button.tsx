@@ -3,7 +3,6 @@
 import { useEffect, useState } from "react";
 import {
   CheckCircleIcon,
-  ExclamationTriangleIcon,
   ShieldExclamationIcon,
   XMarkIcon
 } from "@heroicons/react/24/solid";
@@ -67,24 +66,13 @@ export function SosButton() {
     latestPosition,
     sosLoading,
     error,
-    sosFeedback,
     activeSosAlert,
     triggerSos,
-    clearSosFeedback
   } = useRoutePresence();
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [selectedType, setSelectedType] = useState<string | null>(null);
   const [otherDetails, setOtherDetails] = useState("");
   const variant = ACTIVE_VARIANT;
-
-  useEffect(() => {
-    if (!sosFeedback) {
-      return;
-    }
-
-    const timeout = setTimeout(() => clearSosFeedback(), 5000);
-    return () => clearTimeout(timeout);
-  }, [clearSosFeedback, sosFeedback]);
 
   useEffect(() => {
     if (!confirmOpen) {
@@ -157,34 +145,7 @@ export function SosButton() {
             </span>
           </div>
         </button>
-
-        {activeSosAlert ? (
-          <div className="absolute -bottom-3 left-1/2 w-[92%] -translate-x-1/2 rounded-2xl border border-danger/30 bg-danger/15 px-4 py-3 text-left backdrop-blur-xl">
-            <p className="text-xs uppercase tracking-[0.28em] text-danger">
-              Emergencia activa
-            </p>
-            <p className="mt-1 text-sm font-medium text-ink">
-              Tu alerta ya esta visible en el mapa comunitario.
-            </p>
-          </div>
-        ) : null}
       </div>
-
-      {sosFeedback ? (
-        <div className="rounded-[1.75rem] border border-danger/30 bg-[linear-gradient(180deg,rgba(255,77,109,.2),rgba(91,11,29,.35))] p-4 text-left shadow-sos">
-          <div className="flex items-start gap-3">
-            <div className="rounded-2xl bg-white/10 p-2 text-white">
-              <ExclamationTriangleIcon className="h-5 w-5" />
-            </div>
-            <div>
-              <p className="text-xs uppercase tracking-[0.28em] text-danger">
-                Alerta enviada
-              </p>
-              <p className="mt-1 text-sm font-medium text-ink">{sosFeedback}</p>
-            </div>
-          </div>
-        </div>
-      ) : null}
 
       {confirmOpen ? (
         <div className="fixed inset-0 z-50 flex items-end bg-black/75">
