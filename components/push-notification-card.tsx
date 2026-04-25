@@ -6,6 +6,13 @@ import { useRoutePresence } from "@/components/providers/route-presence-provider
 import { createClient } from "@/lib/supabase/browser";
 
 type PushStatus = "idle" | "loading" | "enabled" | "denied" | "error";
+type PushStep =
+  | "idle"
+  | "registering"
+  | "permission"
+  | "subscribing"
+  | "saving"
+  | "done";
 
 function urlBase64ToUint8Array(value: string) {
   const padding = "=".repeat((4 - (value.length % 4)) % 4);
@@ -34,10 +41,12 @@ export function PushNotificationCard() {
   const { currentUserId, isAuthenticated } = useRoutePresence();
   const [supabase] = useState(createClient);
   const [status, setStatus] = useState<PushStatus>("idle");
+  const [step, setStep] = useState<PushStep>("idle");
   const [message, setMessage] = useState<string | null>(null);
 
   async function handleEnablePush() {
     setStatus("loading");
+    setStep("registering");
     setMessage(null);
 
     if (!isAuthenticated || !currentUserId) {
@@ -46,8 +55,13 @@ export function PushNotificationCard() {
       return;
     }
 
-    if (!("serviceWorker" in navigator) || !("PushManager" in window)) {
+    if (
+      !("serviceWorker" in navigator) ||
+      !("PushManager" in window) ||
+      !("Notification" in window)
+    ) {
       setStatus("error");
+      setStep("idle");
       setMessage("Este navegador no soporta notificaciones push web.");
       return;
     }
@@ -56,20 +70,39 @@ export function PushNotificationCard() {
 
     if (!vapidPublicKey) {
       setStatus("error");
+      setStep("idle");
       setMessage("Falta configurar NEXT_PUBLIC_VAPID_PUBLIC_KEY.");
       return;
     }
 
-    const permission = await Notification.requestPermission();
-
-    if (permission !== "granted") {
-      setStatus("denied");
-      setMessage("Permiso denegado. Puedes activarlo luego desde ajustes del navegador.");
-      return;
-    }
-
     try {
-      const registration = await navigator.serviceWorker.register("/sw.js");
+      setMessage("Registrando service worker...");
+      await navigator.serviceWorker.register("/sw.js", {
+        scope: "/"
+      });
+
+      const registration = await navigator.serviceWorker.ready;
+
+      if (!registration.active) {
+        setStatus("error");
+        setStep("idle");
+        setMessage("El service worker aun no esta activo. Intenta nuevamente en unos segundos.");
+        return;
+      }
+
+      setStep("permission");
+      setMessage("Service worker activo. Solicitando permiso...");
+      const permission = await Notification.requestPermission();
+
+      if (permission !== "granted") {
+        setStatus("denied");
+        setStep("idle");
+        setMessage("Permiso denegado. Puedes activarlo luego desde ajustes del navegador.");
+        return;
+      }
+
+      setStep("subscribing");
+      setMessage("Permiso concedido. Creando suscripcion push...");
       const existingSubscription = await registration.pushManager.getSubscription();
       const subscription =
         existingSubscription ||
@@ -78,6 +111,8 @@ export function PushNotificationCard() {
           applicationServerKey: urlBase64ToUint8Array(vapidPublicKey)
         }));
 
+      setStep("saving");
+      setMessage("Suscripcion creada. Guardando este dispositivo...");
       const { error } = await supabase.from("push_subscriptions").upsert(
         {
           user_id: currentUserId,
@@ -92,14 +127,17 @@ export function PushNotificationCard() {
 
       if (error) {
         setStatus("error");
+        setStep("idle");
         setMessage(error.message);
         return;
       }
 
       setStatus("enabled");
+      setStep("done");
       setMessage("Notificaciones push activadas en este dispositivo.");
     } catch (pushError) {
       setStatus("error");
+      setStep("idle");
       setMessage(
         pushError instanceof Error
           ? pushError.message
@@ -110,7 +148,16 @@ export function PushNotificationCard() {
 
   const statusCopy = {
     idle: "Recibe avisos aunque no estes mirando la app.",
-    loading: "Preparando permisos y suscripcion...",
+    loading:
+      step === "registering"
+        ? "Registrando service worker..."
+        : step === "permission"
+          ? "Esperando permiso del navegador..."
+          : step === "subscribing"
+            ? "Creando suscripcion push..."
+            : step === "saving"
+              ? "Guardando suscripcion..."
+              : "Preparando permisos y suscripcion...",
     enabled: "Push activadas para este dispositivo.",
     denied: "Permiso denegado para este navegador.",
     error: "No se pudo activar push."
