@@ -21,7 +21,7 @@ export function MobileShell({
   const hideNav = pathname.startsWith("/login") || pathname.startsWith("/registro");
 
   return (
-    <div className="safe-px mx-auto min-h-screen w-full max-w-md pb-28 pt-6">
+    <div className="safe-px mx-auto min-h-screen w-full max-w-md pb-28 pt-6 md:max-w-3xl lg:max-w-5xl">
       <AlertToastStack />
 
       <div
@@ -30,9 +30,9 @@ export function MobileShell({
           isHome ? "bg-transparent" : "bg-black/10"
         )}
       >
-        <div className="mb-5 flex items-center justify-between">
+        <div className="mb-5 flex items-center justify-between gap-3">
           <AppBadge />
-          <div className="flex items-center gap-2">
+          <div className="flex shrink-0 items-center gap-2">
             <NotificationCenter />
             <AuthStatus initialSession={session} />
           </div>

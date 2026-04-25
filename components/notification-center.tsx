@@ -12,20 +12,9 @@ import {
 } from "@heroicons/react/24/solid";
 import { useRoutePresence } from "@/components/providers/route-presence-provider";
 import { getEmergencyMeta } from "@/lib/alert-ui";
-import { formatAlertName } from "@/lib/map";
-import type { SosAlert } from "@/lib/types";
+import type { NotificationEvent } from "@/lib/types";
 
-type NotificationKind = "sos" | "response" | "resolved";
-
-type NotificationItem = {
-  id: string;
-  alertId: string;
-  kind: NotificationKind;
-  title: string;
-  subtitle: string;
-  timestamp: string;
-  emergencyType: string | null;
-};
+type NotificationKind = NotificationEvent["kind"];
 
 function formatNotificationTime(value: string) {
   return new Date(value).toLocaleString("es-VE", {
@@ -34,56 +23,6 @@ function formatNotificationTime(value: string) {
     hour: "2-digit",
     minute: "2-digit"
   });
-}
-
-function buildNotifications(alerts: SosAlert[], currentUserId: string | null) {
-  const items: NotificationItem[] = [];
-
-  alerts.forEach((alert) => {
-    const emergencyMeta = getEmergencyMeta(alert.emergency_type);
-    const name = formatAlertName(alert);
-    const city = alert.city ? ` - ${alert.city}` : "";
-
-    if (alert.status === "active" && alert.user_id !== currentUserId) {
-      items.push({
-        id: `sos-${alert.id}`,
-        alertId: alert.id,
-        kind: "sos",
-        title: name,
-        subtitle: `${emergencyMeta.label}${city}`,
-        timestamp: alert.created_at,
-        emergencyType: alert.emergency_type
-      });
-    }
-
-    if ((alert.response_count ?? 0) > 0) {
-      items.push({
-        id: `response-${alert.id}-${alert.response_count}`,
-        alertId: alert.id,
-        kind: "response",
-        title: `${alert.response_count} ${alert.response_count === 1 ? "motero en camino" : "moteros en camino"}`,
-        subtitle: name,
-        timestamp: alert.latest_response_at || alert.created_at,
-        emergencyType: alert.emergency_type
-      });
-    }
-
-    if (alert.status !== "active" && alert.resolved_at) {
-      items.push({
-        id: `resolved-${alert.id}-${alert.resolved_at}`,
-        alertId: alert.id,
-        kind: "resolved",
-        title: alert.status === "cancelled" ? "SOS cancelado" : "SOS resuelto",
-        subtitle: name,
-        timestamp: alert.resolved_at,
-        emergencyType: alert.emergency_type
-      });
-    }
-  });
-
-  return items
-    .sort((left, right) => new Date(right.timestamp).getTime() - new Date(left.timestamp).getTime())
-    .slice(0, 12);
 }
 
 function getNotificationIcon(kind: NotificationKind) {
@@ -99,13 +38,16 @@ function getNotificationIcon(kind: NotificationKind) {
 }
 
 export function NotificationCenter() {
-  const { alerts, currentUserId, isAuthenticated } = useRoutePresence();
+  const { notificationEvents, currentUserId, isAuthenticated } = useRoutePresence();
   const [open, setOpen] = useState(false);
   const [seenIds, setSeenIds] = useState<Set<string>>(new Set());
 
   const notifications = useMemo(
-    () => buildNotifications(alerts, currentUserId),
-    [alerts, currentUserId]
+    () =>
+      notificationEvents
+        .filter((item) => item.kind !== "new_sos" || item.actor_user_id !== currentUserId)
+        .slice(0, 12),
+    [currentUserId, notificationEvents]
   );
 
   const unreadCount = notifications.filter((item) => !seenIds.has(item.id)).length;
@@ -162,7 +104,7 @@ export function NotificationCenter() {
       </button>
 
       {open ? (
-        <div className="notification-panel-enter absolute right-0 top-[3.25rem] z-[80] w-[calc(100vw-2rem)] max-w-[22rem] overflow-hidden rounded-[1.5rem] border border-white/10 bg-[linear-gradient(180deg,rgba(11,18,32,.98),rgba(5,8,22,.98))] shadow-[0_24px_70px_rgba(0,0,0,.45)] backdrop-blur-xl">
+        <div className="notification-panel-enter fixed inset-x-4 top-20 z-[80] mx-auto w-auto max-w-[22rem] overflow-hidden rounded-[1.5rem] border border-white/10 bg-[linear-gradient(180deg,rgba(11,18,32,.98),rgba(5,8,22,.98))] shadow-[0_24px_70px_rgba(0,0,0,.45)] backdrop-blur-xl md:absolute md:inset-x-auto md:right-0 md:top-[3.25rem] md:mx-0 md:w-[22rem]">
           <div className="flex items-center justify-between border-b border-white/8 px-4 py-3">
             <div>
               <p className="text-[11px] uppercase tracking-[0.24em] text-accent">
@@ -183,9 +125,9 @@ export function NotificationCenter() {
           <div className="max-h-[26rem] space-y-2 overflow-y-auto p-3">
             {notifications.length ? (
               notifications.map((item) => {
-                const emergencyMeta = getEmergencyMeta(item.emergencyType);
+                const emergencyMeta = getEmergencyMeta(item.emergency_type);
                 const Icon =
-                  item.kind === "sos" ? emergencyMeta.icon : getNotificationIcon(item.kind);
+                  item.kind === "new_sos" ? emergencyMeta.icon : getNotificationIcon(item.kind);
 
                 return (
                   <article
@@ -215,14 +157,14 @@ export function NotificationCenter() {
                         </p>
                         <div className="mt-3 grid grid-cols-2 gap-2">
                           <Link
-                            href={`/alertas?alerta=${item.alertId}` as Route}
+                            href={`/alertas?alerta=${item.alert_id}` as Route}
                             onClick={() => setOpen(false)}
                             className="inline-flex items-center justify-center rounded-full border border-white/10 bg-white/5 px-3 py-2 text-xs font-semibold text-ink"
                           >
                             Ver alerta
                           </Link>
                           <Link
-                            href={`/mapa?alerta=${item.alertId}` as Route}
+                            href={`/mapa?alerta=${item.alert_id}` as Route}
                             onClick={() => setOpen(false)}
                             className="inline-flex items-center justify-center gap-1 rounded-full border border-accent/25 bg-accent/10 px-3 py-2 text-xs font-semibold text-accent"
                           >

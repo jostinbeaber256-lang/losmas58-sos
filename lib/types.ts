@@ -38,6 +38,17 @@ export type SosResponse = {
   created_at: string;
 };
 
+export type NotificationEvent = {
+  id: string;
+  alert_id: string;
+  kind: "new_sos" | "response" | "resolved";
+  title: string;
+  subtitle: string;
+  timestamp: string;
+  emergency_type: string | null;
+  actor_user_id: string | null;
+};
+
 export type SosPayload = {
   emergencyType: string;
   emergencyDetails?: string | null;

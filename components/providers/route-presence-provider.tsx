@@ -14,6 +14,7 @@ import type {
   Coordinates,
   MedicalProfile,
   MedicalProfileFormValues,
+  NotificationEvent,
   Profile,
   ProfileFormValues,
   SosPayload,
@@ -30,6 +31,7 @@ type RoutePresenceContextValue = {
   medicalProfile: MedicalProfile | null;
   activeRiders: ActiveRider[];
   alerts: SosAlert[];
+  notificationEvents: NotificationEvent[];
   sosAlertEvents: SosAlert[];
   activeSosAlert: SosAlert | null;
   isOnRoute: boolean;
@@ -75,6 +77,14 @@ const responseSelect =
 
 const medicalProfileSelect =
   "user_id, blood_type, allergies, medical_conditions, medications, notes, emergency_contact_name, emergency_contact_phone, secondary_contact_name, secondary_contact_phone, insurance_info, preferred_hospital, show_in_sos, updated_at";
+
+function formatAlertTitle(alert: SosAlert) {
+  return alert.full_name || alert.username || "Motero en emergencia";
+}
+
+function getEmergencyLabel(value: string | null) {
+  return value || "SOS";
+}
 
 function buildSosMessage({
   emergencyType,
@@ -921,6 +931,58 @@ export function RoutePresenceProvider({
   const activeSosAlert =
     alerts.find((alert) => alert.user_id === userId && alert.status === "active") || null;
 
+  const notificationEvents = useMemo<NotificationEvent[]>(() => {
+    const events: NotificationEvent[] = [];
+
+    alerts.forEach((alert) => {
+      const city = alert.city ? ` - ${alert.city}` : "";
+
+      if (alert.status === "active") {
+        events.push({
+          id: `new-sos-${alert.id}`,
+          alert_id: alert.id,
+          kind: "new_sos",
+          title: formatAlertTitle(alert),
+          subtitle: `${getEmergencyLabel(alert.emergency_type)}${city}`,
+          timestamp: alert.created_at,
+          emergency_type: alert.emergency_type,
+          actor_user_id: alert.user_id
+        });
+      }
+
+      if ((alert.response_count ?? 0) > 0) {
+        events.push({
+          id: `response-${alert.id}-${alert.response_count}`,
+          alert_id: alert.id,
+          kind: "response",
+          title: `${alert.response_count} ${alert.response_count === 1 ? "motero en camino" : "moteros en camino"}`,
+          subtitle: formatAlertTitle(alert),
+          timestamp: alert.latest_response_at || alert.created_at,
+          emergency_type: alert.emergency_type,
+          actor_user_id: null
+        });
+      }
+
+      if (alert.status !== "active" && alert.resolved_at) {
+        events.push({
+          id: `resolved-${alert.id}-${alert.resolved_at}`,
+          alert_id: alert.id,
+          kind: "resolved",
+          title: alert.status === "cancelled" ? "SOS cancelado" : "SOS resuelto",
+          subtitle: formatAlertTitle(alert),
+          timestamp: alert.resolved_at,
+          emergency_type: alert.emergency_type,
+          actor_user_id: alert.user_id
+        });
+      }
+    });
+
+    return events.sort(
+      (left, right) =>
+        new Date(right.timestamp).getTime() - new Date(left.timestamp).getTime()
+    );
+  }, [alerts]);
+
   const value = useMemo<RoutePresenceContextValue>(
     () => ({
       isAuthenticated,
@@ -929,6 +991,7 @@ export function RoutePresenceProvider({
       medicalProfile,
       activeRiders,
       alerts,
+      notificationEvents,
       sosAlertEvents,
       activeSosAlert,
       isOnRoute: Boolean(profile?.is_on_route),
@@ -959,6 +1022,7 @@ export function RoutePresenceProvider({
       alertUpdatingId,
       activeSosAlert,
       alerts,
+      notificationEvents,
       sosAlertEvents,
       userId,
       error,

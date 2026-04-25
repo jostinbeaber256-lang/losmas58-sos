@@ -6,27 +6,28 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { BellAlertIcon } from "@heroicons/react/24/solid";
 import { useRoutePresence } from "@/components/providers/route-presence-provider";
 import { getEmergencyMeta } from "@/lib/alert-ui";
-import { formatAlertName } from "@/lib/map";
-import type { SosAlert } from "@/lib/types";
+import type { NotificationEvent } from "@/lib/types";
 
 type ToastAlert = {
   id: string;
+  alertId: string;
   title: string;
   type: string | null;
   city: string | null;
 };
 
-function buildToast(alert: SosAlert): ToastAlert {
+function buildToast(event: NotificationEvent): ToastAlert {
   return {
-    id: alert.id,
-    title: formatAlertName(alert),
-    type: alert.emergency_type,
-    city: alert.city
+    id: event.id,
+    alertId: event.alert_id,
+    title: event.title,
+    type: event.emergency_type,
+    city: event.subtitle.includes(" - ") ? event.subtitle.split(" - ").slice(1).join(" - ") : null
   };
 }
 
 export function AlertToastStack() {
-  const { sosAlertEvents, currentUserId } = useRoutePresence();
+  const { notificationEvents, currentUserId } = useRoutePresence();
   const [toasts, setToasts] = useState<ToastAlert[]>([]);
   const [exitingIds, setExitingIds] = useState<Set<string>>(new Set());
   const seenIdsRef = useRef<Set<string>>(new Set());
@@ -45,20 +46,24 @@ export function AlertToastStack() {
   }, []);
 
   useEffect(() => {
-    const nextToasts = sosAlertEvents
-      .filter((alert) => alert.status === "active")
-      .filter((alert) => !seenIdsRef.current.has(alert.id))
-      .filter((alert) => alert.user_id !== currentUserId)
+    const nextToasts = notificationEvents
+      .filter((event) => event.kind === "new_sos")
+      .filter((event) => !seenIdsRef.current.has(event.id))
+      .filter((event) => event.actor_user_id !== currentUserId)
       .map(buildToast);
 
-    sosAlertEvents.forEach((alert) => seenIdsRef.current.add(alert.id));
+    notificationEvents.forEach((event) => {
+      if (event.kind === "new_sos") {
+        seenIdsRef.current.add(event.id);
+      }
+    });
 
     if (!nextToasts.length) {
       return;
     }
 
     setToasts((current) => [...nextToasts, ...current].slice(0, 3));
-  }, [currentUserId, sosAlertEvents]);
+  }, [currentUserId, notificationEvents]);
 
   useEffect(() => {
     if (!toasts.length) {
@@ -108,14 +113,14 @@ export function AlertToastStack() {
 
                 <div className="mt-3 grid grid-cols-2 gap-2">
                   <Link
-                    href={`/alertas?alerta=${toast.id}` as Route}
+                    href={`/alertas?alerta=${toast.alertId}` as Route}
                     className="inline-flex items-center justify-center rounded-full border border-white/10 bg-white/5 px-3 py-2 text-xs font-semibold text-ink transition hover:border-white/20 hover:bg-white/8"
                     onClick={() => dismissToast(toast.id)}
                   >
                     Ver alerta
                   </Link>
                   <Link
-                    href={`/mapa?alerta=${toast.id}` as Route}
+                    href={`/mapa?alerta=${toast.alertId}` as Route}
                     className="inline-flex items-center justify-center rounded-full border px-3 py-2 text-xs font-semibold transition hover:brightness-110"
                     style={{
                       borderColor: meta.mapRing,
