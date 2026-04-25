@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import {
   CheckCircleIcon,
+  ChevronDownIcon,
   MapPinIcon,
   PhoneIcon,
   ShieldCheckIcon,
@@ -34,6 +35,7 @@ export function ProfileForm() {
   });
   const [initializedProfileId, setInitializedProfileId] = useState<string | null>(null);
   const [isDirty, setIsDirty] = useState(false);
+  const [editOpen, setEditOpen] = useState(false);
 
   function createFormValues() {
     return {
@@ -186,102 +188,140 @@ export function ProfileForm() {
         </div>
       </section>
 
-      <form
-        onSubmit={handleSubmit}
-        className="relative overflow-hidden rounded-[2rem] border border-white/10 bg-[linear-gradient(145deg,rgba(18,27,43,0.95),rgba(8,12,22,0.98))] p-5 shadow-[0_24px_70px_rgba(0,0,0,0.3)] md:p-6"
-      >
+      <section className="relative overflow-hidden rounded-[2rem] border border-white/10 bg-[linear-gradient(145deg,rgba(18,27,43,0.95),rgba(8,12,22,0.98))] p-5 shadow-[0_24px_70px_rgba(0,0,0,0.3)] md:p-6">
         <div className="pointer-events-none absolute -right-24 -top-20 h-52 w-52 rounded-full bg-accent/10 blur-3xl" />
-        <div className="relative space-y-2">
-          <p className="text-xs uppercase tracking-[0.35em] text-accent">
-            Editar perfil
-          </p>
-          <h3 className="text-xl font-semibold text-ink">
-            Datos reales del motero
-          </h3>
-          <p className="text-sm leading-6 text-muted">
-            Esta informacion se usara en perfil, mapa, alertas SOS y presencia en ruta.
-          </p>
+        <div className="relative flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div className="min-w-0">
+            <p className="text-xs uppercase tracking-[0.35em] text-accent">
+              Editar perfil
+            </p>
+            <h3 className="mt-2 text-xl font-semibold text-ink">
+              Datos reales del motero
+            </h3>
+            <p className="mt-2 text-sm leading-6 text-muted">
+              {missingFields.length
+                ? `${completedCount} de ${requiredFields.length} datos completos.`
+                : "Perfil listo: 5 de 5 datos completos."}
+            </p>
+          </div>
+
+          <button
+            type="button"
+            onClick={() => setEditOpen((current) => !current)}
+            className="inline-flex w-full items-center justify-center gap-2 rounded-2xl border border-accent/25 bg-accent/10 px-4 py-3 text-sm font-semibold text-accent transition hover:bg-accent/15 sm:w-auto"
+            aria-expanded={editOpen}
+          >
+            {editOpen ? "Cerrar" : "Editar"}
+            <ChevronDownIcon
+              className={`h-4 w-4 transition-transform duration-200 ${
+                editOpen ? "rotate-180" : ""
+              }`}
+            />
+          </button>
         </div>
 
-        <div className="relative mt-6 grid gap-4 md:grid-cols-2">
-          <label className="block space-y-2">
-            <span className="text-sm font-medium text-muted">Nombre completo</span>
-            <input
-              type="text"
-              value={values.full_name}
-              onChange={(event) => updateField("full_name", event.target.value)}
-              className="w-full rounded-2xl border border-white/10 bg-white/[0.045] px-4 py-3.5 text-ink outline-none transition placeholder:text-muted/60 focus:border-accent/50 focus:bg-accent/8"
-              placeholder="Ej. Jordan Rivas"
-            />
-          </label>
-
-          <label className="block space-y-2">
-            <span className="text-sm font-medium text-muted">Username</span>
-            <input
-              type="text"
-              value={values.username}
-              onChange={(event) => updateField("username", event.target.value)}
-              className="w-full rounded-2xl border border-white/10 bg-white/[0.045] px-4 py-3.5 text-ink outline-none transition placeholder:text-muted/60 focus:border-accent/50 focus:bg-accent/8"
-              placeholder="Ej. jordanrivas"
-            />
-          </label>
-
-          <label className="block space-y-2">
-            <span className="text-sm font-medium text-muted">Moto / modelo</span>
-            <input
-              type="text"
-              value={values.bike_model}
-              onChange={(event) => updateField("bike_model", event.target.value)}
-              className="w-full rounded-2xl border border-white/10 bg-white/[0.045] px-4 py-3.5 text-ink outline-none transition placeholder:text-muted/60 focus:border-accent/50 focus:bg-accent/8"
-              placeholder="Ej. Yamaha Tenere 700"
-            />
-          </label>
-
-          <label className="block space-y-2">
-            <span className="text-sm font-medium text-muted">Ciudad</span>
-            <input
-              type="text"
-              value={values.city}
-              onChange={(event) => updateField("city", event.target.value)}
-              className="w-full rounded-2xl border border-white/10 bg-white/[0.045] px-4 py-3.5 text-ink outline-none transition placeholder:text-muted/60 focus:border-accent/50 focus:bg-accent/8"
-              placeholder="Ej. Caracas"
-            />
-          </label>
-
-          <label className="block space-y-2 md:col-span-2">
-            <span className="text-sm font-medium text-muted">
-              Contacto de emergencia
-            </span>
-            <input
-              type="text"
-              value={values.emergency_contact}
-              onChange={(event) => updateField("emergency_contact", event.target.value)}
-              className="w-full rounded-2xl border border-white/10 bg-white/[0.045] px-4 py-3.5 text-ink outline-none transition placeholder:text-muted/60 focus:border-accent/50 focus:bg-accent/8"
-              placeholder="Ej. Ana Rivas / +58 412 000 0000"
-            />
-          </label>
-        </div>
-
-        {error ? (
-          <p className="relative mt-4 rounded-2xl border border-danger/25 bg-danger/10 px-4 py-3 text-sm text-danger">
-            {error}
-          </p>
-        ) : null}
-
-        {saved ? (
-          <p className="relative mt-4 rounded-2xl border border-accent/25 bg-accent/10 px-4 py-3 text-sm text-accent">
-            {saved}
-          </p>
-        ) : null}
-
-        <button
-          type="submit"
-          disabled={profileSaving}
-          className="relative mt-5 w-full rounded-2xl bg-accent px-4 py-3.5 font-semibold text-background shadow-[0_0_28px_rgba(32,211,238,0.18)] transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-70"
+        <div
+          className={`grid transition-[grid-template-rows,opacity] duration-300 ease-out ${
+            editOpen ? "mt-6 grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0"
+          }`}
         >
-          {profileSaving ? "Guardando..." : isDirty ? "Guardar cambios" : "Perfil guardado"}
-        </button>
-      </form>
+          <div className="overflow-hidden">
+            <form onSubmit={handleSubmit}>
+              <p className="text-sm leading-6 text-muted">
+                Esta informacion se usara en perfil, mapa, alertas SOS y presencia en ruta.
+              </p>
+
+              <div className="relative mt-5 grid gap-4 md:grid-cols-2">
+                <label className="block space-y-2">
+                  <span className="text-sm font-medium text-muted">Nombre completo</span>
+                  <input
+                    type="text"
+                    value={values.full_name}
+                    onChange={(event) => updateField("full_name", event.target.value)}
+                    className="w-full rounded-2xl border border-white/10 bg-white/[0.045] px-4 py-3.5 text-ink outline-none transition placeholder:text-muted/60 focus:border-accent/50 focus:bg-accent/8"
+                    placeholder="Ej. Jordan Rivas"
+                  />
+                </label>
+
+                <label className="block space-y-2">
+                  <span className="text-sm font-medium text-muted">Username</span>
+                  <input
+                    type="text"
+                    value={values.username}
+                    onChange={(event) => updateField("username", event.target.value)}
+                    className="w-full rounded-2xl border border-white/10 bg-white/[0.045] px-4 py-3.5 text-ink outline-none transition placeholder:text-muted/60 focus:border-accent/50 focus:bg-accent/8"
+                    placeholder="Ej. jordanrivas"
+                  />
+                </label>
+
+                <label className="block space-y-2">
+                  <span className="text-sm font-medium text-muted">Moto / modelo</span>
+                  <input
+                    type="text"
+                    value={values.bike_model}
+                    onChange={(event) => updateField("bike_model", event.target.value)}
+                    className="w-full rounded-2xl border border-white/10 bg-white/[0.045] px-4 py-3.5 text-ink outline-none transition placeholder:text-muted/60 focus:border-accent/50 focus:bg-accent/8"
+                    placeholder="Ej. Yamaha Tenere 700"
+                  />
+                </label>
+
+                <label className="block space-y-2">
+                  <span className="text-sm font-medium text-muted">Ciudad</span>
+                  <input
+                    type="text"
+                    value={values.city}
+                    onChange={(event) => updateField("city", event.target.value)}
+                    className="w-full rounded-2xl border border-white/10 bg-white/[0.045] px-4 py-3.5 text-ink outline-none transition placeholder:text-muted/60 focus:border-accent/50 focus:bg-accent/8"
+                    placeholder="Ej. Caracas"
+                  />
+                </label>
+
+                <label className="block space-y-2 md:col-span-2">
+                  <span className="text-sm font-medium text-muted">
+                    Contacto de emergencia
+                  </span>
+                  <input
+                    type="text"
+                    value={values.emergency_contact}
+                    onChange={(event) => updateField("emergency_contact", event.target.value)}
+                    className="w-full rounded-2xl border border-white/10 bg-white/[0.045] px-4 py-3.5 text-ink outline-none transition placeholder:text-muted/60 focus:border-accent/50 focus:bg-accent/8"
+                    placeholder="Ej. Ana Rivas / +58 412 000 0000"
+                  />
+                </label>
+              </div>
+
+              {error ? (
+                <p className="relative mt-4 rounded-2xl border border-danger/25 bg-danger/10 px-4 py-3 text-sm text-danger">
+                  {error}
+                </p>
+              ) : null}
+
+              {saved ? (
+                <p className="relative mt-4 rounded-2xl border border-accent/25 bg-accent/10 px-4 py-3 text-sm text-accent">
+                  {saved}
+                </p>
+              ) : null}
+
+              <div className="mt-5 grid gap-3 sm:grid-cols-[1fr_auto]">
+                <button
+                  type="submit"
+                  disabled={profileSaving}
+                  className="relative w-full rounded-2xl bg-accent px-4 py-3.5 font-semibold text-background shadow-[0_0_28px_rgba(32,211,238,0.18)] transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-70"
+                >
+                  {profileSaving ? "Guardando..." : isDirty ? "Guardar cambios" : "Perfil guardado"}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setEditOpen(false)}
+                  className="rounded-2xl border border-white/10 bg-white/[0.045] px-4 py-3.5 font-semibold text-muted transition hover:border-accent/30 hover:text-accent"
+                >
+                  Cerrar
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </section>
     </>
   );
 }
