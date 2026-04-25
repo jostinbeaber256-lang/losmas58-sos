@@ -165,6 +165,26 @@ function buildSosMedicalSummary(medicalProfile: MedicalProfile | null) {
   return parts.length > 0 ? parts.join(" | ") : null;
 }
 
+async function notifyPushEvent({
+  type,
+  alertId
+}: {
+  type: "new_sos" | "response" | "resolved";
+  alertId: string;
+}) {
+  try {
+    await fetch("/api/push/events", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({ type, alertId })
+    });
+  } catch (pushError) {
+    console.warn("No se pudo disparar la notificacion push.", pushError);
+  }
+}
+
 export function RoutePresenceProvider({
   children,
   session
@@ -419,6 +439,10 @@ export function RoutePresenceProvider({
 
     setAlertUpdatingId(null);
     await loadActiveRiders();
+    await notifyPushEvent({
+      type: "resolved",
+      alertId
+    });
     return true;
   }
 
@@ -682,6 +706,10 @@ export function RoutePresenceProvider({
         `SOS enviado por ${emergencyType.toLowerCase()}. Tu ubicacion fue compartida con la comunidad.`
       );
       startTracking();
+      await notifyPushEvent({
+        type: "new_sos",
+        alertId: data.id
+      });
       return true;
     } catch (sosError) {
       const messageText =
@@ -759,6 +787,10 @@ export function RoutePresenceProvider({
       return exists ? current : [...current, data];
     });
     setResponseSubmittingAlertId(null);
+    await notifyPushEvent({
+      type: "response",
+      alertId
+    });
     return true;
   }
 
