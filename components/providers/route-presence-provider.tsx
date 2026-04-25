@@ -64,7 +64,7 @@ type RoutePresenceContextValue = {
 const RoutePresenceContext = createContext<RoutePresenceContextValue | null>(null);
 
 const profileSelect =
-  "id, username, full_name, bike_model, city, emergency_contact, is_on_route, emergency_state, latitude, longitude, location_updated_at, sharing_started_at, updated_at";
+  "id, username, full_name, bike_model, city, emergency_contact, is_admin, is_on_route, emergency_state, latitude, longitude, location_updated_at, sharing_started_at, updated_at";
 
 const riderSelect =
   "id, username, full_name, bike_model, city, emergency_contact, emergency_state, latitude, longitude, is_on_route, location_updated_at";

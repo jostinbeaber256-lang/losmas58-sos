@@ -66,6 +66,7 @@ export type Profile = {
   bike_model: string | null;
   city: string | null;
   emergency_contact: string | null;
+  is_admin: boolean;
   is_on_route: boolean;
   emergency_state: "normal" | "emergency";
   latitude: number | null;

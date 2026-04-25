@@ -7,6 +7,7 @@ create table if not exists public.profiles (
   emergency_contact text,
   is_on_route boolean not null default false,
   emergency_state text not null default 'normal' check (emergency_state in ('normal', 'emergency')),
+  is_admin boolean not null default false,
   latitude double precision,
   longitude double precision,
   location_updated_at timestamptz,
@@ -80,6 +81,7 @@ alter table public.profiles add column if not exists longitude double precision;
 alter table public.profiles add column if not exists location_updated_at timestamptz;
 alter table public.profiles add column if not exists sharing_started_at timestamptz;
 alter table public.profiles add column if not exists emergency_state text not null default 'normal';
+alter table public.profiles add column if not exists is_admin boolean not null default false;
 alter table public.sos_alerts add column if not exists city text;
 alter table public.sos_alerts add column if not exists emergency_contact text;
 alter table public.sos_alerts add column if not exists emergency_type text;
