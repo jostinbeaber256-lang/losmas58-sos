@@ -2,7 +2,6 @@
 
 import { useEffect, useMemo } from "react";
 import L from "leaflet";
-import "leaflet.markercluster";
 import { MapContainer, Marker, Popup, TileLayer, useMap } from "react-leaflet";
 import type { ActiveRider, Coordinates, SosAlert } from "@/lib/types";
 import { getEmergencyMeta } from "@/lib/alert-ui";
@@ -15,6 +14,10 @@ import {
   formatRiderName,
   getDistanceKm
 } from "@/lib/map";
+
+type FocusedMarker = {
+  openPopup: () => void;
+};
 
 function formatPopupTime(value: string | null) {
   if (!value) {
@@ -88,15 +91,6 @@ function createAlertIcon(type: string | null, isFocused = false) {
   });
 }
 
-function createClusterIcon(count: number) {
-  return L.divIcon({
-    className: "",
-    html: `<div style="display:flex;align-items:center;justify-content:center;width:42px;height:42px;border-radius:999px;background:rgba(11,18,32,.94);border:2px solid rgba(0,229,168,.4);box-shadow:0 0 24px rgba(0,229,168,.22);color:#e6eefc;font-weight:700;">${count}</div>`,
-    iconSize: [42, 42],
-    iconAnchor: [21, 21]
-  });
-}
-
 function buildAlertPopup(alert: SosAlert, distance: number | null) {
   const meta = getEmergencyMeta(alert.emergency_type);
   const timeLabel = formatPopupTime(alert.created_at);
@@ -159,7 +153,7 @@ function buildAlertPopup(alert: SosAlert, distance: number | null) {
   `;
 }
 
-function ClusterLayer({
+function MarkerLayer({
   latestPosition,
   visibleRiders,
   emergencyAlerts,
@@ -173,19 +167,12 @@ function ClusterLayer({
   const map = useMap();
 
   useEffect(() => {
-    let focusedMarker: L.Marker | null = null;
-    const clusterGroup = L.markerClusterGroup({
-      showCoverageOnHover: false,
-      spiderfyOnMaxZoom: true,
-      maxClusterRadius: 42,
-      iconCreateFunction(cluster) {
-        return createClusterIcon(cluster.getChildCount());
-      }
-    });
+    let focusedMarker: FocusedMarker | null = null;
+    const markerLayer = L.layerGroup();
 
-    visibleRiders.forEach((rider) => {
+    for (const rider of visibleRiders) {
       if (rider.latitude === null || rider.longitude === null) {
-        return;
+        continue;
       }
 
       const distance = getDistanceKm(latestPosition, {
@@ -199,10 +186,10 @@ function ClusterLayer({
         `<div class="alert-popup"><div class="alert-popup__header"><span class="alert-popup__type">Companero</span><span class="alert-popup__status">${rider.emergency_state === "emergency" ? "SOS" : "Activo"}</span></div><div class="alert-popup__name">${formatRiderName(rider)}</div><div class="alert-popup__body"><p>${rider.bike_model || "Moto no registrada"}</p><p><strong>Ciudad:</strong> ${rider.city || "Ciudad no registrada"}</p></div><div class="alert-popup__distance">${formatDistanceKm(distance)}</div></div>`
       );
 
-      clusterGroup.addLayer(marker);
-    });
+      markerLayer.addLayer(marker);
+    }
 
-    emergencyAlerts.forEach((alert) => {
+    for (const alert of emergencyAlerts) {
       const distance = getDistanceKm(latestPosition, {
         latitude: alert.latitude,
         longitude: alert.longitude
@@ -217,19 +204,19 @@ function ClusterLayer({
         focusedMarker = marker;
       }
 
-      clusterGroup.addLayer(marker);
-    });
+      markerLayer.addLayer(marker);
+    }
 
-    map.addLayer(clusterGroup);
+    map.addLayer(markerLayer);
 
-    if (focusedMarker) {
-      clusterGroup.zoomToShowLayer(focusedMarker, () => {
-        focusedMarker?.openPopup();
-      });
+    const markerToOpen: FocusedMarker | null = focusedMarker;
+
+    if (markerToOpen) {
+      ;(markerToOpen as any).openPopup();
     }
 
     return () => {
-      map.removeLayer(clusterGroup);
+      map.removeLayer(markerLayer);
     };
   }, [emergencyAlerts, focusedAlertId, latestPosition, map, visibleRiders]);
 
@@ -297,7 +284,7 @@ export function LeafletMapCanvas({
       />
 
       <RecenterMap position={focusedPosition || latestPosition} />
-      <ClusterLayer
+      <MarkerLayer
         latestPosition={latestPosition}
         visibleRiders={visibleRiders}
         emergencyAlerts={emergencyAlerts}
