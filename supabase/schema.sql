@@ -58,6 +58,7 @@ create table if not exists public.push_subscriptions (
   endpoint text not null,
   p256dh text not null,
   auth text not null,
+  user_agent text,
   platform text,
   enabled boolean not null default true,
   created_at timestamptz not null default now(),
@@ -84,6 +85,7 @@ alter table public.sos_alerts add column if not exists emergency_contact text;
 alter table public.sos_alerts add column if not exists emergency_type text;
 alter table public.sos_alerts add column if not exists emergency_details text;
 alter table public.sos_alerts add column if not exists medical_summary text;
+alter table public.push_subscriptions add column if not exists user_agent text;
 
 alter table public.profiles enable row level security;
 alter table public.sos_alerts enable row level security;
@@ -172,6 +174,9 @@ on public.push_subscriptions
 for update
 using (auth.uid() = user_id)
 with check (auth.uid() = user_id);
+
+create unique index if not exists push_subscriptions_endpoint_idx
+on public.push_subscriptions (endpoint);
 
 drop policy if exists "Authenticated users can view sos responses" on public.sos_responses;
 create policy "Authenticated users can view sos responses"
