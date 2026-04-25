@@ -1,5 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
-import { sendPushNotification, type PushType } from "@/lib/push/send";
+import type { PushType } from "@/lib/push/send";
+import { sendPushForSosEvent } from "@/lib/push/events";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 
@@ -8,16 +9,6 @@ export const runtime = "nodejs";
 type PushEventBody = {
   type: PushType;
   alertId: string;
-};
-
-type AlertRecord = {
-  id: string;
-  user_id: string;
-  full_name: string | null;
-  username: string | null;
-  city: string | null;
-  emergency_type: string | null;
-  status: "active" | "resolved" | "cancelled";
 };
 
 type ResponseRecord = {
@@ -48,22 +39,6 @@ function validateBody(value: unknown): PushEventBody | null {
   };
 }
 
-function getRiderName(alert: AlertRecord) {
-  return alert.full_name || alert.username || "Motero en emergencia";
-}
-
-function getEmergencyLabel(alert: AlertRecord) {
-  return alert.emergency_type || "SOS";
-}
-
-function getCityText(alert: AlertRecord) {
-  return alert.city ? ` en ${alert.city}` : "";
-}
-
-function unique(values: string[]) {
-  return Array.from(new Set(values));
-}
-
 export async function POST(request: NextRequest) {
   const supabase = await createClient();
   const {
@@ -81,14 +56,24 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Invalid push event" }, { status: 400 });
   }
 
+  console.log("[push:event-route] Received push event request", {
+    type: body.type,
+    alertId: body.alertId,
+    actorUserId: user.id
+  });
+
   const admin = createAdminClient();
   const { data: alert, error: alertError } = await admin
     .from("sos_alerts")
-    .select("id, user_id, full_name, username, city, emergency_type, status")
+    .select("id, user_id, status")
     .eq("id", body.alertId)
-    .single<AlertRecord>();
+    .single<{ id: string; user_id: string; status: "active" | "resolved" | "cancelled" }>();
 
   if (alertError || !alert) {
+    console.error("[push:event-route] Alert not found", {
+      alertId: body.alertId,
+      error: alertError?.message
+    });
     return NextResponse.json({ error: "Alert not found" }, { status: 404 });
   }
 
@@ -97,15 +82,13 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
-    const result = await sendPushNotification({
+    const result = await sendPushForSosEvent({
       type: "new_sos",
-      title: "Nuevo SOS en Los+58",
-      body: `${getRiderName(alert)} reporto ${getEmergencyLabel(alert)}${getCityText(alert)}.`,
-      url: `/alertas?alerta=${alert.id}`,
-      excludeUserId: alert.user_id
+      alertId: alert.id,
+      actorUserId: user.id
     });
 
-    return NextResponse.json({ ok: true, ...result });
+    return NextResponse.json(result);
   }
 
   if (body.type === "response") {
@@ -124,50 +107,25 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Response not found" }, { status: 404 });
     }
 
-    const helperName = response.helper_name || "Un motero";
-    const result = await sendPushNotification({
+    const result = await sendPushForSosEvent({
       type: "response",
-      title: "Van en camino",
-      body: `${helperName} respondio a tu SOS.`,
-      url: `/alertas?alerta=${alert.id}`,
-      recipientUserIds: [alert.user_id]
+      alertId: alert.id,
+      actorUserId: user.id,
+      helperName: response.helper_name
     });
 
-    return NextResponse.json({ ok: true, ...result });
+    return NextResponse.json(result);
   }
 
   if (alert.user_id !== user.id || alert.status === "active") {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
-  const { data: responses, error: responsesError } = await admin
-    .from("sos_responses")
-    .select("helper_user_id, helper_name")
-    .eq("sos_alert_id", alert.id)
-    .eq("status", "on_the_way")
-    .returns<ResponseRecord[]>();
-
-  if (responsesError) {
-    return NextResponse.json({ error: responsesError.message }, { status: 500 });
-  }
-
-  const recipientUserIds = unique(
-    (responses ?? [])
-      .map((response) => response.helper_user_id)
-      .filter((helperUserId) => helperUserId !== user.id)
-  );
-
-  if (!recipientUserIds.length) {
-    return NextResponse.json({ ok: true, sent: 0, deleted: 0, failed: 0, total: 0 });
-  }
-
-  const result = await sendPushNotification({
+  const result = await sendPushForSosEvent({
     type: "resolved",
-    title: alert.status === "cancelled" ? "SOS cancelado" : "SOS resuelto",
-    body: `${getRiderName(alert)} cerro la alerta ${getEmergencyLabel(alert)}.`,
-    url: `/alertas?alerta=${alert.id}`,
-    recipientUserIds
+    alertId: alert.id,
+    actorUserId: user.id
   });
 
-  return NextResponse.json({ ok: true, ...result });
+  return NextResponse.json(result);
 }

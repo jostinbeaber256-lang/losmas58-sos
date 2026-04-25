@@ -68,7 +68,7 @@ export function AlertPreview({
   };
 
   return (
-    <section className="relative overflow-hidden rounded-[1.9rem] border border-white/10 bg-[radial-gradient(circle_at_100%_0%,rgba(255,77,109,0.12),transparent_30%),linear-gradient(145deg,rgba(18,27,43,0.95),rgba(8,12,22,0.98))] p-5 shadow-[0_24px_70px_rgba(0,0,0,0.3)] md:p-6">
+    <section className="los-card md:p-6">
       <div className="pointer-events-none absolute -right-24 -top-16 h-52 w-52 rounded-full bg-danger/12 blur-3xl" />
       <div className="relative flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div>
@@ -82,7 +82,7 @@ export function AlertPreview({
               : "Sin emergencias activas ahora mismo"}
           </p>
         </div>
-        <span className="inline-flex items-center gap-2 rounded-full border border-danger/25 bg-danger/10 px-3 py-1 text-sm font-semibold text-danger">
+        <span className="los-chip los-chip-danger">
           <BellAlertIcon className="h-4 w-4" />
           {alerts.length} total
         </span>
@@ -122,7 +122,7 @@ export function AlertPreview({
         ))}
 
         {!filteredAlerts.length ? (
-          <div className="rounded-[1.6rem] border border-dashed border-white/12 bg-white/[0.035] px-5 py-8 text-center xl:col-span-2">
+          <div className="los-empty xl:col-span-2">
             <div className="mx-auto grid h-14 w-14 place-items-center rounded-2xl border border-accent/20 bg-accent/10 shadow-[0_0_30px_rgba(32,211,238,0.12)]">
               <ShieldCheckIcon className="h-6 w-6 text-accent" />
             </div>

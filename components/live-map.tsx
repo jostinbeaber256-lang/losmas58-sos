@@ -164,7 +164,7 @@ export function LiveMap() {
           return (
             <div
               key={stat.label}
-              className="rounded-[1.5rem] border border-white/10 bg-[linear-gradient(145deg,rgba(18,27,43,0.94),rgba(8,12,22,0.96))] p-4 shadow-[0_18px_44px_rgba(0,0,0,0.22)]"
+              className="los-card-compact"
             >
               <div className="flex items-center gap-3">
                 <span className="grid h-10 w-10 shrink-0 place-items-center rounded-2xl border border-white/10 bg-white/[0.045]">
@@ -216,7 +216,7 @@ export function LiveMap() {
       ) : null}
 
       <section className="grid gap-5 xl:grid-cols-[0.92fr_1.08fr]">
-        <div className="relative overflow-hidden rounded-[1.85rem] border border-white/10 bg-[linear-gradient(145deg,rgba(18,27,43,0.94),rgba(8,12,22,0.97))] p-5 shadow-[0_22px_60px_rgba(0,0,0,0.28)]">
+        <div className="los-card">
           <div className="pointer-events-none absolute -right-20 top-0 h-44 w-44 rounded-full bg-warning/10 blur-3xl" />
           <div className="relative flex items-start justify-between gap-4">
             <div>
@@ -230,7 +230,7 @@ export function LiveMap() {
                 Companeros visibles mientras mantienen su ruta activa.
               </p>
             </div>
-            <span className="rounded-full border border-warning/25 bg-warning/10 px-3 py-1 text-sm font-semibold text-warning">
+            <span className="los-chip los-chip-warning">
               {visibleRiders.length}
             </span>
           </div>
@@ -240,7 +240,7 @@ export function LiveMap() {
               visibleRiders.map((rider) => (
                 <div
                   key={rider.id}
-                  className="flex items-center justify-between gap-4 rounded-2xl border border-white/10 bg-white/[0.045] px-4 py-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]"
+                  className="los-info-panel flex items-center justify-between gap-4"
                 >
                   <div className="min-w-0">
                     <p className="truncate font-medium text-ink">
@@ -271,14 +271,14 @@ export function LiveMap() {
                 </div>
               ))
             ) : (
-              <div className="rounded-2xl border border-dashed border-white/12 bg-white/[0.035] px-4 py-5 text-sm leading-6 text-muted">
+              <div className="los-empty py-5 text-sm leading-6 text-muted">
                 Aun no hay companeros activos con ubicacion publicada.
               </div>
             )}
           </div>
         </div>
 
-        <div className="relative overflow-hidden rounded-[1.85rem] border border-white/10 bg-[linear-gradient(145deg,rgba(18,27,43,0.94),rgba(8,12,22,0.97))] p-5 shadow-[0_22px_60px_rgba(0,0,0,0.28)]">
+        <div className="los-card">
           <div className="pointer-events-none absolute -right-20 top-0 h-44 w-44 rounded-full bg-danger/12 blur-3xl" />
           <div className="relative flex items-start justify-between gap-4">
             <div>
@@ -292,7 +292,7 @@ export function LiveMap() {
                 Alertas abiertas reflejadas tambien en el mapa.
               </p>
             </div>
-            <span className="rounded-full border border-danger/25 bg-danger/10 px-3 py-1 text-sm font-semibold text-danger">
+            <span className="los-chip los-chip-danger">
               {emergencyAlerts.length}
             </span>
           </div>
@@ -316,7 +316,7 @@ export function LiveMap() {
                 </div>
               ))
             ) : (
-              <div className="rounded-2xl border border-dashed border-white/12 bg-white/[0.035] px-4 py-6 text-center">
+              <div className="los-empty py-6">
                 <div className="mx-auto grid h-12 w-12 place-items-center rounded-2xl border border-accent/20 bg-accent/10">
                   <ShieldCheckIcon className="h-6 w-6 text-accent" />
                 </div>

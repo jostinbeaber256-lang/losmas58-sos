@@ -10,14 +10,15 @@ import {
   UserGroupIcon,
   XCircleIcon
 } from "@heroicons/react/24/solid";
+import { updateAdminAlertStatus } from "@/app/admin/alertas/actions";
 import { getEmergencyMeta } from "@/lib/alert-ui";
 import {
   formatAdminDate,
   getAdminAlerts,
-  getAdminDisplayName
+  getAdminDisplayName,
+  type AdminAlert
 } from "@/lib/admin/data";
 import { formatCoordinatesCompact, formatPhoneNumber } from "@/lib/map";
-import { updateAdminAlertStatus } from "@/app/admin/alertas/actions";
 
 const emergencyTypes = [
   "Llanta pinchada",
@@ -36,6 +37,18 @@ const statusFilters = [
   { value: "cancelled", label: "Canceladas" }
 ];
 
+function getStatusLabel(status: AdminAlert["status"]) {
+  if (status === "active") {
+    return "Activa";
+  }
+
+  if (status === "resolved") {
+    return "Resuelta";
+  }
+
+  return "Cancelada";
+}
+
 export default async function AdminAlertsPage({
   searchParams
 }: {
@@ -44,18 +57,21 @@ export default async function AdminAlertsPage({
   const params = await searchParams;
   const status = params?.status ?? "all";
   const type = params?.type ?? "all";
-  const alerts = await getAdminAlerts({ status, emergencyType: type });
-  const activeCount = alerts.filter((alert) => alert.status === "active").length;
-  const resolvedCount = alerts.filter((alert) => alert.status === "resolved").length;
-  const cancelledCount = alerts.filter((alert) => alert.status === "cancelled").length;
-  const responseCount = alerts.reduce(
+  const [allAlerts, alerts] = await Promise.all([
+    getAdminAlerts({}),
+    getAdminAlerts({ status, emergencyType: type })
+  ]);
+  const activeCount = allAlerts.filter((alert) => alert.status === "active").length;
+  const resolvedCount = allAlerts.filter((alert) => alert.status === "resolved").length;
+  const cancelledCount = allAlerts.filter((alert) => alert.status === "cancelled").length;
+  const responseCount = allAlerts.reduce(
     (total, alert) => total + alert.responses.length,
     0
   );
 
   return (
     <section className="space-y-5">
-      <div className="relative overflow-hidden rounded-[1.9rem] border border-white/10 bg-[radial-gradient(circle_at_100%_0%,rgba(255,77,109,0.12),transparent_30%),linear-gradient(145deg,rgba(18,27,43,0.95),rgba(8,12,22,0.98))] p-5 shadow-[0_24px_70px_rgba(0,0,0,0.3)] md:p-6">
+      <div className="los-card md:p-6">
         <div className="pointer-events-none absolute -right-24 -top-16 h-52 w-52 rounded-full bg-danger/12 blur-3xl" />
         <div className="relative flex flex-col gap-5 xl:flex-row xl:items-end xl:justify-between">
           <div className="max-w-xl">
@@ -80,7 +96,27 @@ export default async function AdminAlertsPage({
         </div>
       </div>
 
-      <div className="rounded-[1.75rem] border border-white/10 bg-white/[0.045] p-4 shadow-[0_18px_44px_rgba(0,0,0,0.22)]">
+      <div className="los-card-compact">
+        <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <p className="text-xs uppercase tracking-[0.22em] text-muted">
+              Filtros operativos
+            </p>
+            <p className="mt-1 text-sm text-muted">
+              Mostrando{" "}
+              <span className="font-semibold text-ink">{alerts.length}</span> de{" "}
+              <span className="font-semibold text-ink">{allAlerts.length}</span>{" "}
+              alertas registradas.
+            </p>
+          </div>
+          <Link
+            href={"/admin/alertas" as Route}
+            className="los-chip los-chip-muted w-fit transition hover:border-accent/30 hover:text-accent"
+          >
+            Limpiar filtros
+          </Link>
+        </div>
+
         <form className="grid gap-3 lg:grid-cols-[1fr_1fr_auto]">
           <div>
             <label className="text-xs uppercase tracking-[0.22em] text-muted">
@@ -117,7 +153,7 @@ export default async function AdminAlertsPage({
             </select>
           </div>
 
-          <button className="self-end rounded-2xl bg-accent px-5 py-3 text-sm font-semibold text-background shadow-[0_0_28px_rgba(32,211,238,0.16)] transition hover:brightness-110">
+          <button className="los-action-primary self-end px-5">
             Aplicar filtros
           </button>
         </form>
@@ -134,11 +170,14 @@ export default async function AdminAlertsPage({
               : alert.status === "resolved"
                 ? "border-accent/25 bg-accent/10 text-accent"
                 : "border-white/10 bg-white/[0.045] text-muted";
+          const responders = alert.responses
+            .map((response) => response.helper_name || "Motero")
+            .join(" / ");
 
           return (
             <article
               key={alert.id}
-              className="relative overflow-hidden rounded-[1.9rem] border border-white/10 bg-[radial-gradient(circle_at_100%_0%,rgba(255,77,109,.10),transparent_34%),linear-gradient(180deg,rgba(16,21,34,.97),rgba(7,10,19,.99))] p-5 shadow-[0_26px_62px_rgba(0,0,0,.32)]"
+              className="los-card"
             >
               <div
                 className="pointer-events-none absolute inset-y-5 left-0 w-1 rounded-r-full"
@@ -148,6 +187,7 @@ export default async function AdminAlertsPage({
                   opacity: isActive ? 0.9 : 0.35
                 }}
               />
+
               <div className="flex items-start justify-between gap-4">
                 <div className="flex min-w-0 gap-3">
                   <div className={`h-fit rounded-2xl p-3 ${meta.iconClasses}`}>
@@ -177,7 +217,7 @@ export default async function AdminAlertsPage({
                 <span
                   className={`shrink-0 rounded-full border px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] ${statusTone}`}
                 >
-                  {alert.status}
+                  {getStatusLabel(alert.status)}
                 </span>
               </div>
 
@@ -194,7 +234,7 @@ export default async function AdminAlertsPage({
                 />
                 <Info
                   icon={<MapPinIcon className="h-3.5 w-3.5 text-accent" />}
-                  label="Ubicación"
+                  label="Ubicacion"
                   value={formatCoordinatesCompact(alert.latitude, alert.longitude)}
                 />
                 <Info
@@ -213,17 +253,17 @@ export default async function AdminAlertsPage({
                 <div className="mt-4 space-y-3">
                   <div className="rounded-2xl border border-white/10 bg-black/18 px-4 py-3">
                     <p className="text-[11px] uppercase tracking-[0.22em] text-muted">
-                      Descripción
+                      Descripcion
                     </p>
                     <p className="mt-1 break-words text-sm leading-6 text-ink">
-                      {alert.emergency_details || alert.message || "Sin descripción"}
+                      {alert.emergency_details || alert.message || "Sin descripcion"}
                     </p>
                   </div>
 
                   {alert.medical_summary ? (
                     <div className="rounded-2xl border border-danger/20 bg-danger/10 px-4 py-3">
                       <p className="text-[11px] uppercase tracking-[0.22em] text-danger">
-                        Ficha médica compartida
+                        Ficha medica compartida
                       </p>
                       <p className="mt-1 break-words text-sm leading-6 text-ink">
                         {alert.medical_summary}
@@ -233,14 +273,10 @@ export default async function AdminAlertsPage({
 
                   <div className="rounded-2xl border border-accent/15 bg-accent/8 px-4 py-3">
                     <p className="text-[11px] uppercase tracking-[0.22em] text-muted">
-                      Quién va en camino
+                      Quien va en camino
                     </p>
                     <p className="mt-1 break-words text-sm text-ink">
-                      {alert.responses.length
-                        ? alert.responses
-                            .map((response) => response.helper_name || "Motero")
-                            .join(" / ")
-                        : "Sin respuestas registradas"}
+                      {responders || "Sin respuestas registradas"}
                     </p>
                   </div>
                 </div>
@@ -253,7 +289,7 @@ export default async function AdminAlertsPage({
                 <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap">
                   <Link
                     href={`/mapa?alerta=${alert.id}` as Route}
-                    className="inline-flex items-center justify-center gap-2 rounded-2xl border border-accent/25 bg-accent/10 px-4 py-3 text-sm font-semibold text-accent transition hover:bg-accent/15"
+                    className="los-action-ghost border-accent/25 bg-accent/10 text-accent hover:bg-accent/15"
                   >
                     Ver en mapa
                     <ArrowTopRightOnSquareIcon className="h-4 w-4" />
@@ -265,7 +301,7 @@ export default async function AdminAlertsPage({
                       <button
                         name="status"
                         value="resolved"
-                        className="inline-flex items-center justify-center gap-2 rounded-2xl bg-accent px-4 py-3 text-sm font-semibold text-background shadow-[0_0_24px_rgba(32,211,238,0.16)]"
+                        className="los-action-primary"
                       >
                         <CheckCircleIcon className="h-4 w-4" />
                         Marcar resuelta
@@ -273,7 +309,7 @@ export default async function AdminAlertsPage({
                       <button
                         name="status"
                         value="cancelled"
-                        className="inline-flex items-center justify-center gap-2 rounded-2xl border border-danger/30 bg-danger/12 px-4 py-3 text-sm font-semibold text-danger"
+                        className="los-action-danger"
                       >
                         <XCircleIcon className="h-4 w-4" />
                         Cancelar alerta
@@ -288,7 +324,7 @@ export default async function AdminAlertsPage({
       </div>
 
       {!alerts.length ? (
-        <div className="rounded-[1.75rem] border border-dashed border-white/12 bg-white/[0.035] p-8 text-center">
+        <div className="los-empty p-8">
           <BellAlertIcon className="mx-auto h-10 w-10 text-accent" />
           <p className="mt-3 text-sm font-semibold text-ink">
             Sin alertas para estos filtros
@@ -319,7 +355,7 @@ function Metric({
   }[tone];
 
   return (
-    <div className={`rounded-[1.25rem] border p-3 ${toneClasses}`}>
+    <div className={`los-card-compact border p-3 ${toneClasses}`}>
       <p className="text-xl font-semibold text-ink">{value}</p>
       <p className="text-[11px] uppercase tracking-[0.18em]">{label}</p>
     </div>
@@ -336,7 +372,7 @@ function Info({
   icon: React.ReactNode;
 }) {
   return (
-    <div className="rounded-2xl border border-white/10 bg-black/18 px-4 py-3">
+    <div className="los-info-panel bg-black/18">
       <p className="flex items-center gap-1.5 text-[11px] uppercase tracking-[0.22em] text-muted">
         {icon}
         {label}

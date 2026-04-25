@@ -34,7 +34,7 @@ export function RouteStatusCard() {
         : "border-white/10 bg-white/5 text-muted";
 
   return (
-    <section className="relative overflow-hidden rounded-[2rem] border border-white/10 bg-[linear-gradient(145deg,rgba(18,27,43,0.96),rgba(7,11,20,0.98))] p-5 shadow-[0_24px_70px_rgba(0,0,0,0.32)] md:p-6">
+    <section className="los-card md:p-6">
       <div className="pointer-events-none absolute -left-20 top-0 h-52 w-52 rounded-full bg-accent/10 blur-3xl" />
       <div className="relative flex items-start justify-between gap-4">
         <div className="min-w-0">
@@ -50,13 +50,13 @@ export function RouteStatusCard() {
               : "Cuando actives el modo ruta, tu ubicacion se compartira en vivo solo durante el trayecto."}
           </p>
         </div>
-        <div className={`shrink-0 rounded-full border px-3 py-1 text-xs font-semibold ${statusClass}`}>
+        <div className={`los-chip shrink-0 ${statusClass}`}>
           {statusLabel}
         </div>
       </div>
 
       <div className="relative mt-5 grid gap-3 sm:grid-cols-2">
-        <div className="rounded-2xl border border-white/10 bg-white/[0.045] p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]">
+        <div className="los-info-panel p-4">
           <div className="flex items-center gap-2 text-xs uppercase tracking-[0.22em] text-muted">
             <MapPinIcon className="h-4 w-4 text-accent" />
             Ubicacion
@@ -68,7 +68,7 @@ export function RouteStatusCard() {
           </p>
         </div>
 
-        <div className="rounded-2xl border border-white/10 bg-white/[0.045] p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]">
+        <div className="los-info-panel p-4">
           <div className="flex items-center gap-2 text-xs uppercase tracking-[0.22em] text-muted">
             <ClockIcon className="h-4 w-4 text-accent" />
             Sincronizacion
@@ -96,13 +96,13 @@ export function RouteStatusCard() {
           type="button"
           onClick={toggleRoute}
           disabled={loading}
-          className="rounded-2xl bg-accent px-4 py-3 font-semibold text-background shadow-[0_0_28px_rgba(32,211,238,0.2)] transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-70"
+          className="los-action-primary"
         >
           {loading ? "Actualizando..." : isOnRoute ? "Detener ruta" : "Iniciar ruta"}
         </button>
         <Link
           href="/mapa"
-          className="rounded-2xl border border-white/10 bg-white/[0.045] px-4 py-3 text-center font-semibold text-ink transition hover:border-accent/40 hover:bg-accent/10"
+          className="los-action-ghost"
         >
           Ver mapa
         </Link>

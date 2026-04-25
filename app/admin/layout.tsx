@@ -23,7 +23,7 @@ const adminLinks: Array<{
 function AdminAccessDenied() {
   return (
     <main className="space-y-5">
-      <section className="relative overflow-hidden rounded-[2rem] border border-danger/25 bg-[radial-gradient(circle_at_18%_0%,rgba(255,77,109,0.18),transparent_34%),linear-gradient(145deg,rgba(18,27,43,0.98),rgba(6,10,20,0.96))] p-6 text-center shadow-[0_24px_70px_rgba(0,0,0,0.36)]">
+      <section className="los-hero-danger p-6 text-center">
         <div className="mx-auto grid h-16 w-16 place-items-center rounded-3xl border border-danger/25 bg-danger/12 text-danger">
           <ShieldExclamationIcon className="h-8 w-8" />
         </div>
@@ -36,7 +36,7 @@ function AdminAccessDenied() {
         </p>
         <Link
           href="/"
-          className="mt-5 inline-flex rounded-2xl border border-accent/25 bg-accent/10 px-4 py-3 font-semibold text-accent transition hover:bg-accent/15"
+          className="los-action-ghost mt-5"
         >
           Volver al inicio
         </Link>
@@ -58,11 +58,11 @@ export default async function AdminLayout({
 
   return (
     <main className="space-y-5 md:space-y-6">
-      <section className="relative overflow-hidden rounded-[2rem] border border-white/10 bg-[radial-gradient(circle_at_18%_0%,rgba(32,211,238,0.18),transparent_34%),linear-gradient(145deg,rgba(18,27,43,0.98),rgba(6,10,20,0.96))] p-5 shadow-[0_24px_70px_rgba(0,0,0,0.36)] md:p-7">
+      <section className="los-hero">
         <div className="pointer-events-none absolute -right-20 -top-24 h-56 w-56 rounded-full bg-accent/12 blur-3xl" />
         <div className="relative flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
           <div className="max-w-xl">
-            <div className="inline-flex items-center gap-2 rounded-full border border-accent/25 bg-accent/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.28em] text-accent">
+            <div className="los-chip los-chip-accent">
               <ShieldExclamationIcon className="h-4 w-4" />
               Admin V1
             </div>
@@ -74,7 +74,7 @@ export default async function AdminLayout({
               panel interno seguro.
             </p>
           </div>
-          <div className="rounded-2xl border border-white/10 bg-white/[0.045] px-4 py-3 text-sm text-muted">
+          <div className="los-info-panel text-sm text-muted">
             Admin:{" "}
             <span className="font-semibold text-ink">
               {context.profile?.full_name || context.profile?.username || "Los+58"}
@@ -88,7 +88,7 @@ export default async function AdminLayout({
           <Link
             key={href}
             href={href}
-            className="flex items-center gap-3 rounded-2xl border border-white/10 bg-white/[0.045] px-4 py-3 text-sm font-semibold text-muted transition hover:border-accent/30 hover:bg-accent/10 hover:text-accent"
+            className="los-action-ghost justify-start"
           >
             <Icon className="h-5 w-5" />
             {label}

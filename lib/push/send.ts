@@ -40,6 +40,11 @@ export async function sendPushNotification(payload: PushPayload) {
   const vapidSubject = process.env.VAPID_SUBJECT;
 
   if (!vapidPublicKey || !vapidPrivateKey || !vapidSubject) {
+    console.error("[push:send] Missing VAPID environment variables", {
+      hasPublicKey: Boolean(vapidPublicKey),
+      hasPrivateKey: Boolean(vapidPrivateKey),
+      hasSubject: Boolean(vapidSubject)
+    });
     throw new Error("Missing VAPID environment variables");
   }
 
@@ -62,16 +67,31 @@ export async function sendPushNotification(payload: PushPayload) {
   const { data: subscriptions, error } = await query;
 
   if (error) {
+    console.error("[push:send] Could not load push subscriptions", {
+      type: payload.type,
+      recipientUserIds: payload.recipientUserIds,
+      excludeUserId: payload.excludeUserId,
+      error: error.message
+    });
     throw new Error(error.message);
   }
+
+  console.log("[push:send] Sending push notification", {
+    type: payload.type,
+    title: payload.title,
+    url: payload.url,
+    subscriptionCount: subscriptions?.length ?? 0,
+    recipientUserIds: payload.recipientUserIds ?? "all",
+    excludeUserId: payload.excludeUserId ?? null
+  });
 
   const notificationPayload = JSON.stringify({
     title: payload.title,
     body: payload.body,
     url: payload.url,
     type: payload.type,
-    icon: "/icon-192.svg",
-    badge: "/icon-192.svg"
+    icon: "/icon-192.png",
+    badge: "/badge-72.png"
   });
 
   const results = await Promise.allSettled(
@@ -81,9 +101,17 @@ export async function sendPushNotification(payload: PushPayload) {
           toWebPushSubscription(subscription),
           notificationPayload
         );
+        console.log("[push:send] Push sent", {
+          userId: subscription.user_id,
+          endpoint: subscription.endpoint.slice(0, 36)
+        });
         return { endpoint: subscription.endpoint, sent: true };
       } catch (sendError) {
         if (isExpiredSubscriptionError(sendError)) {
+          console.warn("[push:send] Removing expired push subscription", {
+            userId: subscription.user_id,
+            endpoint: subscription.endpoint.slice(0, 36)
+          });
           await supabase
             .from("push_subscriptions")
             .delete()
@@ -92,12 +120,17 @@ export async function sendPushNotification(payload: PushPayload) {
           return { endpoint: subscription.endpoint, deleted: true };
         }
 
+        console.error("[push:send] Push send failed", {
+          userId: subscription.user_id,
+          endpoint: subscription.endpoint.slice(0, 36),
+          error: sendError instanceof Error ? sendError.message : String(sendError)
+        });
         throw sendError;
       }
     })
   );
 
-  return {
+  const summary = {
     sent: results.filter(
       (result) => result.status === "fulfilled" && result.value.sent
     ).length,
@@ -107,4 +140,11 @@ export async function sendPushNotification(payload: PushPayload) {
     failed: results.filter((result) => result.status === "rejected").length,
     total: subscriptions?.length ?? 0
   };
+
+  console.log("[push:send] Push notification summary", {
+    type: payload.type,
+    ...summary
+  });
+
+  return summary;
 }

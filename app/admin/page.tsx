@@ -52,7 +52,7 @@ export default async function AdminDashboardPage() {
           return (
             <div
               key={card.label}
-              className="rounded-[1.6rem] border border-white/10 bg-[linear-gradient(145deg,rgba(18,27,43,0.94),rgba(8,12,22,0.97))] p-4 shadow-[0_18px_44px_rgba(0,0,0,0.24)]"
+              className="los-card-compact"
             >
               <div className="flex items-center gap-3">
                 <span className="grid h-11 w-11 place-items-center rounded-2xl border border-white/10 bg-white/[0.045]">
@@ -73,7 +73,7 @@ export default async function AdminDashboardPage() {
       <div className="grid gap-4 lg:grid-cols-3">
         <Link
           href={"/admin/usuarios" as Route}
-          className="rounded-[1.75rem] border border-white/10 bg-white/[0.045] p-5 transition hover:border-accent/30 hover:bg-accent/10"
+          className="los-card transition hover:border-accent/30 hover:bg-accent/10"
         >
           <h2 className="text-lg font-semibold text-ink">Gestionar usuarios</h2>
           <p className="mt-2 text-sm leading-6 text-muted">
@@ -82,7 +82,7 @@ export default async function AdminDashboardPage() {
         </Link>
         <Link
           href={"/admin/alertas" as Route}
-          className="rounded-[1.75rem] border border-white/10 bg-white/[0.045] p-5 transition hover:border-danger/30 hover:bg-danger/10"
+          className="los-card transition hover:border-danger/30 hover:bg-danger/10"
         >
           <h2 className="text-lg font-semibold text-ink">Gestionar alertas</h2>
           <p className="mt-2 text-sm leading-6 text-muted">
@@ -91,7 +91,7 @@ export default async function AdminDashboardPage() {
         </Link>
         <Link
           href={"/admin/rutas" as Route}
-          className="rounded-[1.75rem] border border-white/10 bg-white/[0.045] p-5 transition hover:border-warning/30 hover:bg-warning/10"
+          className="los-card transition hover:border-warning/30 hover:bg-warning/10"
         >
           <h2 className="text-lg font-semibold text-ink">Monitorear rutas</h2>
           <p className="mt-2 text-sm leading-6 text-muted">

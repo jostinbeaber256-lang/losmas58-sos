@@ -173,12 +173,31 @@ async function notifyPushEvent({
   alertId: string;
 }) {
   try {
-    await fetch("/api/push/events", {
+    console.log("[push:client] Requesting push event", { type, alertId });
+    const response = await fetch("/api/push/events", {
       method: "POST",
       headers: {
         "Content-Type": "application/json"
       },
       body: JSON.stringify({ type, alertId })
+    });
+
+    const result = await response.json().catch(() => null);
+
+    if (!response.ok) {
+      console.warn("[push:client] Push event request failed", {
+        type,
+        alertId,
+        status: response.status,
+        result
+      });
+      return;
+    }
+
+    console.log("[push:client] Push event request completed", {
+      type,
+      alertId,
+      result
     });
   } catch (pushError) {
     console.warn("No se pudo disparar la notificacion push.", pushError);
@@ -439,10 +458,12 @@ export function RoutePresenceProvider({
 
     setAlertUpdatingId(null);
     await loadActiveRiders();
-    await notifyPushEvent({
-      type: "resolved",
-      alertId
-    });
+    if (status === "resolved") {
+      await notifyPushEvent({
+        type: "resolved",
+        alertId
+      });
+    }
     return true;
   }
 

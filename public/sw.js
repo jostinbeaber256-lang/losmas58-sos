@@ -1,8 +1,8 @@
 const DEFAULT_PUSH_PAYLOAD = {
   title: "Los+58 SOS",
   body: "Nueva actividad de emergencia en la comunidad.",
-  icon: "/icon-192.svg",
-  badge: "/icon-192.svg",
+  icon: "/icon-192.png",
+  badge: "/badge-72.png",
   url: "/alertas"
 };
 

@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
-import type { SosAlert } from "@/lib/types";
+import type { MedicalProfile, SosAlert } from "@/lib/types";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 
@@ -19,6 +19,7 @@ export type AdminProfile = {
   updated_at: string;
   has_medical_profile?: boolean;
   has_push_enabled?: boolean;
+  medical_profile?: MedicalProfile | null;
 };
 
 export type AdminResponse = {
@@ -151,7 +152,12 @@ export async function getAdminUsers(search = "") {
   }
 
   const [{ data: medicalProfiles }, { data: pushSubscriptions }] = await Promise.all([
-    admin.from("medical_profiles").select("user_id").returns<Array<{ user_id: string }>>(),
+    admin
+      .from("medical_profiles")
+      .select(
+        "user_id, blood_type, allergies, medical_conditions, medications, notes, emergency_contact_name, emergency_contact_phone, secondary_contact_name, secondary_contact_phone, insurance_info, preferred_hospital, show_in_sos, updated_at"
+      )
+      .returns<MedicalProfile[]>(),
     admin
       .from("push_subscriptions")
       .select("user_id")
@@ -159,7 +165,9 @@ export async function getAdminUsers(search = "") {
       .returns<Array<{ user_id: string }>>()
   ]);
 
-  const medicalUserIds = new Set((medicalProfiles ?? []).map((item) => item.user_id));
+  const medicalProfilesByUser = new Map(
+    (medicalProfiles ?? []).map((item) => [item.user_id, item])
+  );
   const pushUserIds = new Set((pushSubscriptions ?? []).map((item) => item.user_id));
   const normalizedSearch = search.trim().toLowerCase();
 
@@ -180,8 +188,9 @@ export async function getAdminUsers(search = "") {
     })
     .map((profile) => ({
       ...profile,
-      has_medical_profile: medicalUserIds.has(profile.id),
-      has_push_enabled: pushUserIds.has(profile.id)
+      has_medical_profile: medicalProfilesByUser.has(profile.id),
+      has_push_enabled: pushUserIds.has(profile.id),
+      medical_profile: medicalProfilesByUser.get(profile.id) ?? null
     }));
 }
 

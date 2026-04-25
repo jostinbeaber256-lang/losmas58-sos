@@ -61,14 +61,14 @@ export default function HomePage() {
 
   return (
     <main className="space-y-5 md:space-y-6">
-      <section className="relative overflow-hidden rounded-[2rem] border border-white/10 bg-[radial-gradient(circle_at_20%_0%,rgba(32,211,238,0.18),transparent_34%),linear-gradient(145deg,rgba(18,27,43,0.98),rgba(6,10,20,0.96))] p-5 shadow-[0_24px_70px_rgba(0,0,0,0.36)] md:p-7">
+      <section className="los-hero">
         <div className="pointer-events-none absolute -right-20 -top-24 h-56 w-56 rounded-full bg-danger/15 blur-3xl" />
         <div className="pointer-events-none absolute -bottom-24 left-8 h-56 w-56 rounded-full bg-accent/10 blur-3xl" />
 
         <div className="relative space-y-5">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
             <div className="max-w-xl">
-              <div className="inline-flex items-center gap-2 rounded-full border border-accent/25 bg-accent/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.28em] text-accent">
+              <div className="los-chip los-chip-accent">
                 <SignalIcon className="h-4 w-4" />
                 Ruta segura
               </div>
@@ -93,7 +93,7 @@ export default function HomePage() {
               return (
                 <div
                   key={stat.label}
-                  className="rounded-[1.4rem] border border-white/10 bg-white/[0.045] p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.06)] backdrop-blur"
+                  className="los-card-compact backdrop-blur"
                 >
                   <div className="flex items-center gap-3">
                     <span className="grid h-10 w-10 place-items-center rounded-2xl border border-white/10 bg-background/60">
@@ -169,7 +169,7 @@ export default function HomePage() {
       </section>
 
       <section className="grid gap-5 lg:grid-cols-[0.92fr_1.08fr]">
-        <div className="relative overflow-hidden rounded-[1.85rem] border border-white/10 bg-[linear-gradient(145deg,rgba(18,27,43,0.94),rgba(8,12,22,0.96))] p-5 shadow-[0_22px_60px_rgba(0,0,0,0.28)]">
+        <div className="los-card">
           <div className="pointer-events-none absolute -right-20 top-0 h-44 w-44 rounded-full bg-accent/10 blur-3xl" />
           <div className="relative flex items-start justify-between gap-4">
             <div>
@@ -183,7 +183,7 @@ export default function HomePage() {
                 Moteros activos visibles cerca de tu trayecto.
               </p>
             </div>
-            <span className="rounded-full border border-accent/25 bg-accent/10 px-3 py-1 text-sm font-semibold text-accent">
+            <span className="los-chip los-chip-accent">
               {visibleRiders.length}
             </span>
           </div>
