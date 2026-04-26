@@ -1,6 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { sendPushNotification, type PushPayload, type PushType } from "@/lib/push/send";
 
+export const dynamic = "force-static";
 export const runtime = "nodejs";
 
 const ALLOWED_TYPES: PushType[] = ["new_sos", "response", "resolved"];

@@ -4,6 +4,7 @@ import { sendPushForSosEvent } from "@/lib/push/events";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 
+export const dynamic = "force-static";
 export const runtime = "nodejs";
 
 type PushEventBody = {

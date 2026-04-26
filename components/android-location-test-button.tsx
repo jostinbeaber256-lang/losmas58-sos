@@ -113,6 +113,32 @@ export function AndroidLocationTestButton() {
             </div>
           </div>
 
+          {testResult.nativePlatform ? (
+            <div className="rounded border border-white/10 bg-white/5 p-2">
+              <div className="mb-1 font-semibold text-muted">Runtime nativo:</div>
+              <div>Platform: {testResult.nativePlatform.platform}</div>
+              <div>Native: {testResult.nativePlatform.isNative ? "si" : "no"}</div>
+            </div>
+          ) : null}
+
+          {testResult.permissionLog?.length ? (
+            <div className="rounded border border-white/10 bg-white/5 p-2">
+              <div className="mb-1 font-semibold text-muted">
+                Log exacto de permisos:
+              </div>
+              <div className="max-h-36 space-y-2 overflow-y-auto pr-1">
+                {testResult.permissionLog.map((entry, index) => (
+                  <div key={`${entry.step}-${index}`} className="rounded bg-black/20 p-2">
+                    <div className="font-semibold text-ink">{entry.step}</div>
+                    <pre className="mt-1 whitespace-pre-wrap break-words text-[10px] leading-4 text-muted">
+                      {entry.error || JSON.stringify(entry.result, null, 2)}
+                    </pre>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ) : null}
+
           {testResult.success && testResult.position && (
             <div className="rounded border border-accent/25 bg-accent/10 p-2">
               <div className="mb-1 font-semibold text-accent">Posición obtenida:</div>

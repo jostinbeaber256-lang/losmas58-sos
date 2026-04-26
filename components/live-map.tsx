@@ -143,7 +143,11 @@ export function LiveMap() {
             hour: "2-digit",
             minute: "2-digit"
           })}`
-        : "Esperando GPS",
+        : latestPosition
+          ? "GPS sin timestamp"
+          : locationPermission === "granted"
+            ? "GPS sin señal"
+            : "Esperando GPS",
       icon: MapPinIcon,
       tone: "text-accent"
     }
@@ -295,16 +299,18 @@ export function LiveMap() {
               : locationPermission === "unsupported"
                 ? "no soportada"
                 : locationPermission === "prompt"
-                  ? "permiso requerido"
-                  : "verificando"}
+                  ? "permiso pendiente"
+                  : locationPermission === "unknown"
+                    ? "verificando"
+                    : "estado desconocido"}
           </p>
           <p className="mt-1 leading-5">
             {locationPermissionMessage ||
               (locationPermission === "prompt"
-                ? "Se requiere permiso de ubicacion para mostrar tu posicion en el mapa."
+                ? "Se necesita permiso de ubicacion. Toca 'Iniciar ruta' o 'Ver mapa' para solicitarlo."
                 : locationPermission === "unknown"
                   ? "Verificando permisos de ubicacion..."
-                  : "Android puede pedir permiso de ubicacion para mostrar tu posicion en el mapa.")}
+                  : "Android requiere permiso para mostrar tu posicion en el mapa.")}
           </p>
         </div>
       ) : null}

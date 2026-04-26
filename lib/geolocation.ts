@@ -11,6 +11,12 @@ export interface AndroidLocationError {
   };
 }
 
+export interface AndroidPermissionLogEntry {
+  step: string;
+  result?: unknown;
+  error?: string;
+}
+
 export interface AndroidTestResult {
   success: boolean;
   position?: {
@@ -27,6 +33,11 @@ export interface AndroidTestResult {
   };
   method: 'getCurrentPosition' | 'watchPosition';
   duration: number;
+  permissionLog?: AndroidPermissionLogEntry[];
+  nativePlatform?: {
+    platform: string;
+    isNative: boolean;
+  };
 }
 export type GeolocationPermissionState = PermissionState | "unsupported" | "unknown";
 
@@ -192,43 +203,60 @@ function mapLocationError(error: unknown) {
 
 async function ensureNativeLocationPermission() {
   const Geolocation = await getNativeGeolocation();
-  logLocation("🔍 ANDROID: Checking native Android location permissions");
+  logLocation("🔍 ANDROID: Starting permission flow");
   
   try {
+    // 1. Check permissions iniciales
     let permission = await Geolocation.checkPermissions();
-    logLocation("📋 ANDROID: Native checkPermissions result", {
+    logLocation("📋 ANDROID: Initial checkPermissions result", {
       location: permission.location,
       coarseLocation: permission.coarseLocation,
       isGranted: permission.location === "granted" || permission.coarseLocation === "granted"
     });
 
-    // Considerar ambos permisos: location OR coarseLocation
+    // 2. Si no tenemos granted, solicitar permisos
     if (permission.location !== "granted" && permission.coarseLocation !== "granted") {
-      logLocation("🙏 ANDROID: Requesting native Android location permissions");
-      permission = await Geolocation.requestPermissions({
+      logLocation("🙏 ANDROID: Requesting permissions (both location and coarseLocation)");
+      const requestResult = await Geolocation.requestPermissions({
         permissions: ["location", "coarseLocation"]
       });
-      logLocation("📋 ANDROID: Native requestPermissions result", {
+      logLocation("📋 ANDROID: After requestPermissions result", {
+        location: requestResult.location,
+        coarseLocation: requestResult.coarseLocation,
+        isGranted: requestResult.location === "granted" || requestResult.coarseLocation === "granted"
+      });
+    }
+
+    // 3. Verificación final después de solicitar
+    if (permission.location !== "granted" && permission.coarseLocation !== "granted") {
+      permission = await Geolocation.checkPermissions();
+      logLocation("ANDROID: Final checkPermissions after requestPermissions", {
         location: permission.location,
         coarseLocation: permission.coarseLocation,
         isGranted: permission.location === "granted" || permission.coarseLocation === "granted"
       });
     }
 
-    // Verificar nuevamente después de solicitar
-    if (permission.location !== "granted" && permission.coarseLocation !== "granted") {
-      const errorMsg = "🚫 ANDROID: Permiso de ubicacion denegado. Activalo desde ajustes de Android para usar ruta, mapa y SOS.";
-      logLocation(errorMsg, { permission });
+    const finalIsGranted = permission.location === "granted" || permission.coarseLocation === "granted";
+    
+    if (!finalIsGranted) {
+      const errorMsg = "🚫 ANDROID: Permiso denegado. Activa ubicación desde Ajustes > Apps > Los+58 > Permisos.";
+      logLocation(errorMsg, { 
+        finalLocation: permission.location, 
+        finalCoarse: permission.coarseLocation 
+      });
       throw new Error(errorMsg);
     }
 
-    logLocation("✅ ANDROID: Location permissions granted successfully", {
+    logLocation("✅ ANDROID: Permission flow completed successfully", {
       location: permission.location,
-      coarseLocation: permission.coarseLocation
+      coarseLocation: permission.coarseLocation,
+      usingFineLocation: permission.location === "granted",
+      usingCoarseLocation: permission.coarseLocation === "granted"
     });
     return permission;
   } catch (error) {
-    logLocation("❌ ANDROID: Permission check failed", error);
+    logLocation("❌ ANDROID: Permission flow failed", error);
     throw error;
   }
 }
@@ -241,7 +269,17 @@ export async function getGeolocationPermissionState(): Promise<GeolocationPermis
       
       // Considerar ambos permisos: location OR coarseLocation
       const isGranted = permission.location === "granted" || permission.coarseLocation === "granted";
-      const normalizedState = isGranted ? "granted" : normalizeNativePermission(permission.location);
+      let normalizedState: GeolocationPermissionState;
+      
+      if (isGranted) {
+        normalizedState = "granted";
+      } else if (permission.location === "denied" || permission.coarseLocation === "denied") {
+        normalizedState = "denied";
+      } else if (permission.location === "prompt" || permission.coarseLocation === "prompt") {
+        normalizedState = "prompt";
+      } else {
+        normalizedState = normalizeNativePermission(permission.location);
+      }
       
       logLocation("🔍 ANDROID: Permission state check", {
         location: permission.location,
@@ -252,7 +290,7 @@ export async function getGeolocationPermissionState(): Promise<GeolocationPermis
       
       return normalizedState;
     } catch (error) {
-      logLocation("❌ ANDROID: Permission check failed", error);
+      logLocation("❌ ANDROID: Permission state check failed", error);
       return "unknown";
     }
   }
@@ -279,14 +317,16 @@ export async function getGeolocationPermissionState(): Promise<GeolocationPermis
 export async function getDevicePosition() {
   if (await isNativeAndroid()) {
     try {
-      logLocation("🎯 ANDROID: Starting getCurrentPosition");
+      logLocation("🎯 ANDROID: Starting getCurrentPosition flow");
+      
+      // Asegurar permisos primero
       await ensureNativeLocationPermission();
       
-      logLocation("📡 ANDROID: Calling Capacitor Geolocation.getCurrentPosition with optimized Android params");
+      logLocation("📡 ANDROID: Calling getCurrentPosition with Android-optimized params");
       const position = await (await getNativeGeolocation()).getCurrentPosition({
         enableHighAccuracy: true,
-        timeout: 20000, // Aumentado para Android
-        maximumAge: 10000, // Permitir cache reciente para Android
+        timeout: 30000, // 30s para Android
+        maximumAge: 15000, // Permitir cache de 15s
         enableLocationFallback: true
       });
       
@@ -294,14 +334,16 @@ export async function getDevicePosition() {
       logLocation("✅ ANDROID: getCurrentPosition SUCCESS", { 
         latitude: coords.latitude,
         longitude: coords.longitude,
-        timestamp: position.timestamp
+        accuracy: (position as any).coords?.accuracy,
+        timestamp: (position as any).timestamp
       });
       return coords;
     } catch (error) {
       logLocation("❌ ANDROID: getCurrentPosition FAILED", {
         error: error,
         message: getErrorMessage(error),
-        type: typeof error
+        type: typeof error,
+        code: (error as any)?.code
       });
       throw mapLocationError(error);
     }
@@ -441,50 +483,55 @@ export async function clearDeviceWatch(watchId: LocationWatchId | null) {
   }
 }
 
-export async function testAndroidLocation(): Promise<AndroidTestResult> {
+async function testAndroidLocationLegacy(): Promise<AndroidTestResult> {
   const startTime = Date.now();
   const Geolocation = await getNativeGeolocation();
   
   try {
-    logLocation("🧪 ANDROID TEST: Starting location test");
+    logLocation("🧪 ANDROID TEST: Starting complete permission + location test");
     
-    // 1. Check permissions
-    const permissions = await Geolocation.checkPermissions();
-    const isGranted = permissions.location === "granted" || permissions.coarseLocation === "granted";
+    // 1. Check permissions iniciales
+    let permissions = await Geolocation.checkPermissions();
+    const initialIsGranted = permissions.location === "granted" || permissions.coarseLocation === "granted";
     
-    logLocation("📋 ANDROID TEST: Permissions check", {
+    logLocation("📋 ANDROID TEST: Initial permissions", {
       location: permissions.location,
       coarseLocation: permissions.coarseLocation,
-      isGranted
+      isGranted: initialIsGranted
     });
     
-    // 2. Request permissions if needed
-    if (!isGranted) {
+    // 2. Solicitar permisos si no están granted
+    if (!initialIsGranted) {
       logLocation("🙏 ANDROID TEST: Requesting permissions");
-      const requestedPermissions = await Geolocation.requestPermissions({
+      permissions = await Geolocation.requestPermissions({
         permissions: ["location", "coarseLocation"]
       });
       
-      logLocation("📋 ANDROID TEST: Requested permissions", requestedPermissions);
-      
-      const isNowGranted = requestedPermissions.location === "granted" || requestedPermissions.coarseLocation === "granted";
-      
-      if (!isNowGranted) {
-        return {
-          success: false,
-          error: captureAndroidError("Permission denied after request", requestedPermissions),
-          permissions: {
-            location: requestedPermissions.location,
-            coarseLocation: requestedPermissions.coarseLocation,
-            isGranted: false
-          },
-          method: 'getCurrentPosition',
-          duration: Date.now() - startTime
-        };
-      }
+      logLocation("📋 ANDROID TEST: After requesting permissions", {
+        location: permissions.location,
+        coarseLocation: permissions.coarseLocation,
+        isGranted: permissions.location === "granted" || permissions.coarseLocation === "granted"
+      });
     }
     
-    // 3. Try getCurrentPosition with tolerant params
+    // 3. Verificación final de permisos
+    const finalIsGranted = permissions.location === "granted" || permissions.coarseLocation === "granted";
+    
+    if (!finalIsGranted) {
+      return {
+        success: false,
+        error: captureAndroidError("Permission denied after request", permissions),
+        permissions: {
+          location: permissions.location,
+          coarseLocation: permissions.coarseLocation,
+          isGranted: false
+        },
+        method: 'getCurrentPosition',
+        duration: Date.now() - startTime
+      };
+    }
+    
+    // 4. Intentar getCurrentPosition
     logLocation("🎯 ANDROID TEST: Trying getCurrentPosition");
     const position = await Geolocation.getCurrentPosition({
       enableHighAccuracy: true,
@@ -513,9 +560,9 @@ export async function testAndroidLocation(): Promise<AndroidTestResult> {
     };
     
   } catch (error) {
-    logLocation("❌ ANDROID TEST: getCurrentPosition failed", error);
+    logLocation("❌ ANDROID TEST: Test failed", error);
     
-    // 4. Fallback with watchPosition
+    // 5. Fallback con watchPosition si getCurrentPosition falla
     try {
       logLocation("🔄 ANDROID TEST: Trying watchPosition fallback");
       
@@ -624,6 +671,256 @@ export async function testAndroidLocation(): Promise<AndroidTestResult> {
         },
         method: 'getCurrentPosition',
         duration: Date.now() - startTime
+      };
+    }
+  }
+}
+
+export async function testAndroidLocation(): Promise<AndroidTestResult> {
+  const startTime = Date.now();
+  const Geolocation = await getNativeGeolocation();
+  const { Capacitor } = await import("@capacitor/core");
+  const permissionLog: AndroidPermissionLogEntry[] = [];
+  const nativePlatform = {
+    platform: Capacitor.getPlatform(),
+    isNative: Capacitor.isNativePlatform()
+  };
+
+  function addPermissionLog(step: string, result: unknown) {
+    permissionLog.push({ step, result });
+    logLocation(`[Los58AndroidPermission] ${step}`, result);
+  }
+
+  function addPermissionError(step: string, error: unknown) {
+    const message = getErrorMessage(error);
+    permissionLog.push({ step, error: message });
+    logLocation(`[Los58AndroidPermission] ${step} failed`, {
+      message,
+      error
+    });
+  }
+
+  function buildPermissions(value: {
+    location?: string;
+    coarseLocation?: string;
+  }) {
+    const location = value.location || "unknown";
+    const coarseLocation = value.coarseLocation || "unknown";
+
+    return {
+      location,
+      coarseLocation,
+      isGranted: location === "granted" || coarseLocation === "granted"
+    };
+  }
+
+  try {
+    logLocation("ANDROID TEST: Starting native permission + GPS test", nativePlatform);
+
+    const beforeRequest = await Geolocation.checkPermissions();
+    addPermissionLog("checkPermissions before request", beforeRequest);
+
+    let permissions = beforeRequest;
+    let currentPermissionState = buildPermissions(permissions);
+
+    if (!currentPermissionState.isGranted) {
+      try {
+        const requestResult = await Geolocation.requestPermissions({
+          permissions: ["location", "coarseLocation"]
+        });
+        addPermissionLog("requestPermissions result", requestResult);
+      } catch (requestError) {
+        addPermissionError("requestPermissions", requestError);
+      }
+
+      permissions = await Geolocation.checkPermissions();
+      addPermissionLog("checkPermissions after request", permissions);
+      currentPermissionState = buildPermissions(permissions);
+    } else {
+      addPermissionLog("requestPermissions skipped because already granted", permissions);
+    }
+
+    if (!currentPermissionState.isGranted) {
+      return {
+        success: false,
+        error: captureAndroidError(
+          "Android sigue reportando permisos en prompt/denied despues de requestPermissions(). Si no aparecio popup, revisa que la APK instalada tenga el Manifest sincronizado o que el permiso no este bloqueado en Ajustes.",
+          permissions
+        ),
+        permissions: currentPermissionState,
+        method: "getCurrentPosition",
+        duration: Date.now() - startTime,
+        permissionLog,
+        nativePlatform
+      };
+    }
+
+    logLocation("ANDROID TEST: Calling getCurrentPosition after granted permission", {
+      enableHighAccuracy: true,
+      timeout: 30000,
+      maximumAge: 15000
+    });
+
+    const position = await Geolocation.getCurrentPosition({
+      enableHighAccuracy: true,
+      timeout: 30000,
+      maximumAge: 15000,
+      enableLocationFallback: true
+    });
+    const coords = toCoordinates(position);
+
+    return {
+      success: true,
+      position: {
+        latitude: coords.latitude,
+        longitude: coords.longitude,
+        accuracy: (position as any).coords?.accuracy,
+        timestamp: (position as any).timestamp || Date.now()
+      },
+      permissions: currentPermissionState,
+      method: "getCurrentPosition",
+      duration: Date.now() - startTime,
+      permissionLog,
+      nativePlatform
+    };
+  } catch (error) {
+    logLocation("ANDROID TEST: getCurrentPosition failed, trying watchPosition fallback", {
+      message: getErrorMessage(error),
+      error
+    });
+
+    try {
+      return await new Promise<AndroidTestResult>((resolve) => {
+        const fallbackTimeout = setTimeout(() => {
+          resolve({
+            success: false,
+            error: captureAndroidError("watchPosition fallback timeout after 30s"),
+            permissions: {
+              location: "unknown",
+              coarseLocation: "unknown",
+              isGranted: false
+            },
+            method: "watchPosition",
+            duration: Date.now() - startTime,
+            permissionLog,
+            nativePlatform
+          });
+        }, 30000);
+
+        Geolocation.watchPosition(
+          {
+            enableHighAccuracy: true,
+            timeout: 25000,
+            maximumAge: 20000,
+            minimumUpdateInterval: 5000,
+            interval: 5000,
+            enableLocationFallback: true
+          },
+          (position, watchError) => {
+            clearTimeout(fallbackTimeout);
+
+            if (watchError) {
+              resolve({
+                success: false,
+                error: captureAndroidError(watchError),
+                permissions: {
+                  location: "unknown",
+                  coarseLocation: "unknown",
+                  isGranted: false
+                },
+                method: "watchPosition",
+                duration: Date.now() - startTime,
+                permissionLog,
+                nativePlatform
+              });
+              return;
+            }
+
+            if (!position) {
+              resolve({
+                success: false,
+                error: captureAndroidError("watchPosition returned null position"),
+                permissions: {
+                  location: "unknown",
+                  coarseLocation: "unknown",
+                  isGranted: false
+                },
+                method: "watchPosition",
+                duration: Date.now() - startTime,
+                permissionLog,
+                nativePlatform
+              });
+              return;
+            }
+
+            try {
+              const coords = toCoordinates(position);
+              resolve({
+                success: true,
+                position: {
+                  latitude: coords.latitude,
+                  longitude: coords.longitude,
+                  accuracy: (position as any).coords?.accuracy,
+                  timestamp: (position as any).timestamp || Date.now()
+                },
+                permissions: {
+                  location: "unknown",
+                  coarseLocation: "unknown",
+                  isGranted: true
+                },
+                method: "watchPosition",
+                duration: Date.now() - startTime,
+                permissionLog,
+                nativePlatform
+              });
+            } catch (coordsError) {
+              resolve({
+                success: false,
+                error: captureAndroidError(coordsError),
+                permissions: {
+                  location: "unknown",
+                  coarseLocation: "unknown",
+                  isGranted: false
+                },
+                method: "watchPosition",
+                duration: Date.now() - startTime,
+                permissionLog,
+                nativePlatform
+              });
+            }
+          }
+        ).then((watchId) => {
+          logLocation("ANDROID TEST: watchPosition fallback started", { watchId });
+        }).catch((watchStartError) => {
+          clearTimeout(fallbackTimeout);
+          resolve({
+            success: false,
+            error: captureAndroidError(watchStartError),
+            permissions: {
+              location: "unknown",
+              coarseLocation: "unknown",
+              isGranted: false
+            },
+            method: "watchPosition",
+            duration: Date.now() - startTime,
+            permissionLog,
+            nativePlatform
+          });
+        });
+      });
+    } catch (fallbackError) {
+      return {
+        success: false,
+        error: captureAndroidError(fallbackError),
+        permissions: {
+          location: "unknown",
+          coarseLocation: "unknown",
+          isGranted: false
+        },
+        method: "getCurrentPosition",
+        duration: Date.now() - startTime,
+        permissionLog,
+        nativePlatform
       };
     }
   }
