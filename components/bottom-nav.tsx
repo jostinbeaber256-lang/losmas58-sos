@@ -26,8 +26,8 @@ export function BottomNav() {
   const pathname = usePathname();
 
   return (
-    <nav className="safe-pb safe-px fixed inset-x-0 bottom-0 mx-auto w-full max-w-md">
-      <div className="panel-blur mb-4 grid grid-cols-4 rounded-[1.75rem] p-2">
+    <nav className="safe-pb safe-px-app fixed inset-x-0 bottom-0 mx-auto w-full md:max-w-3xl lg:max-w-5xl">
+      <div className="panel-blur mb-3 grid grid-cols-4 rounded-[1.65rem] p-2 md:mb-4 md:rounded-[1.75rem]">
         {items.map(({ href, label, icon: Icon }) => {
           const active = pathname === href;
 
