@@ -88,8 +88,8 @@ function isNativePermissionGranted(permission: PermissionStatus) {
 }
 
 async function getNativePushNotifications() {
-  const module = await import("@capacitor/push-notifications");
-  return module.PushNotifications;
+  const nativePluginModule = await import("@capacitor/push-notifications");
+  return nativePluginModule.PushNotifications;
 }
 
 function logNativePush(message: string, data?: unknown) {
