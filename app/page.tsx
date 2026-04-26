@@ -66,16 +66,16 @@ export default function HomePage() {
         <div className="pointer-events-none absolute -bottom-24 left-8 h-56 w-56 rounded-full bg-accent/10 blur-3xl" />
 
         <div className="relative space-y-5">
-          <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+          <div className="flex flex-col items-center gap-4 text-center sm:flex-row sm:items-start sm:justify-between sm:text-left">
             <div className="max-w-xl">
-              <div className="los-chip los-chip-accent">
+              <div className="los-chip los-chip-accent mx-auto sm:mx-0">
                 <SignalIcon className="h-4 w-4" />
                 Ruta segura
               </div>
-              <h1 className="mt-4 max-w-2xl text-3xl font-semibold leading-tight text-ink md:text-4xl">
+              <h1 className="mx-auto mt-4 max-w-2xl text-3xl font-semibold leading-tight text-ink sm:mx-0 md:text-4xl">
                 Dashboard de seguridad para rodar conectado.
               </h1>
-              <p className="mt-3 max-w-lg text-sm leading-6 text-muted md:text-base">
+              <p className="mx-auto mt-3 max-w-lg text-sm leading-6 text-muted sm:mx-0 md:text-base">
                 Activa tu ruta, mantente visible para tu grupo y dispara un SOS
                 con ubicacion en vivo cuando cada segundo cuenta.
               </p>
@@ -122,8 +122,8 @@ export default function HomePage() {
           <div className="pointer-events-none absolute inset-x-10 top-10 h-32 rounded-full bg-danger/10 blur-3xl" />
 
           <div className="relative">
-            <div className="flex items-center justify-between gap-3 text-left">
-              <div>
+            <div className="flex flex-col items-center gap-3 text-center sm:flex-row sm:justify-between sm:text-left">
+              <div className="min-w-0">
                 <p className="text-xs uppercase tracking-[0.34em] text-danger/80">
                   Emergencia
                 </p>

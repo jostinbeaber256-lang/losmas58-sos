@@ -85,6 +85,9 @@ on public.push_subscriptions (endpoint);
 create unique index if not exists native_push_tokens_token_idx
 on public.native_push_tokens (token);
 
+create unique index if not exists sos_responses_unique_alert_helper_idx
+on public.sos_responses (sos_alert_id, helper_user_id);
+
 create index if not exists profiles_live_location_idx
 on public.profiles (is_on_route, location_updated_at desc);
 

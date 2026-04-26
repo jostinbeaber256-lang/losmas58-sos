@@ -225,6 +225,9 @@ with check (auth.uid() = user_id);
 create unique index if not exists native_push_tokens_token_idx
 on public.native_push_tokens (token);
 
+create unique index if not exists sos_responses_unique_alert_helper_idx
+on public.sos_responses (sos_alert_id, helper_user_id);
+
 drop policy if exists "Authenticated users can view sos responses" on public.sos_responses;
 create policy "Authenticated users can view sos responses"
 on public.sos_responses

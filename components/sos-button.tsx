@@ -148,38 +148,38 @@ export function SosButton() {
       </div>
 
       {confirmOpen ? (
-        <div className="fixed inset-0 z-50 flex items-end bg-black/75">
+        <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/75">
           <div className="safe-px safe-pb w-full">
             <div className="mx-auto flex max-h-[88vh] w-full max-w-md flex-col overflow-hidden rounded-t-[2rem] border border-danger/20 bg-[linear-gradient(180deg,#1a0b12_0%,#070910_100%)] shadow-[0_-30px_80px_rgba(0,0,0,.45)]">
-              <div className="flex items-start justify-between gap-4 px-5 pb-3 pt-5">
-                <div>
+              <div className="relative px-5 pb-3 pt-5 text-center">
+                <div className="mx-auto max-w-[20rem]">
                   <p className="text-xs uppercase tracking-[0.3em] text-danger">
                     Tipo de emergencia
                   </p>
                   <h2 className="mt-2 text-xl font-semibold text-ink">
-                    ¿Que emergencia tienes?
+                    ¿Qué emergencia tienes?
                   </h2>
-                  <p className="mt-1 text-sm leading-5 text-muted">
+                  <p className="mx-auto mt-1 max-w-[17rem] text-sm leading-5 text-muted">
                     Elige el tipo de apoyo antes de enviar la alerta.
                   </p>
                 </div>
                 <button
                   type="button"
                   onClick={() => setConfirmOpen(false)}
-                  className="rounded-full border border-white/10 bg-white/5 p-2 text-muted"
+                  className="absolute right-5 top-5 rounded-full border border-white/10 bg-white/5 p-2 text-muted transition hover:border-white/20 hover:bg-white/10"
                 >
                   <XMarkIcon className="h-5 w-5" />
                 </button>
               </div>
 
               <div className="flex-1 overflow-y-auto px-5 pb-4">
-                <div className="rounded-[1.5rem] border border-danger/20 bg-danger/10 p-4">
-                  <p className="text-sm leading-5 text-muted">
+                <div className="rounded-[1.5rem] border border-danger/20 bg-danger/10 p-4 text-center">
+                  <p className="mx-auto max-w-[20rem] text-sm leading-5 text-muted">
                     Se compartira tu ubicacion actual y la alerta se vera en el
                     mapa en tiempo real.
                   </p>
 
-                  <div className="mt-4 grid grid-cols-2 gap-3">
+                  <div className="mt-4 grid grid-cols-2 gap-3 text-left">
                     {EMERGENCY_OPTIONS.map((option) => {
                       const isSelected = selectedType === option;
 
@@ -232,7 +232,7 @@ export function SosButton() {
                     </div>
                   ) : null}
 
-                  <div className="mt-4 grid gap-2">
+                  <div className="mt-4 grid gap-2 text-left">
                     <div className="grid grid-cols-2 gap-2">
                       <div className="rounded-2xl border border-white/10 bg-black/20 px-3 py-3">
                         <p className="text-[11px] uppercase tracking-[0.22em] text-muted">

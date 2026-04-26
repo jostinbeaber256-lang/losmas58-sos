@@ -181,6 +181,24 @@ async function notifyPushEvent({
   }
 }
 
+function withTimeout<T>(
+  promise: Promise<T>,
+  timeoutMs: number,
+  timeoutMessage: string
+) {
+  let timeoutId: ReturnType<typeof setTimeout>;
+
+  const timeout = new Promise<never>((_, reject) => {
+    timeoutId = setTimeout(() => {
+      reject(new Error(timeoutMessage));
+    }, timeoutMs);
+  });
+
+  return Promise.race([promise, timeout]).finally(() => {
+    clearTimeout(timeoutId);
+  });
+}
+
 export function RoutePresenceProvider({
   children,
   session
@@ -683,12 +701,29 @@ export function RoutePresenceProvider({
       return false;
     }
 
+    console.log("[Los58SOS] Starting SOS flow", { emergencyType });
     setSosLoading(true);
     setError(null);
     setSosFeedback(null);
 
     try {
-      const coords = await getDevicePosition();
+      console.log("[Los58SOS] Requesting position");
+      const coords = await withTimeout(
+        getDevicePosition(),
+        12000,
+        "No se pudo obtener tu ubicacion actual. Verifica GPS y permisos."
+      );
+
+      if (
+        !Number.isFinite(coords.latitude) ||
+        !Number.isFinite(coords.longitude)
+      ) {
+        throw new Error(
+          "No se pudo obtener tu ubicacion actual. Verifica GPS y permisos."
+        );
+      }
+
+      console.log("[Los58SOS] Position received", coords);
       const latestMedicalProfile = await getMedicalProfileForSos();
 
       const updated = await pushLocationUpdate({
@@ -700,10 +735,14 @@ export function RoutePresenceProvider({
       });
 
       if (!updated) {
-        setSosLoading(false);
+        console.warn("[Los58SOS] Location state update failed before alert insert");
+        setError(
+          "No se pudo preparar tu ubicacion para el SOS. Intentalo nuevamente."
+        );
         return false;
       }
 
+      console.log("[Los58SOS] Creating sos_alert");
       const { data, error: alertError } = await supabase
         .from("sos_alerts")
         .insert({
@@ -726,29 +765,41 @@ export function RoutePresenceProvider({
         .single();
 
       if (alertError) {
-        setError(alertError.message);
-        setSosLoading(false);
+        console.error("[Los58SOS] Supabase sos_alert insert failed", alertError);
+        setError("No se pudo crear la alerta SOS. Intentalo nuevamente.");
         return false;
       }
 
+      console.log("[Los58SOS] sos_alert created", { alertId: data.id });
       setRawAlerts((current) => [data, ...current]);
       setSosFeedback(
         `SOS enviado por ${emergencyType.toLowerCase()}. Tu ubicacion fue compartida con la comunidad.`
       );
       startTracking();
-      await notifyPushEvent({
-        type: "new_sos",
-        alertId: data.id
-      });
+      try {
+        await withTimeout(
+          notifyPushEvent({
+            type: "new_sos",
+            alertId: data.id
+          }),
+          8000,
+          "El SOS fue creado, pero la notificacion push tardo demasiado."
+        );
+        console.log("[Los58SOS] Push event sent", { alertId: data.id });
+      } catch (pushError) {
+        console.warn("[Los58SOS] Push event failed after SOS creation", pushError);
+      }
       return true;
     } catch (sosError) {
       const messageText =
         sosError instanceof Error
           ? sosError.message
           : "No se pudo activar la alerta SOS.";
+      console.error("[Los58SOS] SOS flow failed", sosError);
       setError(messageText);
       return false;
     } finally {
+      console.log("[Los58SOS] SOS flow finished");
       setSosLoading(false);
     }
   }
