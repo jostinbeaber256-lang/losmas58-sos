@@ -27,6 +27,12 @@ export function AuthStatus({ initialSession }: { initialSession: Session | null 
     setLoading(true);
     await supabase.auth.signOut();
     setSession(null);
+
+    if (typeof window !== "undefined") {
+      window.location.replace("/login");
+      return;
+    }
+
     router.replace("/login");
     router.refresh();
     setLoading(false);

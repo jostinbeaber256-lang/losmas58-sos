@@ -53,6 +53,12 @@ function FacebookMark() {
   );
 }
 
+function waitForSessionCookie() {
+  return new Promise((resolve) => {
+    window.setTimeout(resolve, 180);
+  });
+}
+
 export function AuthForm({ mode }: { mode: AuthMode }) {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -68,6 +74,20 @@ export function AuthForm({ mode }: { mode: AuthMode }) {
   const authError = searchParams.get("error");
 
   const isLogin = mode === "login";
+
+  async function navigateAfterAuth(target: Route) {
+    setSuccess("Acceso confirmado. Cargando tu panel Los+58...");
+    await supabase.auth.getSession();
+
+    if (typeof window !== "undefined") {
+      await waitForSessionCookie();
+      window.location.replace(target);
+      return;
+    }
+
+    router.replace(target);
+    router.refresh();
+  }
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -106,8 +126,7 @@ export function AuthForm({ mode }: { mode: AuthMode }) {
       return;
     }
 
-    router.replace(redirectTo);
-    router.refresh();
+    await navigateAfterAuth(redirectTo);
   }
 
   async function handleSocialLogin(provider: SocialProvider) {
