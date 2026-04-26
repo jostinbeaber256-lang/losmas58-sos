@@ -92,12 +92,38 @@ async function getNativePushNotifications() {
   return module.PushNotifications;
 }
 
+function logNativePush(message: string, data?: unknown) {
+  if (data === undefined) {
+    console.log(`[Los58NativePush] ${message}`);
+    return;
+  }
+
+  console.log(`[Los58NativePush] ${message}`, data);
+}
+
+function getErrorMessage(error: unknown) {
+  if (error instanceof Error) {
+    return error.message;
+  }
+
+  if (typeof error === "string") {
+    return error;
+  }
+
+  try {
+    return JSON.stringify(error);
+  } catch {
+    return "Error desconocido";
+  }
+}
+
 export function PushNotificationCard() {
   const { currentUserId, isAuthenticated } = useRoutePresence();
   const [supabase] = useState(createClient);
   const [status, setStatus] = useState<PushStatus>("checking");
   const [step, setStep] = useState<PushStep>("checking");
   const [message, setMessage] = useState<string | null>(null);
+  const [debugMessage, setDebugMessage] = useState<string | null>(null);
   const [mode, setMode] = useState<PushMode>(() => getPushMode());
   const isNative = mode === "native-android";
 
@@ -137,7 +163,14 @@ export function PushNotificationCard() {
       throw new Error("Usuario no autenticado.");
     }
 
-    const { error } = await supabase.from("native_push_tokens").upsert(
+    logNativePush("Attempting Supabase native_push_tokens upsert", {
+      userId: currentUserId,
+      tokenPreview: `${token.slice(0, 12)}...`,
+      enabled
+    });
+    setDebugMessage("Guardando token FCM en Supabase...");
+
+    const { data, error } = await supabase.from("native_push_tokens").upsert(
       {
         user_id: currentUserId,
         token,
@@ -146,11 +179,15 @@ export function PushNotificationCard() {
         enabled
       },
       { onConflict: "token" }
-    );
+    ).select("id, enabled, platform").single();
 
     if (error) {
+      logNativePush("Supabase native token upsert failed", error);
       throw new Error(error.message);
     }
+
+    logNativePush("Supabase native token upsert succeeded", data);
+    setDebugMessage("Token FCM guardado en Supabase.");
   }
 
   async function checkNativePushState() {
@@ -163,10 +200,18 @@ export function PushNotificationCard() {
 
     setStatus("checking");
     setStep("checking");
+    setDebugMessage("Detectando Android nativo y permisos FCM...");
 
     try {
+      logNativePush("Detected native Android mode", {
+        mode,
+        platform: getPushMode(),
+        currentUserId
+      });
       const PushNotifications = await getNativePushNotifications();
       const permission = await PushNotifications.checkPermissions();
+      logNativePush("checkPermissions result", permission);
+      setDebugMessage(`Permiso actual: ${permission.receive}`);
 
       if (permission.receive === "denied") {
         setStatus("denied");
@@ -191,6 +236,7 @@ export function PushNotificationCard() {
         .limit(1);
 
       if (error) {
+        logNativePush("native_push_tokens state query failed", error);
         setStatus("error");
         setStep("idle");
         setMessage(error.message);
@@ -198,6 +244,9 @@ export function PushNotificationCard() {
       }
 
       if ((data ?? []).length > 0) {
+        logNativePush("Active native token found for user", {
+          count: data?.length ?? 0
+        });
         setStatus("enabled");
         setStep("done");
         setMessage("Notificaciones nativas activas para esta app.");
@@ -207,7 +256,9 @@ export function PushNotificationCard() {
       setStatus("inactive");
       setStep("idle");
       setMessage("Permiso concedido. Toca activar para registrar este dispositivo.");
+      setDebugMessage("Permiso concedido, pero no hay token activo guardado.");
     } catch (pushError) {
+      logNativePush("checkNativePushState exception", pushError);
       setStatus("error");
       setStep("idle");
       setMessage(
@@ -292,6 +343,12 @@ export function PushNotificationCard() {
 
   async function checkPushState() {
     const detectedMode = getPushMode();
+    logNativePush("Push mode detection", {
+      detectedMode,
+      capacitorPlatform: Capacitor.getPlatform(),
+      isNativePlatform: Capacitor.isNativePlatform(),
+      hasWindowBridge: Boolean(getCapacitorBridge())
+    });
     setMode(detectedMode);
 
     if (detectedMode === "native-android") {
@@ -311,8 +368,15 @@ export function PushNotificationCard() {
     setStatus("loading");
     setStep("permission");
     setMessage("Solicitando permiso de Android...");
+    setDebugMessage("Iniciando flujo nativo FCM...");
+    logNativePush("Enable native push clicked", {
+      currentUserId,
+      isAuthenticated,
+      mode
+    });
 
     if (!isAuthenticated || !currentUserId) {
+      logNativePush("Enable native push aborted: unauthenticated");
       setStatus("error");
       setStep("idle");
       setMessage("Inicia sesion para activar notificaciones de la app.");
@@ -322,12 +386,19 @@ export function PushNotificationCard() {
     try {
       const PushNotifications = await getNativePushNotifications();
       let permission = await PushNotifications.checkPermissions();
+      logNativePush("checkPermissions before request", permission);
+      setDebugMessage(`Permiso antes de solicitar: ${permission.receive}`);
 
       if (!isNativePermissionGranted(permission)) {
+        logNativePush("Requesting native push permission");
+        setDebugMessage("Solicitando permiso nativo de Android...");
         permission = await PushNotifications.requestPermissions();
+        logNativePush("requestPermissions result", permission);
+        setDebugMessage(`Resultado del permiso: ${permission.receive}`);
       }
 
       if (!isNativePermissionGranted(permission)) {
+        logNativePush("Native push permission not granted", permission);
         setStatus(permission.receive === "denied" ? "denied" : "inactive");
         setStep("idle");
         setMessage("Permiso no concedido. Puedes activarlo desde ajustes de Android.");
@@ -336,36 +407,63 @@ export function PushNotificationCard() {
 
       setStep("registering");
       setMessage("Registrando dispositivo con FCM...");
+      setDebugMessage("Instalando listeners de registro FCM...");
 
       const token = await new Promise<string>((resolve, reject) => {
-        const registrationListener = PushNotifications.addListener(
-          "registration",
-          async (tokenResult) => {
-            (await registrationListener).remove();
-            (await registrationErrorListener).remove();
+        Promise.all([
+          PushNotifications.addListener("registration", async (tokenResult) => {
+            logNativePush("registration listener fired with token", {
+              tokenPreview: `${tokenResult.value.slice(0, 16)}...`,
+              tokenLength: tokenResult.value.length
+            });
+            setDebugMessage("Token FCM recibido. Preparando guardado...");
+            cleanupListeners();
             resolve(tokenResult.value);
-          }
-        );
-        const registrationErrorListener = PushNotifications.addListener(
-          "registrationError",
-          async (error) => {
-            (await registrationListener).remove();
-            (await registrationErrorListener).remove();
-            reject(new Error(error.error || "No se pudo registrar FCM."));
-          }
-        );
+          }),
+          PushNotifications.addListener("registrationError", async (error) => {
+            logNativePush("registrationError listener fired", error);
+            setDebugMessage(`Error al registrar FCM: ${getErrorMessage(error)}`);
+            cleanupListeners();
+            reject(new Error(error.error || getErrorMessage(error) || "No se pudo registrar FCM."));
+          })
+        ])
+          .then(([registrationListener, registrationErrorListener]) => {
+            logNativePush("registration listeners installed before register()");
+            setDebugMessage("Listeners instalados. Llamando PushNotifications.register()...");
 
-        PushNotifications.register().catch(reject);
+            function removeListeners() {
+              registrationListener.remove();
+              registrationErrorListener.remove();
+            }
+
+            cleanupListeners = removeListeners;
+            logNativePush("Calling PushNotifications.register()");
+            PushNotifications.register().catch((registerError) => {
+              logNativePush("PushNotifications.register() rejected", registerError);
+              cleanupListeners();
+              reject(registerError);
+            });
+          })
+          .catch((listenerError) => {
+            logNativePush("Could not install registration listeners", listenerError);
+            reject(listenerError);
+          });
+
+        let cleanupListeners: () => void = () => undefined;
       });
 
       setStep("saving");
       setMessage("Guardando token nativo del dispositivo...");
+      setDebugMessage("Token recibido. Guardando en native_push_tokens...");
       await saveNativeToken(token, true);
 
       setStatus("enabled");
       setStep("done");
       setMessage("Notificaciones nativas activadas para esta app.");
+      setDebugMessage("Token guardado. Notificaciones nativas activas.");
+      logNativePush("Native push flow completed successfully");
     } catch (pushError) {
+      logNativePush("handleEnableNativePush exception", pushError);
       setStatus("error");
       setStep("idle");
       setMessage(
@@ -373,6 +471,7 @@ export function PushNotificationCard() {
           ? pushError.message
           : "No se pudieron activar las notificaciones nativas."
       );
+      setDebugMessage(`Error capturado: ${getErrorMessage(pushError)}`);
     }
   }
 
@@ -465,11 +564,22 @@ export function PushNotificationCard() {
 
     try {
       if (isNative) {
-        await supabase
+        logNativePush("Disabling native push tokens", {
+          userId: currentUserId
+        });
+        setDebugMessage("Marcando tokens nativos como desactivados...");
+        const { error } = await supabase
           .from("native_push_tokens")
           .update({ enabled: false })
           .eq("user_id", currentUserId)
           .eq("platform", "android");
+
+        if (error) {
+          logNativePush("Disable native push tokens failed", error);
+          throw new Error(error.message);
+        }
+
+        logNativePush("Native push tokens disabled");
       } else {
         const registration = await getReadyRegistration();
         const subscription = await registration.pushManager.getSubscription();
@@ -487,12 +597,14 @@ export function PushNotificationCard() {
 
       setStatus("inactive");
       setStep("idle");
+      setDebugMessage(isNative ? "Tokens FCM desactivados." : null);
       setMessage(
         isNative
           ? "Notificaciones de la app desactivadas en este dispositivo."
           : "Notificaciones push desactivadas en este dispositivo."
       );
     } catch (pushError) {
+      logNativePush("handleDisablePush exception", pushError);
       setStatus("error");
       setStep("idle");
       setMessage(
@@ -621,6 +733,12 @@ export function PushNotificationCard() {
           }`}
         >
           {message}
+        </p>
+      ) : null}
+
+      {isNative && debugMessage ? (
+        <p className="relative mt-3 rounded-2xl border border-white/10 bg-black/20 px-4 py-3 text-xs leading-5 text-muted">
+          Debug FCM: {debugMessage}
         </p>
       ) : null}
 
