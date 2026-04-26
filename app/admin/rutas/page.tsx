@@ -21,6 +21,8 @@ const filters = [
   { value: "route", label: "En ruta" },
   { value: "off_route", label: "Fuera de ruta" },
   { value: "sharing", label: "Compartiendo" },
+  { value: "monitoring", label: "Monitoreo" },
+  { value: "emergency_tracking", label: "Robo/emergencia" },
   { value: "inactive", label: "Inactivos" }
 ];
 
@@ -57,6 +59,10 @@ function filterRoutes(users: AdminProfile[], filter: string) {
       return users.filter((user) => !user.is_on_route);
     case "sharing":
       return users.filter((user) => user.is_on_route && hasLocation(user));
+    case "monitoring":
+      return users.filter((user) => user.continuous_monitoring_enabled);
+    case "emergency_tracking":
+      return users.filter((user) => user.emergency_tracking_active);
     case "inactive":
       return users.filter(
         (user) => !isRecentActivity(user.location_updated_at || user.updated_at)
@@ -81,6 +87,12 @@ export default async function AdminRoutesPage({
   const sharingCount = allUsers.filter(
     (user) => user.is_on_route && hasLocation(user)
   ).length;
+  const monitoringCount = allUsers.filter(
+    (user) => user.continuous_monitoring_enabled
+  ).length;
+  const emergencyTrackingCount = allUsers.filter(
+    (user) => user.emergency_tracking_active
+  ).length;
   const offRouteCount = allUsers.filter((user) => !user.is_on_route).length;
   const recentCount = allUsers.filter((user) =>
     isRecentActivity(user.location_updated_at || user.updated_at)
@@ -104,9 +116,11 @@ export default async function AdminRoutesPage({
             </p>
           </div>
 
-          <div className="grid grid-cols-2 gap-2 sm:grid-cols-4 xl:min-w-[520px]">
+          <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 xl:min-w-[620px]">
             <Metric label="En ruta" value={routeCount} tone="warning" />
             <Metric label="Compartiendo" value={sharingCount} tone="accent" />
+            <Metric label="Monitoreo" value={monitoringCount} tone="accent" />
+            <Metric label="Robo/emerg." value={emergencyTrackingCount} tone="danger" />
             <Metric label="Fuera" value={offRouteCount} tone="muted" />
             <Metric label="Recientes" value={recentCount} tone="accent" />
           </div>
@@ -192,16 +206,26 @@ export default async function AdminRoutesPage({
 function RouteCard({ user }: { user: AdminProfile }) {
   const sharing = user.is_on_route && hasLocation(user);
   const recent = isRecentActivity(user.location_updated_at || user.updated_at);
+  const monitored = user.continuous_monitoring_enabled;
+  const emergencyTracking = user.emergency_tracking_active;
   const coordinates =
     user.latitude !== null && user.longitude !== null
       ? formatCoordinatesCompact(user.latitude, user.longitude)
       : "Sin coordenadas";
+  const locationUrl =
+    user.latitude !== null && user.longitude !== null
+      ? `https://www.openstreetmap.org/?mlat=${user.latitude}&mlon=${user.longitude}#map=17/${user.latitude}/${user.longitude}`
+      : null;
 
   return (
     <article className="los-card">
       <div
         className={`pointer-events-none absolute inset-y-5 left-0 w-1 rounded-r-full ${
-          user.is_on_route
+          emergencyTracking
+            ? "bg-danger shadow-[0_0_28px_rgba(255,77,109,.45)]"
+            : monitored
+              ? "bg-accent shadow-[0_0_24px_rgba(32,211,238,.32)]"
+              : user.is_on_route
             ? "bg-warning shadow-[0_0_24px_rgba(255,181,71,.35)]"
             : "bg-white/20"
         }`}
@@ -228,6 +252,13 @@ function RouteCard({ user }: { user: AdminProfile }) {
         <div className="flex flex-wrap gap-2 sm:justify-end">
           <CompactStatus active={user.is_on_route} label="En ruta" inactiveLabel="Fuera" />
           <CompactStatus active={sharing} label="Compartiendo" inactiveLabel="Sin ubicacion" />
+          <CompactStatus active={monitored} label="Monitoreo" inactiveLabel="Monitor off" />
+          <CompactStatus
+            active={emergencyTracking}
+            label="Robo/emergencia"
+            inactiveLabel="Sin rastreo"
+            tone={emergencyTracking ? "danger" : "muted"}
+          />
           <CompactStatus active={recent} label="Reciente" inactiveLabel="Inactivo" />
         </div>
       </div>
@@ -254,12 +285,24 @@ function RouteCard({ user }: { user: AdminProfile }) {
         <div className="mt-4 grid gap-3">
           <div className="los-info-panel bg-black/18">
             <p className="text-[11px] uppercase tracking-[0.22em] text-muted">
-              Estado operativo
+          Estado operativo
             </p>
             <p className="mt-1 break-words text-sm leading-6 text-ink">
               Ruta: {user.is_on_route ? "activa" : "inactiva"} / Ubicacion:{" "}
-              {sharing ? "compartida" : "no disponible"} / Emergencia:{" "}
-              {user.emergency_state === "emergency" ? "si" : "no"}
+              {sharing || monitored || emergencyTracking ? "reportada" : "no disponible"} /
+              Monitoreo: {monitored ? "continuo activo" : "apagado"} / Robo-emergencia:{" "}
+              {emergencyTracking ? "activo" : "apagado"}
+            </p>
+          </div>
+
+          <div className="los-info-panel bg-black/18">
+            <p className="text-[11px] uppercase tracking-[0.22em] text-muted">
+              Monitoreo administrativo
+            </p>
+            <p className="mt-1 break-words text-sm leading-6 text-ink">
+              Ultimo monitoreo:{" "}
+              {formatAdminDate(user.monitoring_updated_at || user.location_updated_at)} /
+              Rastreo iniciado: {formatAdminDate(user.emergency_tracking_started_at)}
             </p>
           </div>
 
@@ -289,9 +332,20 @@ function RouteCard({ user }: { user: AdminProfile }) {
             <button type="button" className="los-action-ghost text-muted">
               Ver perfil
             </button>
-            <button type="button" className="los-action-ghost text-muted">
-              Ver ubicacion
-            </button>
+            {locationUrl ? (
+              <a
+                href={locationUrl}
+                target="_blank"
+                rel="noreferrer"
+                className="los-action-ghost text-muted"
+              >
+                Ver ubicacion
+              </a>
+            ) : (
+              <button type="button" disabled className="los-action-ghost text-muted opacity-60">
+                Sin ubicacion
+              </button>
+            )}
           </div>
         </div>
       </details>
@@ -326,14 +380,18 @@ function Metric({
 function CompactStatus({
   active,
   label,
-  inactiveLabel
+  inactiveLabel,
+  tone = "accent"
 }: {
   active: boolean;
   label: string;
   inactiveLabel: string;
+  tone?: "accent" | "danger" | "muted";
 }) {
+  const activeClass = tone === "danger" ? "los-chip-danger" : "los-chip-accent";
+
   return (
-    <span className={`los-chip ${active ? "los-chip-accent" : "los-chip-muted"}`}>
+    <span className={`los-chip ${active ? activeClass : "los-chip-muted"}`}>
       {active ? label : inactiveLabel}
     </span>
   );

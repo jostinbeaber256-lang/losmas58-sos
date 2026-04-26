@@ -69,10 +69,14 @@ export type Profile = {
   is_admin: boolean;
   is_on_route: boolean;
   emergency_state: "normal" | "emergency";
+  continuous_monitoring_enabled: boolean;
+  emergency_tracking_active: boolean;
   latitude: number | null;
   longitude: number | null;
   location_updated_at: string | null;
   sharing_started_at: string | null;
+  monitoring_updated_at: string | null;
+  emergency_tracking_started_at: string | null;
   updated_at: string;
 };
 
@@ -84,6 +88,8 @@ export type ActiveRider = {
   city: string | null;
   emergency_contact: string | null;
   emergency_state: "normal" | "emergency";
+  continuous_monitoring_enabled: boolean;
+  emergency_tracking_active: boolean;
   latitude: number | null;
   longitude: number | null;
   is_on_route: boolean;

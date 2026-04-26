@@ -13,9 +13,13 @@ export type AdminProfile = {
   is_admin: boolean;
   is_on_route: boolean;
   emergency_state: "normal" | "emergency";
+  continuous_monitoring_enabled: boolean;
+  emergency_tracking_active: boolean;
   latitude: number | null;
   longitude: number | null;
   location_updated_at: string | null;
+  monitoring_updated_at: string | null;
+  emergency_tracking_started_at: string | null;
   updated_at: string;
   has_medical_profile?: boolean;
   has_push_enabled?: boolean;
@@ -36,7 +40,7 @@ export type AdminAlert = SosAlert & {
 };
 
 const adminProfileSelect =
-  "id, username, full_name, bike_model, city, emergency_contact, is_admin, is_on_route, emergency_state, latitude, longitude, location_updated_at, updated_at";
+  "id, username, full_name, bike_model, city, emergency_contact, is_admin, is_on_route, emergency_state, continuous_monitoring_enabled, emergency_tracking_active, latitude, longitude, location_updated_at, monitoring_updated_at, emergency_tracking_started_at, updated_at";
 
 const adminAlertSelect =
   "id, user_id, full_name, username, bike_model, city, emergency_contact, emergency_type, emergency_details, medical_summary, latitude, longitude, status, message, created_at, resolved_at";
@@ -109,6 +113,8 @@ export async function getAdminDashboardData() {
     activeAlerts,
     resolvedAlerts,
     activeRiders,
+    monitoredUsers,
+    emergencyTrackingUsers,
     responses
   ] = await Promise.all([
     admin.from("profiles").select("id", { count: "exact", head: true }),
@@ -125,6 +131,14 @@ export async function getAdminDashboardData() {
       .select("id", { count: "exact", head: true })
       .eq("is_on_route", true),
     admin
+      .from("profiles")
+      .select("id", { count: "exact", head: true })
+      .eq("continuous_monitoring_enabled", true),
+    admin
+      .from("profiles")
+      .select("id", { count: "exact", head: true })
+      .eq("emergency_tracking_active", true),
+    admin
       .from("sos_responses")
       .select("id", { count: "exact", head: true })
       .eq("status", "on_the_way")
@@ -135,6 +149,8 @@ export async function getAdminDashboardData() {
     activeAlerts: activeAlerts.count ?? 0,
     resolvedAlerts: resolvedAlerts.count ?? 0,
     activeRiders: activeRiders.count ?? 0,
+    monitoredUsers: monitoredUsers.count ?? 0,
+    emergencyTrackingUsers: emergencyTrackingUsers.count ?? 0,
     responses: responses.count ?? 0
   };
 }

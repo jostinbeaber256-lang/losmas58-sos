@@ -8,10 +8,14 @@ create table if not exists public.profiles (
   is_on_route boolean not null default false,
   emergency_state text not null default 'normal' check (emergency_state in ('normal', 'emergency')),
   is_admin boolean not null default false,
+  continuous_monitoring_enabled boolean not null default false,
+  emergency_tracking_active boolean not null default false,
   latitude double precision,
   longitude double precision,
   location_updated_at timestamptz,
   sharing_started_at timestamptz,
+  monitoring_updated_at timestamptz,
+  emergency_tracking_started_at timestamptz,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
@@ -93,6 +97,10 @@ alter table public.profiles add column if not exists location_updated_at timesta
 alter table public.profiles add column if not exists sharing_started_at timestamptz;
 alter table public.profiles add column if not exists emergency_state text not null default 'normal';
 alter table public.profiles add column if not exists is_admin boolean not null default false;
+alter table public.profiles add column if not exists continuous_monitoring_enabled boolean not null default false;
+alter table public.profiles add column if not exists emergency_tracking_active boolean not null default false;
+alter table public.profiles add column if not exists monitoring_updated_at timestamptz;
+alter table public.profiles add column if not exists emergency_tracking_started_at timestamptz;
 alter table public.sos_alerts add column if not exists city text;
 alter table public.sos_alerts add column if not exists emergency_contact text;
 alter table public.sos_alerts add column if not exists emergency_type text;
@@ -231,6 +239,13 @@ with check (auth.uid() = helper_user_id);
 
 create index if not exists profiles_live_location_idx
 on public.profiles (is_on_route, location_updated_at desc);
+
+create index if not exists profiles_admin_monitoring_idx
+on public.profiles (
+  continuous_monitoring_enabled,
+  emergency_tracking_active,
+  location_updated_at desc
+);
 
 create index if not exists sos_alerts_active_idx
 on public.sos_alerts (status, created_at desc);
