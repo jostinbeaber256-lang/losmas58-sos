@@ -65,6 +65,7 @@ export function AuthForm({ mode }: { mode: AuthMode }) {
   const [socialLoading, setSocialLoading] = useState<SocialProvider | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+  const authError = searchParams.get("error");
 
   const isLogin = mode === "login";
 
@@ -115,10 +116,12 @@ export function AuthForm({ mode }: { mode: AuthMode }) {
     setSocialLoading(provider);
 
     const origin = typeof window !== "undefined" ? window.location.origin : "";
+    const callbackUrl = new URL("/auth/callback", origin);
+    callbackUrl.searchParams.set("next", redirectTo);
     const { error: socialError } = await supabase.auth.signInWithOAuth({
       provider,
       options: {
-        redirectTo: `${origin}${redirectTo}`
+        redirectTo: callbackUrl.toString()
       }
     });
 
@@ -256,9 +259,9 @@ export function AuthForm({ mode }: { mode: AuthMode }) {
               </button>
             </div>
 
-            {error ? (
+            {error || authError ? (
               <p className="rounded-2xl border border-danger/25 bg-danger/10 px-4 py-3 text-sm text-danger">
-                {error}
+                {error || authError}
               </p>
             ) : null}
 
