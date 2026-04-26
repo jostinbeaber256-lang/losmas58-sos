@@ -167,7 +167,10 @@ export function LiveMap() {
     let cancelled = false;
 
     async function requestMapLocationPermission() {
+      console.log("🗺️ MAP: Checking location permissions for map");
       const state = await getGeolocationPermissionState();
+      
+      console.log("🗺️ MAP: Permission state result", { state });
 
       if (cancelled) {
         return;
@@ -175,19 +178,29 @@ export function LiveMap() {
 
       setLocationPermission(state);
 
-      if (state === "granted" || state === "denied" || state === "unsupported") {
+      if (state === "granted") {
+        console.log("✅ MAP: Location permission already granted");
         return;
       }
 
+      if (state === "denied" || state === "unsupported") {
+        console.log("🚫 MAP: Location permission denied or unsupported");
+        return;
+      }
+
+      // Solo solicitar permiso si es "prompt" o "unknown"
+      console.log("🙏 MAP: Requesting location permission for map");
       try {
         await getDevicePosition();
 
         if (!cancelled) {
+          console.log("✅ MAP: Location permission granted after request");
           setLocationPermission("granted");
           setLocationPermissionMessage("Permiso de ubicacion concedido para el mapa.");
         }
       } catch (permissionError) {
         if (!cancelled) {
+          console.log("❌ MAP: Location permission request failed", permissionError);
           setLocationPermission("denied");
           setLocationPermissionMessage(
             permissionError instanceof Error
@@ -270,7 +283,9 @@ export function LiveMap() {
           className={`rounded-2xl border px-4 py-3 text-sm ${
             locationPermission === "denied"
               ? "border-danger/25 bg-danger/10 text-danger"
-              : "border-warning/25 bg-warning/10 text-warning"
+              : locationPermission === "unsupported"
+                ? "border-warning/25 bg-warning/10 text-warning"
+                : "border-warning/25 bg-warning/10 text-warning"
           }`}
         >
           <p className="font-semibold">
@@ -279,11 +294,17 @@ export function LiveMap() {
               ? "permiso denegado"
               : locationPermission === "unsupported"
                 ? "no soportada"
-                : "permiso pendiente"}
+                : locationPermission === "prompt"
+                  ? "permiso requerido"
+                  : "verificando"}
           </p>
           <p className="mt-1 leading-5">
             {locationPermissionMessage ||
-              "Android puede pedir permiso de ubicacion para mostrar tu posicion en el mapa."}
+              (locationPermission === "prompt"
+                ? "Se requiere permiso de ubicacion para mostrar tu posicion en el mapa."
+                : locationPermission === "unknown"
+                  ? "Verificando permisos de ubicacion..."
+                  : "Android puede pedir permiso de ubicacion para mostrar tu posicion en el mapa.")}
           </p>
         </div>
       ) : null}
