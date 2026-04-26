@@ -616,7 +616,7 @@ export function PushNotificationCard() {
   }
 
   const isEnabled = status === "enabled";
-  const isBusy = status === "loading" || status === "checking";
+  const isBusy = status === "loading";
   const title = isNative ? "Notificaciones de la app" : "Alertas push";
   const actionEnableLabel = isNative
     ? "Activar notificaciones de la app"
@@ -744,9 +744,39 @@ export function PushNotificationCard() {
 
       <button
         type="button"
-        onClick={isEnabled ? handleDisablePush : isNative ? handleEnableNativePush : handleEnableWebPush}
+        onPointerDown={() => {
+          logNativePush("Button pointer down", {
+            status,
+            step,
+            mode,
+            isNative,
+            isBusy
+          });
+          setDebugMessage("Toque detectado en el boton.");
+        }}
+        onClick={() => {
+          logNativePush("Button pressed", {
+            status,
+            step,
+            mode,
+            isNative,
+            isEnabled
+          });
+
+          if (isEnabled) {
+            void handleDisablePush();
+            return;
+          }
+
+          if (isNative) {
+            void handleEnableNativePush();
+            return;
+          }
+
+          void handleEnableWebPush();
+        }}
         disabled={isBusy}
-        className={`relative mt-5 inline-flex w-full items-center justify-center gap-2 rounded-2xl px-4 py-3.5 font-semibold transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-70 ${
+        className={`relative z-20 mt-5 inline-flex min-h-14 w-full touch-manipulation select-none items-center justify-center gap-2 rounded-2xl px-4 py-3.5 font-semibold transition duration-150 hover:brightness-110 active:scale-[0.98] active:brightness-125 disabled:cursor-not-allowed disabled:opacity-70 ${
           isEnabled
             ? "border border-danger/30 bg-danger/12 text-danger shadow-[0_18px_40px_rgba(255,77,109,.14)]"
             : "bg-danger text-white shadow-[0_18px_40px_rgba(255,77,109,.25)]"
