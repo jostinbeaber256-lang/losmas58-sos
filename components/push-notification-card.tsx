@@ -117,6 +117,28 @@ function getErrorMessage(error: unknown) {
   }
 }
 
+function withTimeout<T>(
+  promise: Promise<T>,
+  timeoutMs: number,
+  timeoutMessage: string
+) {
+  return new Promise<T>((resolve, reject) => {
+    const timeout = window.setTimeout(() => {
+      reject(new Error(timeoutMessage));
+    }, timeoutMs);
+
+    promise
+      .then((value) => {
+        window.clearTimeout(timeout);
+        resolve(value);
+      })
+      .catch((error) => {
+        window.clearTimeout(timeout);
+        reject(error);
+      });
+  });
+}
+
 export function PushNotificationCard() {
   const { currentUserId, isAuthenticated } = useRoutePresence();
   const [supabase] = useState(createClient);
@@ -385,16 +407,42 @@ export function PushNotificationCard() {
 
     try {
       const PushNotifications = await getNativePushNotifications();
-      let permission = await PushNotifications.checkPermissions();
+      logNativePush("Native flow step: checking permission");
+      setDebugMessage("Revisando permiso nativo de Android...");
+      let permission = await withTimeout(
+        PushNotifications.checkPermissions(),
+        7000,
+        "Timeout revisando permisos de Android."
+      );
       logNativePush("checkPermissions before request", permission);
       setDebugMessage(`Permiso antes de solicitar: ${permission.receive}`);
 
       if (!isNativePermissionGranted(permission)) {
         logNativePush("Requesting native push permission");
         setDebugMessage("Solicitando permiso nativo de Android...");
-        permission = await PushNotifications.requestPermissions();
-        logNativePush("requestPermissions result", permission);
-        setDebugMessage(`Resultado del permiso: ${permission.receive}`);
+        setMessage("Solicitando permiso de Android...");
+
+        try {
+          permission = await withTimeout(
+            PushNotifications.requestPermissions(),
+            8000,
+            "Timeout solicitando permiso de Android."
+          );
+          logNativePush("requestPermissions result", permission);
+          setDebugMessage(`Resultado del permiso: ${permission.receive}`);
+        } catch (permissionError) {
+          logNativePush("requestPermissions timeout/error, rechecking permission", permissionError);
+          setDebugMessage("No hubo respuesta del permiso. Reconfirmando estado...");
+          permission = await withTimeout(
+            PushNotifications.checkPermissions(),
+            7000,
+            "Timeout reconfirmando permisos de Android."
+          );
+          logNativePush("checkPermissions after request fallback", permission);
+        }
+      } else {
+        logNativePush("Permission already granted, skipping requestPermissions()");
+        setDebugMessage("Permiso ya concedido. Continuando al registro FCM...");
       }
 
       if (!isNativePermissionGranted(permission)) {
@@ -405,6 +453,9 @@ export function PushNotificationCard() {
         return;
       }
 
+      logNativePush("Native flow step: permission granted");
+      setMessage("Permiso concedido. Registrando dispositivo...");
+      setDebugMessage("Permiso concedido. Llamando registro FCM...");
       setStep("registering");
       setMessage("Registrando dispositivo con FCM...");
       setDebugMessage("Instalando listeners de registro FCM...");
