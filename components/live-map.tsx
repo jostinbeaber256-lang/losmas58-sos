@@ -20,7 +20,7 @@ import {
   isRiderVisible
 } from "@/lib/map";
 import {
-  getBrowserPosition,
+  getDevicePosition,
   getGeolocationPermissionState,
   type GeolocationPermissionState
 } from "@/lib/geolocation";
@@ -180,7 +180,7 @@ export function LiveMap() {
       }
 
       try {
-        await getBrowserPosition();
+        await getDevicePosition();
 
         if (!cancelled) {
           setLocationPermission("granted");

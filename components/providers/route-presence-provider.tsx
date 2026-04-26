@@ -21,7 +21,11 @@ import type {
   SosPayload,
   SosResponse
 } from "@/lib/types";
-import { getBrowserPosition } from "@/lib/geolocation";
+import {
+  clearDeviceWatch,
+  getDevicePosition,
+  watchDevicePosition
+} from "@/lib/geolocation";
 import { createClient } from "@/lib/supabase/browser";
 
 type RoutePresenceContextValue = {
@@ -202,6 +206,8 @@ export function RoutePresenceProvider({
   const [error, setError] = useState<string | null>(null);
   const [sosFeedback, setSosFeedback] = useState<string | null>(null);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const watchIdRef = useRef<string | number | null>(null);
+  const watchedPositionRef = useRef<Coordinates | null>(null);
   const profileRef = useRef<Profile | null>(null);
 
   const isAuthenticated = Boolean(session?.user.id);
@@ -425,7 +431,7 @@ export function RoutePresenceProvider({
         nextEmergencyTracking ||
         nextEmergencyState === "emergency");
     const coords = shouldCaptureLocation
-      ? coordsOverride || (await getBrowserPosition())
+      ? coordsOverride || watchedPositionRef.current || (await getDevicePosition())
       : null;
     const now = new Date().toISOString();
 
@@ -485,6 +491,9 @@ export function RoutePresenceProvider({
       intervalRef.current = null;
     }
 
+    void clearDeviceWatch(watchIdRef.current);
+    watchIdRef.current = null;
+    watchedPositionRef.current = null;
     setTracking(false);
   }
 
@@ -493,6 +502,27 @@ export function RoutePresenceProvider({
 
     stopTracking();
     setTracking(true);
+    void watchDevicePosition(
+      (coords) => {
+        watchedPositionRef.current = coords;
+        setLatestPosition(coords);
+      },
+      (locationError) => {
+        setError(locationError.message);
+      },
+      intervalMs
+    )
+      .then((watchId) => {
+        watchIdRef.current = watchId;
+      })
+      .catch((locationError) => {
+        const message =
+          locationError instanceof Error
+            ? locationError.message
+            : "No se pudo iniciar el monitoreo nativo de ubicacion.";
+        setError(message);
+      });
+
     intervalRef.current = setInterval(async () => {
       try {
         const currentProfile = profileRef.current;
@@ -658,7 +688,7 @@ export function RoutePresenceProvider({
     setSosFeedback(null);
 
     try {
-      const coords = await getBrowserPosition();
+      const coords = await getDevicePosition();
       const latestMedicalProfile = await getMedicalProfileForSos();
 
       const updated = await pushLocationUpdate({

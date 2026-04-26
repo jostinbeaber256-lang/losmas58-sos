@@ -23,7 +23,7 @@ export function AppBadge() {
             <LogoFallback />
           ) : (
             <Image
-              src="/logo-los58.png"
+              src="/logo-los58-transparent.png"
               alt="Logo Los+58"
               fill
               sizes="48px"

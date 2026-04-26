@@ -192,7 +192,7 @@ export function AuthForm({ mode }: { mode: AuthMode }) {
 
         <div className="mt-5 text-center">
           <Image
-            src="/logo-los58.png"
+            src="/logo-los58-transparent.png"
             alt="Logo Los+58"
             width={520}
             height={520}
