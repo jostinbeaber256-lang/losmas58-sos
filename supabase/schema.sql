@@ -66,6 +66,17 @@ create table if not exists public.push_subscriptions (
   updated_at timestamptz not null default now()
 );
 
+create table if not exists public.native_push_tokens (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references public.profiles (id) on delete cascade,
+  token text not null,
+  platform text not null default 'android',
+  device_info text,
+  enabled boolean not null default true,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
 create table if not exists public.sos_responses (
   id uuid primary key default gen_random_uuid(),
   sos_alert_id uuid not null references public.sos_alerts (id) on delete cascade,
@@ -88,11 +99,15 @@ alter table public.sos_alerts add column if not exists emergency_type text;
 alter table public.sos_alerts add column if not exists emergency_details text;
 alter table public.sos_alerts add column if not exists medical_summary text;
 alter table public.push_subscriptions add column if not exists user_agent text;
+alter table public.native_push_tokens add column if not exists platform text not null default 'android';
+alter table public.native_push_tokens add column if not exists device_info text;
+alter table public.native_push_tokens add column if not exists enabled boolean not null default true;
 
 alter table public.profiles enable row level security;
 alter table public.sos_alerts enable row level security;
 alter table public.medical_profiles enable row level security;
 alter table public.push_subscriptions enable row level security;
+alter table public.native_push_tokens enable row level security;
 alter table public.sos_responses enable row level security;
 
 drop policy if exists "Users can view their own profile" on public.profiles;
@@ -179,6 +194,28 @@ with check (auth.uid() = user_id);
 
 create unique index if not exists push_subscriptions_endpoint_idx
 on public.push_subscriptions (endpoint);
+
+drop policy if exists "Users can view their own native push tokens" on public.native_push_tokens;
+create policy "Users can view their own native push tokens"
+on public.native_push_tokens
+for select
+using (auth.uid() = user_id);
+
+drop policy if exists "Users can create their own native push tokens" on public.native_push_tokens;
+create policy "Users can create their own native push tokens"
+on public.native_push_tokens
+for insert
+with check (auth.uid() = user_id);
+
+drop policy if exists "Users can update their own native push tokens" on public.native_push_tokens;
+create policy "Users can update their own native push tokens"
+on public.native_push_tokens
+for update
+using (auth.uid() = user_id)
+with check (auth.uid() = user_id);
+
+create unique index if not exists native_push_tokens_token_idx
+on public.native_push_tokens (token);
 
 drop policy if exists "Authenticated users can view sos responses" on public.sos_responses;
 create policy "Authenticated users can view sos responses"

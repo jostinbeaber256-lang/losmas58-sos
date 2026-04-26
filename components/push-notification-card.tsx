@@ -1,6 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { Capacitor } from "@capacitor/core";
+import type { PermissionStatus } from "@capacitor/push-notifications";
 import {
   BellAlertIcon,
   CheckCircleIcon,
@@ -20,6 +22,12 @@ type PushStep =
   | "saving"
   | "disabling"
   | "done";
+type PushMode = "native-android" | "web";
+type CapacitorBridge = {
+  getPlatform?: () => string;
+  isNativePlatform?: () => boolean;
+  platform?: string;
+};
 
 function urlBase64ToUint8Array(value: string) {
   const padding = "=".repeat((4 - (value.length % 4)) % 4);
@@ -44,7 +52,29 @@ function getSubscriptionKey(subscription: PushSubscription, key: PushEncryptionK
   return window.btoa(String.fromCharCode(...new Uint8Array(value)));
 }
 
-function isPushSupported() {
+function getCapacitorBridge() {
+  if (typeof window === "undefined") {
+    return null;
+  }
+
+  return (window as Window & { Capacitor?: CapacitorBridge }).Capacitor ?? null;
+}
+
+function isNativeAndroid() {
+  const bridge = getCapacitorBridge();
+  const platform =
+    bridge?.getPlatform?.() ?? bridge?.platform ?? Capacitor.getPlatform();
+  const native =
+    bridge?.isNativePlatform?.() ?? Capacitor.isNativePlatform();
+
+  return native && platform === "android";
+}
+
+function getPushMode(): PushMode {
+  return isNativeAndroid() ? "native-android" : "web";
+}
+
+function isWebPushSupported() {
   return (
     typeof window !== "undefined" &&
     "serviceWorker" in navigator &&
@@ -53,12 +83,23 @@ function isPushSupported() {
   );
 }
 
+function isNativePermissionGranted(permission: PermissionStatus) {
+  return permission.receive === "granted";
+}
+
+async function getNativePushNotifications() {
+  const module = await import("@capacitor/push-notifications");
+  return module.PushNotifications;
+}
+
 export function PushNotificationCard() {
   const { currentUserId, isAuthenticated } = useRoutePresence();
   const [supabase] = useState(createClient);
   const [status, setStatus] = useState<PushStatus>("checking");
   const [step, setStep] = useState<PushStep>("checking");
   const [message, setMessage] = useState<string | null>(null);
+  const [mode, setMode] = useState<PushMode>(() => getPushMode());
+  const isNative = mode === "native-android";
 
   async function getReadyRegistration() {
     await navigator.serviceWorker.register("/sw.js", {
@@ -68,7 +109,7 @@ export function PushNotificationCard() {
     return navigator.serviceWorker.ready;
   }
 
-  async function saveSubscription(subscription: PushSubscription, enabled: boolean) {
+  async function saveWebSubscription(subscription: PushSubscription, enabled: boolean) {
     if (!currentUserId) {
       throw new Error("Usuario no autenticado.");
     }
@@ -80,6 +121,7 @@ export function PushNotificationCard() {
         p256dh: getSubscriptionKey(subscription, "p256dh"),
         auth: getSubscriptionKey(subscription, "auth"),
         user_agent: navigator.userAgent,
+        platform: "web",
         enabled
       },
       { onConflict: "endpoint" }
@@ -90,7 +132,93 @@ export function PushNotificationCard() {
     }
   }
 
-  async function checkPushState() {
+  async function saveNativeToken(token: string, enabled: boolean) {
+    if (!currentUserId) {
+      throw new Error("Usuario no autenticado.");
+    }
+
+    const { error } = await supabase.from("native_push_tokens").upsert(
+      {
+        user_id: currentUserId,
+        token,
+        platform: "android",
+        device_info: navigator.userAgent,
+        enabled
+      },
+      { onConflict: "token" }
+    );
+
+    if (error) {
+      throw new Error(error.message);
+    }
+  }
+
+  async function checkNativePushState() {
+    if (!isAuthenticated || !currentUserId) {
+      setStatus("inactive");
+      setStep("idle");
+      setMessage("Inicia sesion para gestionar notificaciones de la app.");
+      return;
+    }
+
+    setStatus("checking");
+    setStep("checking");
+
+    try {
+      const PushNotifications = await getNativePushNotifications();
+      const permission = await PushNotifications.checkPermissions();
+
+      if (permission.receive === "denied") {
+        setStatus("denied");
+        setStep("idle");
+        setMessage("Permiso denegado. Activalo desde ajustes de Android para recibir notificaciones.");
+        return;
+      }
+
+      if (!isNativePermissionGranted(permission)) {
+        setStatus("inactive");
+        setStep("idle");
+        setMessage(null);
+        return;
+      }
+
+      const { data, error } = await supabase
+        .from("native_push_tokens")
+        .select("enabled")
+        .eq("user_id", currentUserId)
+        .eq("platform", "android")
+        .eq("enabled", true)
+        .limit(1);
+
+      if (error) {
+        setStatus("error");
+        setStep("idle");
+        setMessage(error.message);
+        return;
+      }
+
+      if ((data ?? []).length > 0) {
+        setStatus("enabled");
+        setStep("done");
+        setMessage("Notificaciones nativas activas para esta app.");
+        return;
+      }
+
+      setStatus("inactive");
+      setStep("idle");
+      setMessage("Permiso concedido. Toca activar para registrar este dispositivo.");
+    } catch (pushError) {
+      setStatus("error");
+      setStep("idle");
+      setMessage(
+        pushError instanceof Error
+          ? pushError.message
+          : "No se pudo revisar el estado de notificaciones nativas."
+      );
+    }
+  }
+
+  async function checkWebPushState() {
     if (!isAuthenticated || !currentUserId) {
       setStatus("inactive");
       setStep("idle");
@@ -98,7 +226,7 @@ export function PushNotificationCard() {
       return;
     }
 
-    if (!isPushSupported()) {
+    if (!isWebPushSupported()) {
       setStatus("error");
       setStep("idle");
       setMessage("Este navegador no soporta notificaciones push web.");
@@ -141,7 +269,7 @@ export function PushNotificationCard() {
       }
 
       if (Notification.permission === "granted" && data?.enabled !== false) {
-        await saveSubscription(subscription, true);
+        await saveWebSubscription(subscription, true);
         setStatus("enabled");
         setStep("done");
         setMessage("Notificaciones push activas en este dispositivo.");
@@ -162,12 +290,93 @@ export function PushNotificationCard() {
     }
   }
 
+  async function checkPushState() {
+    const detectedMode = getPushMode();
+    setMode(detectedMode);
+
+    if (detectedMode === "native-android") {
+      await checkNativePushState();
+      return;
+    }
+
+    await checkWebPushState();
+  }
+
   useEffect(() => {
     checkPushState();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentUserId, isAuthenticated]);
 
-  async function handleEnablePush() {
+  async function handleEnableNativePush() {
+    setStatus("loading");
+    setStep("permission");
+    setMessage("Solicitando permiso de Android...");
+
+    if (!isAuthenticated || !currentUserId) {
+      setStatus("error");
+      setStep("idle");
+      setMessage("Inicia sesion para activar notificaciones de la app.");
+      return;
+    }
+
+    try {
+      const PushNotifications = await getNativePushNotifications();
+      let permission = await PushNotifications.checkPermissions();
+
+      if (!isNativePermissionGranted(permission)) {
+        permission = await PushNotifications.requestPermissions();
+      }
+
+      if (!isNativePermissionGranted(permission)) {
+        setStatus(permission.receive === "denied" ? "denied" : "inactive");
+        setStep("idle");
+        setMessage("Permiso no concedido. Puedes activarlo desde ajustes de Android.");
+        return;
+      }
+
+      setStep("registering");
+      setMessage("Registrando dispositivo con FCM...");
+
+      const token = await new Promise<string>((resolve, reject) => {
+        const registrationListener = PushNotifications.addListener(
+          "registration",
+          async (tokenResult) => {
+            (await registrationListener).remove();
+            (await registrationErrorListener).remove();
+            resolve(tokenResult.value);
+          }
+        );
+        const registrationErrorListener = PushNotifications.addListener(
+          "registrationError",
+          async (error) => {
+            (await registrationListener).remove();
+            (await registrationErrorListener).remove();
+            reject(new Error(error.error || "No se pudo registrar FCM."));
+          }
+        );
+
+        PushNotifications.register().catch(reject);
+      });
+
+      setStep("saving");
+      setMessage("Guardando token nativo del dispositivo...");
+      await saveNativeToken(token, true);
+
+      setStatus("enabled");
+      setStep("done");
+      setMessage("Notificaciones nativas activadas para esta app.");
+    } catch (pushError) {
+      setStatus("error");
+      setStep("idle");
+      setMessage(
+        pushError instanceof Error
+          ? pushError.message
+          : "No se pudieron activar las notificaciones nativas."
+      );
+    }
+  }
+
+  async function handleEnableWebPush() {
     setStatus("loading");
     setStep("registering");
     setMessage(null);
@@ -179,7 +388,7 @@ export function PushNotificationCard() {
       return;
     }
 
-    if (!isPushSupported()) {
+    if (!isWebPushSupported()) {
       setStatus("error");
       setStep("idle");
       setMessage("Este navegador no soporta notificaciones push web.");
@@ -233,7 +442,7 @@ export function PushNotificationCard() {
 
       setStep("saving");
       setMessage("Guardando este dispositivo como activo...");
-      await saveSubscription(subscription, true);
+      await saveWebSubscription(subscription, true);
 
       setStatus("enabled");
       setStep("done");
@@ -252,56 +461,87 @@ export function PushNotificationCard() {
   async function handleDisablePush() {
     setStatus("loading");
     setStep("disabling");
-    setMessage("Desactivando notificaciones push...");
+    setMessage(isNative ? "Desactivando notificaciones de la app..." : "Desactivando notificaciones push...");
 
     try {
-      const registration = await getReadyRegistration();
-      const subscription = await registration.pushManager.getSubscription();
-
-      if (subscription) {
+      if (isNative) {
         await supabase
-          .from("push_subscriptions")
+          .from("native_push_tokens")
           .update({ enabled: false })
-          .eq("endpoint", subscription.endpoint)
-          .eq("user_id", currentUserId);
+          .eq("user_id", currentUserId)
+          .eq("platform", "android");
+      } else {
+        const registration = await getReadyRegistration();
+        const subscription = await registration.pushManager.getSubscription();
 
-        await subscription.unsubscribe().catch(() => false);
+        if (subscription) {
+          await supabase
+            .from("push_subscriptions")
+            .update({ enabled: false })
+            .eq("endpoint", subscription.endpoint)
+            .eq("user_id", currentUserId);
+
+          await subscription.unsubscribe().catch(() => false);
+        }
       }
 
       setStatus("inactive");
       setStep("idle");
-      setMessage("Notificaciones push desactivadas en este dispositivo.");
+      setMessage(
+        isNative
+          ? "Notificaciones de la app desactivadas en este dispositivo."
+          : "Notificaciones push desactivadas en este dispositivo."
+      );
     } catch (pushError) {
       setStatus("error");
       setStep("idle");
       setMessage(
         pushError instanceof Error
           ? pushError.message
-          : "No se pudieron desactivar las notificaciones push."
+          : "No se pudieron desactivar las notificaciones."
       );
     }
   }
 
   const isEnabled = status === "enabled";
   const isBusy = status === "loading" || status === "checking";
+  const title = isNative ? "Notificaciones de la app" : "Alertas push";
+  const actionEnableLabel = isNative
+    ? "Activar notificaciones de la app"
+    : "Activar notificaciones push";
+  const actionDisableLabel = isNative
+    ? "Desactivar notificaciones de la app"
+    : "Desactivar notificaciones push";
   const statusCopy = {
-    checking: "Revisando permiso y suscripcion del dispositivo...",
-    inactive: "Activalas para recibir SOS aunque no estes mirando la app.",
+    checking: isNative
+      ? "Revisando permisos nativos de Android..."
+      : "Revisando permiso y suscripcion del dispositivo...",
+    inactive: isNative
+      ? "Activalas para recibir SOS desde la APK con FCM nativo."
+      : "Activalas para recibir SOS aunque no estes mirando la app.",
     loading:
       step === "disabling"
-        ? "Desactivando push para este dispositivo..."
+        ? "Desactivando notificaciones para este dispositivo..."
         : step === "registering"
-          ? "Registrando service worker..."
+          ? isNative
+            ? "Registrando dispositivo con FCM..."
+            : "Registrando service worker..."
           : step === "permission"
-            ? "Esperando permiso del navegador..."
+            ? isNative
+              ? "Esperando permiso de Android..."
+              : "Esperando permiso del navegador..."
             : step === "subscribing"
               ? "Creando suscripcion push..."
               : step === "saving"
-                ? "Guardando suscripcion..."
+                ? "Guardando token del dispositivo..."
                 : "Preparando permisos y suscripcion...",
-    enabled: "Push activas por defecto en este dispositivo.",
-    denied: "Permiso denegado para este navegador.",
-    error: "No se pudo completar la accion de push."
+    enabled: isNative
+      ? "FCM nativo activo para esta APK."
+      : "Push activas por defecto en este dispositivo.",
+    denied: isNative
+      ? "Permiso denegado en Android."
+      : "Permiso denegado para este navegador.",
+    error: "No se pudo completar la accion de notificaciones."
   }[status];
   const statusMeta = {
     checking: {
@@ -355,11 +595,9 @@ export function PushNotificationCard() {
           </div>
           <div className="min-w-0 flex-1">
             <p className="text-xs uppercase tracking-[0.3em] text-accent">
-              Notificaciones
+              {isNative ? "Android FCM" : "Web Push"}
             </p>
-            <h2 className="mt-1 text-xl font-semibold text-ink">
-              Alertas push
-            </h2>
+            <h2 className="mt-1 text-xl font-semibold text-ink">{title}</h2>
             <p className="mt-2 text-sm leading-6 text-muted">{statusCopy}</p>
           </div>
         </div>
@@ -388,7 +626,7 @@ export function PushNotificationCard() {
 
       <button
         type="button"
-        onClick={isEnabled ? handleDisablePush : handleEnablePush}
+        onClick={isEnabled ? handleDisablePush : isNative ? handleEnableNativePush : handleEnableWebPush}
         disabled={isBusy}
         className={`relative mt-5 inline-flex w-full items-center justify-center gap-2 rounded-2xl px-4 py-3.5 font-semibold transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-70 ${
           isEnabled
@@ -402,8 +640,8 @@ export function PushNotificationCard() {
             ? "Desactivando..."
             : "Revisando..."
           : isEnabled
-            ? "Desactivar notificaciones push"
-            : "Activar notificaciones push"}
+            ? actionDisableLabel
+            : actionEnableLabel}
       </button>
     </section>
   );

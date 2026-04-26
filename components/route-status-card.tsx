@@ -1,8 +1,13 @@
 "use client";
 
 import Link from "next/link";
+import { useEffect, useState } from "react";
 import { useRoutePresence } from "@/components/providers/route-presence-provider";
 import { ClockIcon, MapPinIcon, SignalIcon } from "@heroicons/react/24/solid";
+import {
+  getGeolocationPermissionState,
+  type GeolocationPermissionState
+} from "@/lib/geolocation";
 
 export function RouteStatusCard() {
   const {
@@ -14,6 +19,13 @@ export function RouteStatusCard() {
     error,
     toggleRoute
   } = useRoutePresence();
+  const [permissionState, setPermissionState] =
+    useState<GeolocationPermissionState>("unknown");
+
+  useEffect(() => {
+    getGeolocationPermissionState().then(setPermissionState);
+  }, [isOnRoute, latestPosition]);
+
   const syncLabel = profile?.location_updated_at
     ? new Date(profile.location_updated_at).toLocaleTimeString("es-VE", {
         hour: "2-digit",
@@ -32,6 +44,19 @@ export function RouteStatusCard() {
       : isOnRoute
         ? "border-accent/35 bg-accent/12 text-accent"
         : "border-white/10 bg-white/5 text-muted";
+  const permissionLabel = {
+    granted: "Permiso concedido",
+    prompt: "Permiso pendiente",
+    denied: "Permiso denegado",
+    unsupported: "No soportado",
+    unknown: "Por confirmar"
+  }[permissionState];
+  const permissionClass =
+    permissionState === "granted"
+      ? "border-accent/25 bg-accent/10 text-accent"
+      : permissionState === "denied"
+        ? "border-danger/25 bg-danger/10 text-danger"
+        : "border-warning/25 bg-warning/10 text-warning";
 
   return (
     <section className="los-card md:p-6">
@@ -90,6 +115,24 @@ export function RouteStatusCard() {
           {error}
         </p>
       ) : null}
+
+      <div className="relative mt-4 rounded-2xl border border-white/10 bg-white/[0.045] px-4 py-3">
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <p className="text-[11px] uppercase tracking-[0.22em] text-muted">
+              Permiso de ubicacion
+            </p>
+            <p className="mt-1 text-sm leading-5 text-muted">
+              {permissionState === "denied"
+                ? "Android bloqueo la ubicacion. Abre ajustes de la app y permite ubicacion."
+                : "Se pedira al activar ruta, entrar al mapa o enviar un SOS."}
+            </p>
+          </div>
+          <span className={`w-fit rounded-full border px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.16em] ${permissionClass}`}>
+            {permissionLabel}
+          </span>
+        </div>
+      </div>
 
       <div className="relative mt-5 grid grid-cols-2 gap-3">
         <button

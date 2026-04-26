@@ -1,7 +1,7 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import {
   ExclamationTriangleIcon,
@@ -19,6 +19,11 @@ import {
   getDistanceKm,
   isRiderVisible
 } from "@/lib/map";
+import {
+  getBrowserPosition,
+  getGeolocationPermissionState,
+  type GeolocationPermissionState
+} from "@/lib/geolocation";
 
 const LeafletMapCanvas = dynamic(
   () =>
@@ -36,6 +41,9 @@ const LeafletMapCanvas = dynamic(
 export function LiveMap() {
   const { profile, activeRiders, alerts, latestPosition, isOnRoute, tracking, error } =
     useRoutePresence();
+  const [locationPermission, setLocationPermission] =
+    useState<GeolocationPermissionState>("unknown");
+  const [locationPermissionMessage, setLocationPermissionMessage] = useState<string | null>(null);
   const searchParams = useSearchParams();
   const focusedAlertId = searchParams.get("alerta");
 
@@ -155,6 +163,48 @@ export function LiveMap() {
     }
   ];
 
+  useEffect(() => {
+    let cancelled = false;
+
+    async function requestMapLocationPermission() {
+      const state = await getGeolocationPermissionState();
+
+      if (cancelled) {
+        return;
+      }
+
+      setLocationPermission(state);
+
+      if (state === "granted" || state === "denied" || state === "unsupported") {
+        return;
+      }
+
+      try {
+        await getBrowserPosition();
+
+        if (!cancelled) {
+          setLocationPermission("granted");
+          setLocationPermissionMessage("Permiso de ubicacion concedido para el mapa.");
+        }
+      } catch (permissionError) {
+        if (!cancelled) {
+          setLocationPermission("denied");
+          setLocationPermissionMessage(
+            permissionError instanceof Error
+              ? permissionError.message
+              : "No se pudo solicitar permiso de ubicacion."
+          );
+        }
+      }
+    }
+
+    requestMapLocationPermission();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
   return (
     <section className="space-y-5">
       <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
@@ -213,6 +263,29 @@ export function LiveMap() {
         <p className="rounded-2xl border border-danger/25 bg-danger/10 px-4 py-3 text-sm text-danger">
           {error}
         </p>
+      ) : null}
+
+      {locationPermission !== "granted" || locationPermissionMessage ? (
+        <div
+          className={`rounded-2xl border px-4 py-3 text-sm ${
+            locationPermission === "denied"
+              ? "border-danger/25 bg-danger/10 text-danger"
+              : "border-warning/25 bg-warning/10 text-warning"
+          }`}
+        >
+          <p className="font-semibold">
+            Ubicacion:{" "}
+            {locationPermission === "denied"
+              ? "permiso denegado"
+              : locationPermission === "unsupported"
+                ? "no soportada"
+                : "permiso pendiente"}
+          </p>
+          <p className="mt-1 leading-5">
+            {locationPermissionMessage ||
+              "Android puede pedir permiso de ubicacion para mostrar tu posicion en el mapa."}
+          </p>
+        </div>
       ) : null}
 
       <section className="grid gap-5 xl:grid-cols-[0.92fr_1.08fr]">
