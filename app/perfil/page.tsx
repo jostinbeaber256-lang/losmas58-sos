@@ -11,16 +11,16 @@ export default function ProfilePage() {
         <div className="pointer-events-none absolute -right-20 -top-24 h-56 w-56 rounded-full bg-accent/12 blur-3xl" />
         <div className="pointer-events-none absolute -bottom-24 left-6 h-56 w-56 rounded-full bg-danger/10 blur-3xl" />
 
-        <div className="relative flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
-          <div className="max-w-xl">
+        <div className="relative flex flex-col gap-5 text-center lg:flex-row lg:items-end lg:justify-between lg:text-left">
+          <div className="los-section-head los-section-head-center max-w-xl lg:items-start lg:text-left">
             <div className="los-chip los-chip-accent">
               <UserCircleIcon className="h-4 w-4" />
               Perfil motero
             </div>
-            <h1 className="mt-4 max-w-2xl text-3xl font-semibold leading-tight text-ink md:text-4xl">
+            <h1 className="los-section-title max-w-2xl">
               Tu identidad y seguridad en carretera.
             </h1>
-            <p className="mt-3 max-w-lg text-sm leading-6 text-muted md:text-base">
+            <p className="los-section-copy max-w-xl">
               Manten tus datos listos para ruta, SOS, notificaciones y ficha
               medica de emergencia.
             </p>

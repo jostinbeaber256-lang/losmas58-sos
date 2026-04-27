@@ -743,7 +743,7 @@ export function PushNotificationCard() {
   return (
     <section className="relative overflow-hidden rounded-[2rem] border border-white/10 bg-[radial-gradient(circle_at_100%_0%,rgba(32,211,238,0.12),transparent_34%),linear-gradient(145deg,rgba(18,27,43,0.95),rgba(8,12,22,0.98))] p-5 shadow-[0_24px_70px_rgba(0,0,0,0.3)] md:p-6">
       <div className="pointer-events-none absolute -right-20 -top-16 h-52 w-52 rounded-full bg-accent/10 blur-3xl" />
-      <div className="relative flex items-start justify-between gap-4">
+      <div className="relative flex flex-col gap-5 text-center sm:flex-row sm:items-start sm:justify-between sm:text-left">
         <div className="flex min-w-0 items-start gap-4">
           <div className={`rounded-2xl border p-3 shadow-[0_0_30px_rgba(32,211,238,0.1)] ${
             isEnabled
@@ -756,17 +756,19 @@ export function PushNotificationCard() {
               <BellAlertIcon className="h-6 w-6" />
             )}
           </div>
-          <div className="min-w-0 flex-1">
-            <p className="text-xs uppercase tracking-[0.3em] text-accent">
+          <div className="los-section-head min-w-0 flex-1 sm:items-start">
+            <p className="los-section-kicker text-accent">
               {isNative ? "Android FCM" : "Web Push"}
             </p>
-            <h2 className="mt-1 text-xl font-semibold text-ink">{title}</h2>
-            <p className="mt-2 text-sm leading-6 text-muted">{statusCopy}</p>
+            <h2 className="text-[1.55rem] font-semibold leading-tight text-ink sm:text-[1.75rem]">
+              {title}
+            </h2>
+            <p className="los-section-copy max-w-lg text-sm">{statusCopy}</p>
           </div>
         </div>
 
         <span
-          className={`inline-flex shrink-0 items-center gap-1.5 rounded-full border px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.2em] ${statusMeta.classes}`}
+          className={`mx-auto inline-flex shrink-0 items-center gap-1.5 rounded-full border px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.2em] sm:mx-0 ${statusMeta.classes}`}
         >
           <StatusIcon className="h-4 w-4" />
           {statusMeta.label}

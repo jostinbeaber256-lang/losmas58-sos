@@ -107,20 +107,20 @@ export function ProfileForm() {
       <section className="relative overflow-hidden rounded-[2rem] border border-white/10 bg-[radial-gradient(circle_at_0%_0%,rgba(32,211,238,0.14),transparent_34%),linear-gradient(145deg,rgba(18,27,43,0.96),rgba(7,11,20,0.98))] p-5 shadow-[0_24px_70px_rgba(0,0,0,0.32)] md:p-6">
         <div className="pointer-events-none absolute -right-20 top-0 h-52 w-52 rounded-full bg-accent/10 blur-3xl" />
 
-        <div className="relative flex flex-col gap-5 sm:flex-row sm:items-start sm:justify-between">
+        <div className="relative flex flex-col gap-5 text-center sm:flex-row sm:items-start sm:justify-between sm:text-left">
           <div className="flex items-center gap-4">
             <div className="relative flex h-20 w-20 shrink-0 items-center justify-center rounded-[1.6rem] border border-accent/25 bg-accent/12 text-2xl font-semibold text-accent shadow-[0_0_36px_rgba(32,211,238,0.16)]">
               <div className="pointer-events-none absolute inset-2 rounded-[1.2rem] border border-white/10" />
               {initials}
             </div>
-            <div className="min-w-0">
-              <p className="text-xs uppercase tracking-[0.28em] text-accent/80">
+            <div className="los-section-head min-w-0 sm:items-start">
+              <p className="los-section-kicker text-accent/80">
                 Ficha personal
               </p>
-              <h2 className="mt-2 break-words text-2xl font-semibold leading-tight text-ink">
+              <h2 className="break-words text-[1.9rem] font-semibold leading-tight text-ink sm:text-[2.15rem]">
                 {values.full_name || values.username || "Completa tu perfil"}
               </h2>
-              <p className="mt-1 text-sm text-muted">
+              <p className="text-sm text-muted">
                 {profile?.emergency_state === "emergency"
                   ? "Estado de emergencia activo"
                   : profile?.is_on_route
@@ -190,15 +190,15 @@ export function ProfileForm() {
 
       <section className="relative overflow-hidden rounded-[2rem] border border-white/10 bg-[linear-gradient(145deg,rgba(18,27,43,0.95),rgba(8,12,22,0.98))] p-5 shadow-[0_24px_70px_rgba(0,0,0,0.3)] md:p-6">
         <div className="pointer-events-none absolute -right-24 -top-20 h-52 w-52 rounded-full bg-accent/10 blur-3xl" />
-        <div className="relative flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div className="min-w-0">
-            <p className="text-xs uppercase tracking-[0.35em] text-accent">
+        <div className="relative flex flex-col gap-4 text-center sm:flex-row sm:items-center sm:justify-between sm:text-left">
+          <div className="los-section-head los-section-head-center min-w-0 sm:items-start sm:text-left">
+            <p className="los-section-kicker text-accent">
               Editar perfil
             </p>
-            <h3 className="mt-2 text-xl font-semibold text-ink">
+            <h3 className="text-[1.55rem] font-semibold leading-tight text-ink sm:text-[1.75rem]">
               Datos reales del motero
             </h3>
-            <p className="mt-2 text-sm leading-6 text-muted">
+            <p className="los-section-copy max-w-md text-sm">
               {missingFields.length
                 ? `${completedCount} de ${requiredFields.length} datos completos.`
                 : "Perfil listo: 5 de 5 datos completos."}
@@ -208,7 +208,7 @@ export function ProfileForm() {
           <button
             type="button"
             onClick={() => setEditOpen((current) => !current)}
-            className="inline-flex w-full items-center justify-center gap-2 rounded-2xl border border-accent/25 bg-accent/10 px-4 py-3 text-sm font-semibold text-accent transition hover:bg-accent/15 sm:w-auto"
+          className="inline-flex w-full items-center justify-center gap-2 rounded-2xl border border-accent/25 bg-accent/10 px-4 py-3 text-sm font-semibold text-accent transition hover:bg-accent/15 sm:w-auto"
             aria-expanded={editOpen}
           >
             {editOpen ? "Cerrar" : "Editar"}

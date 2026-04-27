@@ -15,16 +15,16 @@ export default function AlertsPage() {
         <div className="pointer-events-none absolute -right-20 -top-24 h-56 w-56 rounded-full bg-danger/15 blur-3xl" />
         <div className="pointer-events-none absolute -bottom-24 left-6 h-56 w-56 rounded-full bg-accent/10 blur-3xl" />
 
-        <div className="relative flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
-          <div className="max-w-xl">
+        <div className="relative flex flex-col gap-5 text-center lg:flex-row lg:items-end lg:justify-between lg:text-left">
+          <div className="los-section-head los-section-head-center max-w-xl lg:items-start lg:text-left">
             <div className="los-chip los-chip-danger">
               <BellAlertIcon className="h-4 w-4" />
               Panel SOS
             </div>
-            <h1 className="mt-4 max-w-2xl text-3xl font-semibold leading-tight text-ink md:text-4xl">
+            <h1 className="los-section-title max-w-2xl">
               Alertas abiertas de la comunidad.
             </h1>
-            <p className="mt-3 max-w-lg text-sm leading-6 text-muted md:text-base">
+            <p className="los-section-copy max-w-xl">
               Prioriza emergencias activas, revisa quien va en camino y coordina
               apoyo rapido entre moteros.
             </p>

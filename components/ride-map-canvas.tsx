@@ -1,9 +1,9 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import L from "leaflet";
 import { MapContainer, Marker, TileLayer, useMap } from "react-leaflet";
-import type { RideParticipant } from "@/lib/types";
+import type { Coordinates, RideParticipant } from "@/lib/types";
 import { DEFAULT_CENTER, formatCoordinatesCompact } from "@/lib/map";
 
 function formatRideTime(value: string | null) {
@@ -133,6 +133,23 @@ function buildRidePopup(participant: RideParticipant, currentUserId: string | nu
   `;
 }
 
+function RecenterRideMap({ position }: { position: Coordinates | null }) {
+  const map = useMap();
+
+  useEffect(() => {
+    if (!position) {
+      return;
+    }
+
+    map.flyTo([position.latitude, position.longitude], 13, {
+      animate: true,
+      duration: 0.8
+    });
+  }, [map, position]);
+
+  return null;
+}
+
 function FitBounds({
   participants,
   request
@@ -141,33 +158,19 @@ function FitBounds({
   request: number;
 }) {
   const map = useMap();
-  const initialFitDoneRef = useRef(false);
-  const lastHandledRequestRef = useRef(0);
 
   useEffect(() => {
-    const isInitialFit = !initialFitDoneRef.current && participants.length > 0;
-    const isManualRequest = request > 0 && request !== lastHandledRequestRef.current;
-
-    if (!isInitialFit && !isManualRequest) {
-      return;
-    }
-
     const points = participants
       .filter(
         (participant) =>
           typeof participant.current_lat === "number" &&
-          typeof participant.current_lng === "number" &&
-          Number.isFinite(participant.current_lat) &&
-          Number.isFinite(participant.current_lng)
+          typeof participant.current_lng === "number"
       )
       .map((participant) => [participant.current_lat!, participant.current_lng!] as [number, number]);
 
     if (!points.length) {
       return;
     }
-
-    initialFitDoneRef.current = true;
-    lastHandledRequestRef.current = request;
 
     if (points.length === 1) {
       map.flyTo(points[0], 14, { animate: true, duration: 0.7 });
@@ -198,11 +201,10 @@ function RideMarkers({
 
     for (const participant of participants) {
       if (
-        !participant.live_route_enabled ||
-        typeof participant.current_lat !== "number" ||
-        typeof participant.current_lng !== "number" ||
-        !Number.isFinite(participant.current_lat) ||
-        !Number.isFinite(participant.current_lng)
+        participant.current_lat === null ||
+        participant.current_lng === null ||
+        participant.attendance_status !== "confirmed" ||
+        !participant.live_route_enabled
       ) {
         continue;
       }
@@ -236,11 +238,10 @@ export function RideMapCanvas({
     () =>
       participants.filter(
         (participant) =>
+          participant.attendance_status === "confirmed" &&
           participant.live_route_enabled &&
           typeof participant.current_lat === "number" &&
-          typeof participant.current_lng === "number" &&
-          Number.isFinite(participant.current_lat) &&
-          Number.isFinite(participant.current_lng)
+          typeof participant.current_lng === "number"
       ),
     [participants]
   );
@@ -275,6 +276,7 @@ export function RideMapCanvas({
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
+        <RecenterRideMap position={centerPosition} />
         <FitBounds participants={liveParticipants} request={fitRequest} />
         <RideMarkers participants={liveParticipants} currentUserId={currentUserId} />
       </MapContainer>

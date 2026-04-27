@@ -359,6 +359,32 @@ body {
     background-color: rgba(255, 255, 255, 0.035);
   }
 
+  .los-section-head {
+    @apply flex flex-col gap-4;
+  }
+
+  .los-section-head-center {
+    @apply items-center text-center;
+  }
+
+  .los-section-kicker {
+    @apply text-xs font-semibold uppercase;
+    letter-spacing: 0.32em;
+  }
+
+  .los-section-title {
+    @apply text-[2.2rem] font-bold leading-tight text-ink sm:text-[2.6rem] md:text-[3rem];
+    letter-spacing: -0.04em;
+  }
+
+  .los-section-copy {
+    @apply max-w-2xl text-base leading-7 text-muted md:text-lg;
+  }
+
+  .los-section-stack {
+    @apply space-y-2;
+  }
+
   .los-chip {
     @apply inline-flex items-center gap-2 rounded-full border px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em];
   }

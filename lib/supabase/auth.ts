@@ -1,4 +1,4 @@
-import type { Session } from "@supabase/supabase-js";
+import type { Session, User } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/server";
 
 export async function getCurrentSession(): Promise<Session | null> {
@@ -8,4 +8,13 @@ export async function getCurrentSession(): Promise<Session | null> {
   } = await supabase.auth.getSession();
 
   return session;
+}
+
+export async function getCurrentUser(): Promise<User | null> {
+  const supabase = await createClient();
+  const {
+    data: { user }
+  } = await supabase.auth.getUser();
+
+  return user;
 }

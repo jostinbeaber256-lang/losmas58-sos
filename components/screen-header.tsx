@@ -8,13 +8,11 @@ export function ScreenHeader({
   description: string;
 }) {
   return (
-    <header className="space-y-3 pb-1">
-      <p className="text-sm uppercase tracking-[0.35em] text-accent">{eyebrow}</p>
-      <div className="space-y-2">
-        <h1 className="max-w-sm text-3xl font-semibold leading-tight text-ink">
-          {title}
-        </h1>
-        <p className="max-w-sm text-sm leading-6 text-muted">{description}</p>
+    <header className="los-section-head los-section-head-center pb-1">
+      <p className="los-section-kicker text-accent">{eyebrow}</p>
+      <div className="los-section-stack">
+        <h1 className="los-section-title max-w-xl">{title}</h1>
+        <p className="los-section-copy max-w-xl">{description}</p>
       </div>
     </header>
   );

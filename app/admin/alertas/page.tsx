@@ -19,6 +19,15 @@ import {
   type AdminAlert
 } from "@/lib/admin/data";
 import { formatCoordinatesCompact, formatPhoneNumber } from "@/lib/map";
+import {
+  ExpandableCard,
+  CompactView,
+  ExpandedView,
+  ExpandTrigger,
+  CompactInfo,
+  CompactInfoGrid,
+  CardDivider
+} from "@/components/ui/expandable-card";
 
 const emergencyTypes = [
   "Llanta pinchada",
@@ -175,155 +184,222 @@ export default async function AdminAlertsPage({
             .join(" / ");
 
           return (
-            <article
-              key={alert.id}
-              className="los-card"
-            >
-              <div
-                className="pointer-events-none absolute inset-y-5 left-0 w-1 rounded-r-full"
-                style={{
-                  backgroundColor: meta.mapColor,
-                  boxShadow: isActive ? meta.mapGlow : "none",
-                  opacity: isActive ? 0.9 : 0.35
-                }}
-              />
+            <ExpandableCard key={alert.id} cardId={`alert-${alert.id}`} defaultExpanded={false}>
+              <article className="relative">
+                <div
+                  className="pointer-events-none absolute inset-y-5 left-0 w-1 rounded-r-full"
+                  style={{
+                    backgroundColor: meta.mapColor,
+                    boxShadow: isActive ? meta.mapGlow : "none",
+                    opacity: isActive ? 0.9 : 0.35
+                  }}
+                />
 
-              <div className="flex items-start justify-between gap-4">
-                <div className="flex min-w-0 gap-3">
-                  <div className={`h-fit rounded-2xl p-3 ${meta.iconClasses}`}>
-                    <Icon className="h-5 w-5" />
-                  </div>
-                  <div className="min-w-0">
-                    <div className="flex flex-wrap items-center gap-2">
-                      <span
-                        className={`rounded-full px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] ${meta.chipClasses}`}
-                      >
-                        {meta.label}
-                      </span>
-                      <span className="inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-white/[0.045] px-3 py-1 text-[11px] font-medium text-muted">
-                        <ClockIcon className="h-3.5 w-3.5" />
-                        {formatAdminDate(alert.created_at)}
-                      </span>
+                {/* Vista Compacta */}
+                <CompactView>
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="flex min-w-0 gap-3">
+                      <div className={`h-fit rounded-2xl p-3 ${meta.iconClasses}`}>
+                        <Icon className="h-5 w-5" />
+                      </div>
+                      <div className="min-w-0">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <span
+                            className={`rounded-full px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] ${meta.chipClasses}`}
+                          >
+                            {meta.label}
+                          </span>
+                          <span className="inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-white/[0.045] px-3 py-1 text-[11px] font-medium text-muted">
+                            <ClockIcon className="h-3.5 w-3.5" />
+                            {formatAdminDate(alert.created_at)}
+                          </span>
+                        </div>
+                        <h3 className="mt-3 break-words text-lg font-semibold text-ink">
+                          {getAdminDisplayName(alert)}
+                        </h3>
+                        <p className="mt-1 break-words text-sm text-muted">
+                          {alert.bike_model || "Moto no registrada"} /{" "}
+                          {alert.city || "Sin ciudad"}
+                        </p>
+                      </div>
                     </div>
-                    <h3 className="mt-3 break-words text-lg font-semibold text-ink">
-                      {getAdminDisplayName(alert)}
-                    </h3>
-                    <p className="mt-1 break-words text-sm text-muted">
-                      {alert.bike_model || "Moto no registrada"} /{" "}
-                      {alert.city || "Sin ciudad"}
-                    </p>
-                  </div>
-                </div>
-                <span
-                  className={`shrink-0 rounded-full border px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] ${statusTone}`}
-                >
-                  {getStatusLabel(alert.status)}
-                </span>
-              </div>
-
-              <div className="mt-5 grid gap-3 sm:grid-cols-2">
-                <Info
-                  icon={<MapPinIcon className="h-3.5 w-3.5 text-accent" />}
-                  label="Ciudad"
-                  value={alert.city || "Sin ciudad"}
-                />
-                <Info
-                  icon={<PhoneIcon className="h-3.5 w-3.5 text-accent" />}
-                  label="Contacto"
-                  value={formatPhoneNumber(alert.emergency_contact)}
-                />
-                <Info
-                  icon={<MapPinIcon className="h-3.5 w-3.5 text-accent" />}
-                  label="Ubicacion"
-                  value={formatCoordinatesCompact(alert.latitude, alert.longitude)}
-                />
-                <Info
-                  icon={<UserGroupIcon className="h-3.5 w-3.5 text-accent" />}
-                  label="En camino"
-                  value={`${alert.responses.length} motero(s)`}
-                />
-              </div>
-
-              <details className="group mt-4 rounded-2xl border border-white/10 bg-white/[0.045] px-4 py-3 shadow-[inset_0_1px_0_rgba(255,255,255,.05)]">
-                <summary className="flex cursor-pointer list-none items-center justify-between gap-3 text-sm font-semibold text-ink">
-                  <span>
-                    Ver detalle operativo
-                    <span className="ml-2 text-xs font-medium text-muted">
-                      incidente, ficha y apoyos
+                    <span
+                      className={`shrink-0 rounded-full border px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] ${statusTone}`}
+                    >
+                      {getStatusLabel(alert.status)}
                     </span>
-                  </span>
-                  <ArrowTopRightOnSquareIcon className="h-4 w-4 text-accent transition group-open:rotate-45" />
-                </summary>
-
-                <div className="mt-4 space-y-3">
-                  <div className="rounded-2xl border border-white/10 bg-black/18 px-4 py-3">
-                    <p className="text-[11px] uppercase tracking-[0.22em] text-muted">
-                      Descripcion
-                    </p>
-                    <p className="mt-1 break-words text-sm leading-6 text-ink">
-                      {alert.emergency_details || alert.message || "Sin descripcion"}
-                    </p>
                   </div>
 
-                  {alert.medical_summary ? (
-                    <div className="rounded-2xl border border-danger/20 bg-danger/10 px-4 py-3">
-                      <p className="text-[11px] uppercase tracking-[0.22em] text-danger">
-                        Ficha medica compartida
+                  <CardDivider />
+
+                  <CompactInfoGrid maxItems={4}>
+                    <CompactInfo
+                      icon={<MapPinIcon className="h-3.5 w-3.5" />}
+                      label="Ciudad"
+                      value={alert.city || "Sin ciudad"}
+                      tone="accent"
+                    />
+                    <CompactInfo
+                      icon={<PhoneIcon className="h-3.5 w-3.5" />}
+                      label="Contacto"
+                      value={formatPhoneNumber(alert.emergency_contact)}
+                      tone="accent"
+                    />
+                    <CompactInfo
+                      icon={<MapPinIcon className="h-3.5 w-3.5" />}
+                      label="Ubicacion"
+                      value={formatCoordinatesCompact(alert.latitude, alert.longitude)}
+                      tone="accent"
+                    />
+                    <CompactInfo
+                      icon={<UserGroupIcon className="h-3.5 w-3.5" />}
+                      label="En camino"
+                      value={`${alert.responses.length} motero(s)`}
+                      tone={alert.responses.length > 0 ? "accent" : "muted"}
+                    />
+                  </CompactInfoGrid>
+
+                  <div className="mt-3">
+                    <ExpandTrigger 
+                      collapsedLabel="Ver detalles completos" 
+                      expandedLabel="Ocultar detalles"
+                      className="text-accent/80 hover:text-accent"
+                    >
+                      <span className="text-sm font-medium">
+                        Ver detalles completos
+                      </span>
+                    </ExpandTrigger>
+                  </div>
+                </CompactView>
+
+                {/* Vista Expandida */}
+                <ExpandedView>
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="flex min-w-0 gap-3">
+                      <div className={`h-fit rounded-2xl p-3 ${meta.iconClasses}`}>
+                        <Icon className="h-5 w-5" />
+                      </div>
+                      <div className="min-w-0">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <span
+                            className={`rounded-full px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] ${meta.chipClasses}`}
+                          >
+                            {meta.label}
+                          </span>
+                          <span className="inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-white/[0.045] px-3 py-1 text-[11px] font-medium text-muted">
+                            <ClockIcon className="h-3.5 w-3.5" />
+                            {formatAdminDate(alert.created_at)}
+                          </span>
+                        </div>
+                        <h3 className="mt-3 break-words text-lg font-semibold text-ink">
+                          {getAdminDisplayName(alert)}
+                        </h3>
+                        <p className="mt-1 break-words text-sm text-muted">
+                          {alert.bike_model || "Moto no registrada"} /{" "}
+                          {alert.city || "Sin ciudad"}
+                        </p>
+                      </div>
+                    </div>
+                    <span
+                      className={`shrink-0 rounded-full border px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] ${statusTone}`}
+                    >
+                      {getStatusLabel(alert.status)}
+                    </span>
+                  </div>
+
+                  <div className="mt-5 grid gap-3 sm:grid-cols-2">
+                    <Info
+                      icon={<MapPinIcon className="h-3.5 w-3.5 text-accent" />}
+                      label="Ciudad"
+                      value={alert.city || "Sin ciudad"}
+                    />
+                    <Info
+                      icon={<PhoneIcon className="h-3.5 w-3.5 text-accent" />}
+                      label="Contacto"
+                      value={formatPhoneNumber(alert.emergency_contact)}
+                    />
+                    <Info
+                      icon={<MapPinIcon className="h-3.5 w-3.5 text-accent" />}
+                      label="Ubicacion"
+                      value={formatCoordinatesCompact(alert.latitude, alert.longitude)}
+                    />
+                    <Info
+                      icon={<UserGroupIcon className="h-3.5 w-3.5 text-accent" />}
+                      label="En camino"
+                      value={`${alert.responses.length} motero(s)`}
+                    />
+                  </div>
+
+                  <div className="space-y-3">
+                    <div className="rounded-2xl border border-white/10 bg-black/18 px-4 py-3">
+                      <p className="text-[11px] uppercase tracking-[0.22em] text-muted">
+                        Descripcion
                       </p>
                       <p className="mt-1 break-words text-sm leading-6 text-ink">
-                        {alert.medical_summary}
+                        {alert.emergency_details || alert.message || "Sin descripcion"}
                       </p>
                     </div>
-                  ) : null}
 
-                  <div className="rounded-2xl border border-accent/15 bg-accent/8 px-4 py-3">
-                    <p className="text-[11px] uppercase tracking-[0.22em] text-muted">
-                      Quien va en camino
-                    </p>
-                    <p className="mt-1 break-words text-sm text-ink">
-                      {responders || "Sin respuestas registradas"}
-                    </p>
+                    {alert.medical_summary ? (
+                      <div className="rounded-2xl border border-danger/20 bg-danger/10 px-4 py-3">
+                        <p className="text-[11px] uppercase tracking-[0.22em] text-danger">
+                          Ficha medica compartida
+                        </p>
+                        <p className="mt-1 break-words text-sm leading-6 text-ink">
+                          {alert.medical_summary}
+                        </p>
+                      </div>
+                    ) : null}
+
+                    <div className="rounded-2xl border border-accent/15 bg-accent/8 px-4 py-3">
+                      <p className="text-[11px] uppercase tracking-[0.22em] text-muted">
+                        Quien va en camino
+                      </p>
+                      <p className="mt-1 break-words text-sm text-ink">
+                        {responders || "Sin respuestas registradas"}
+                      </p>
+                    </div>
                   </div>
-                </div>
-              </details>
 
-              <div className="mt-4 rounded-[1.35rem] border border-white/10 bg-black/18 p-3">
-                <p className="mb-3 text-[11px] font-semibold uppercase tracking-[0.24em] text-muted">
-                  Acciones administrativas
-                </p>
-                <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap">
-                  <Link
-                    href={`/mapa?alerta=${alert.id}` as Route}
-                    className="los-action-primary"
-                  >
-                    Ver en mapa
-                    <ArrowTopRightOnSquareIcon className="h-4 w-4" />
-                  </Link>
-
-                  {isActive ? (
-                    <form action={updateAdminAlertStatus} className="contents">
-                      <input type="hidden" name="alertId" value={alert.id} />
-                      <button
-                        name="status"
-                        value="resolved"
+                  <div className="mt-4 rounded-[1.35rem] border border-white/10 bg-black/18 p-3">
+                    <p className="mb-3 text-[11px] font-semibold uppercase tracking-[0.24em] text-muted">
+                      Acciones administrativas
+                    </p>
+                    <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap">
+                      <Link
+                        href={`/mapa?alerta=${alert.id}` as Route}
                         className="los-action-primary"
                       >
-                        <CheckCircleIcon className="h-4 w-4" />
-                        Marcar resuelta
-                      </button>
-                      <button
-                        name="status"
-                        value="cancelled"
-                        className="los-action-danger"
-                      >
-                        <XCircleIcon className="h-4 w-4" />
-                        Cancelar alerta
-                      </button>
-                    </form>
-                  ) : null}
-                </div>
-              </div>
-            </article>
+                        Ver en mapa
+                        <ArrowTopRightOnSquareIcon className="h-4 w-4" />
+                      </Link>
+
+                      {isActive ? (
+                        <form action={updateAdminAlertStatus} className="contents">
+                          <input type="hidden" name="alertId" value={alert.id} />
+                          <button
+                            name="status"
+                            value="resolved"
+                            className="los-action-primary"
+                          >
+                            <CheckCircleIcon className="h-4 w-4" />
+                            Marcar resuelta
+                          </button>
+                          <button
+                            name="status"
+                            value="cancelled"
+                            className="los-action-danger"
+                          >
+                            <XCircleIcon className="h-4 w-4" />
+                            Cancelar alerta
+                          </button>
+                        </form>
+                      ) : null}
+                    </div>
+                  </div>
+                </ExpandedView>
+              </article>
+            </ExpandableCard>
           );
         })}
       </div>

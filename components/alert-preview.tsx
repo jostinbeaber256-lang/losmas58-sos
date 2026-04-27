@@ -70,19 +70,21 @@ export function AlertPreview({
   return (
     <section className="los-card md:p-6">
       <div className="pointer-events-none absolute -right-24 -top-16 h-52 w-52 rounded-full bg-danger/12 blur-3xl" />
-      <div className="relative flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-        <div>
-          <p className="text-xs uppercase tracking-[0.28em] text-danger/80">
+      <div className="relative flex flex-col gap-4 text-center sm:flex-row sm:items-start sm:justify-between sm:text-left">
+        <div className="los-section-head los-section-head-center sm:items-start sm:text-left">
+          <p className="los-section-kicker text-danger/80">
             Actividad
           </p>
-          <h2 className="mt-2 text-xl font-semibold text-ink">Alertas SOS</h2>
-          <p className="mt-1 text-sm leading-6 text-muted">
+          <h2 className="text-[1.65rem] font-semibold leading-tight text-ink sm:text-[1.85rem]">
+            Alertas SOS
+          </h2>
+          <p className="los-section-copy max-w-md text-sm">
             {activeAlerts.length
               ? `${activeAlerts.length} activas en este momento`
               : "Sin emergencias activas ahora mismo"}
           </p>
         </div>
-        <span className="los-chip los-chip-danger">
+        <span className="los-chip los-chip-danger mx-auto sm:mx-0">
           <BellAlertIcon className="h-4 w-4" />
           {alerts.length} total
         </span>

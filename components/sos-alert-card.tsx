@@ -216,57 +216,45 @@ export function SosAlertCard({
         </span>
       </div>
 
-      <details className="group mt-5 rounded-2xl border border-white/10 bg-white/[0.045] px-4 py-3 shadow-[inset_0_1px_0_rgba(255,255,255,.05)]">
-        <summary className="flex cursor-pointer list-none items-center justify-between gap-3 text-sm font-semibold text-ink">
-          <span>
-            Ver datos operativos
-            <span className="ml-2 text-xs font-medium text-muted">
-              tipo, moto, contacto y ubicacion
-            </span>
-          </span>
-          <SignalIcon className="h-4 w-4 text-accent transition group-open:rotate-45" />
-        </summary>
-
-        <div className="mt-5 grid min-w-0 grid-cols-1 gap-3 sm:grid-cols-2">
-          <div className={`rounded-2xl border px-4 py-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.05)] ${emergencyMeta.panelClasses}`}>
-            <p className="text-[11px] uppercase tracking-[0.18em] text-muted">
-              Tipo de emergencia
-            </p>
-            <p className="mt-1 break-words text-sm font-semibold text-ink">
-              {emergencyMeta.label}
-            </p>
-          </div>
-
-          <div className="rounded-2xl border border-white/10 bg-white/[0.045] px-4 py-3">
-            <p className="text-[11px] uppercase tracking-[0.18em] text-muted">
-              Moto / modelo
-            </p>
-            <p className="mt-1 break-words text-sm font-medium text-ink">
-              {alert.bike_model || "Sin moto registrada"}
-            </p>
-          </div>
-
-          <div className="rounded-2xl border border-white/10 bg-white/[0.045] px-4 py-3">
-            <p className="flex items-center gap-1.5 text-[11px] uppercase tracking-[0.18em] text-muted">
-              <MapPinIcon className="h-3.5 w-3.5 text-accent" />
-              Ciudad
-            </p>
-            <p className="mt-1 break-words text-sm font-medium text-ink">
-              {alert.city || "Sin ciudad registrada"}
-            </p>
-          </div>
-
-          <div className="rounded-2xl border border-white/10 bg-white/[0.045] px-4 py-3">
-            <p className="flex items-center gap-1.5 text-[11px] uppercase tracking-[0.18em] text-muted">
-              <PhoneIcon className="h-3.5 w-3.5 text-accent" />
-              Contacto
-            </p>
-            <p className="mt-1 break-words text-sm font-medium tracking-[0.05em] text-ink">
-              {formatPhoneNumber(alert.emergency_contact)}
-            </p>
-          </div>
+      <div className="mt-5 grid min-w-0 grid-cols-1 gap-3 sm:grid-cols-2">
+        <div className={`rounded-2xl border px-4 py-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.05)] ${emergencyMeta.panelClasses}`}>
+          <p className="text-[11px] uppercase tracking-[0.18em] text-muted">
+            Tipo de emergencia
+          </p>
+          <p className="mt-1 break-words text-sm font-semibold text-ink">
+            {emergencyMeta.label}
+          </p>
         </div>
-      </details>
+
+        <div className="rounded-2xl border border-white/10 bg-white/[0.045] px-4 py-3">
+          <p className="text-[11px] uppercase tracking-[0.18em] text-muted">
+            Moto / modelo
+          </p>
+          <p className="mt-1 break-words text-sm font-medium text-ink">
+            {alert.bike_model || "Sin moto registrada"}
+          </p>
+        </div>
+
+        <div className="rounded-2xl border border-white/10 bg-white/[0.045] px-4 py-3">
+          <p className="flex items-center gap-1.5 text-[11px] uppercase tracking-[0.18em] text-muted">
+            <MapPinIcon className="h-3.5 w-3.5 text-accent" />
+            Ciudad
+          </p>
+          <p className="mt-1 break-words text-sm font-medium text-ink">
+            {alert.city || "Sin ciudad registrada"}
+          </p>
+        </div>
+
+        <div className="rounded-2xl border border-white/10 bg-white/[0.045] px-4 py-3">
+          <p className="flex items-center gap-1.5 text-[11px] uppercase tracking-[0.18em] text-muted">
+            <PhoneIcon className="h-3.5 w-3.5 text-accent" />
+            Contacto
+          </p>
+          <p className="mt-1 break-words text-sm font-medium tracking-[0.05em] text-ink">
+            {formatPhoneNumber(alert.emergency_contact)}
+          </p>
+        </div>
+      </div>
 
       <div className="mt-3 rounded-2xl border border-accent/18 bg-accent/8 px-4 py-3 shadow-[0_0_26px_rgba(32,211,238,0.08)]">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -297,62 +285,50 @@ export function SosAlertCard({
         ) : null}
       </div>
 
-      <details className="group mt-3 rounded-2xl border border-white/10 bg-white/[0.045] px-4 py-3 shadow-[inset_0_1px_0_rgba(255,255,255,.05)]">
-        <summary className="flex cursor-pointer list-none items-center justify-between gap-3 text-sm font-semibold text-ink">
-          <span>
-            Ver detalles adicionales
-            <span className="ml-2 text-xs font-medium text-muted">
-              ubicacion, descripcion y ficha medica
-            </span>
-          </span>
-          <ClipboardDocumentListIcon className="h-4 w-4 text-accent transition group-open:rotate-45" />
-        </summary>
+      <div className="mt-3 grid gap-3">
+        <div className="rounded-2xl border border-white/10 bg-white/[0.045] px-4 py-3">
+          <p className="text-[11px] uppercase tracking-[0.18em] text-muted">
+            Ubicacion
+          </p>
+          <p className="mt-1 break-words text-sm font-medium tracking-[0.05em] text-ink">
+            {formatCoordinatesCompact(alert.latitude, alert.longitude)}
+          </p>
+        </div>
 
-        <div className="mt-3 grid gap-3">
-          <div className="rounded-2xl border border-white/10 bg-white/[0.045] px-4 py-3">
-            <p className="text-[11px] uppercase tracking-[0.18em] text-muted">
-              Ubicacion
-            </p>
-            <p className="mt-1 break-words text-sm font-medium tracking-[0.05em] text-ink">
-              {formatCoordinatesCompact(alert.latitude, alert.longitude)}
-            </p>
-          </div>
-
-          <div className="rounded-2xl border border-white/10 bg-white/[0.045] px-4 py-3">
-            <p className="text-[11px] uppercase tracking-[0.18em] text-muted">
-              {detailLabel}
-            </p>
-            <p
-              ref={messageRef}
-              className={`mt-1 break-words text-sm leading-6 text-ink ${
-                expanded ? "" : "line-clamp-4"
-              }`}
+        <div className="rounded-2xl border border-white/10 bg-white/[0.045] px-4 py-3">
+          <p className="text-[11px] uppercase tracking-[0.18em] text-muted">
+            {detailLabel}
+          </p>
+          <p
+            ref={messageRef}
+            className={`mt-1 break-words text-sm leading-6 text-ink ${
+              expanded ? "" : "line-clamp-4"
+            }`}
+          >
+            {description}
+          </p>
+          {canExpand ? (
+            <button
+              type="button"
+              onClick={() => setExpanded((current) => !current)}
+              className="mt-2 rounded-full border border-accent/25 bg-accent/10 px-3 py-1 text-sm font-semibold text-accent transition hover:bg-accent/15"
             >
-              {description}
-            </p>
-            {canExpand ? (
-              <button
-                type="button"
-                onClick={() => setExpanded((current) => !current)}
-                className="mt-2 rounded-full border border-accent/25 bg-accent/10 px-3 py-1 text-sm font-semibold text-accent transition hover:bg-accent/15"
-              >
-                {expanded ? "Ver menos" : "Ver mas"}
-              </button>
-            ) : null}
-          </div>
-
-          {alert.medical_summary ? (
-            <div className="rounded-2xl border border-danger/20 bg-danger/10 px-4 py-3">
-              <p className="text-[11px] uppercase tracking-[0.18em] text-danger">
-                Ficha medica compartida
-              </p>
-              <p className="mt-1 break-words text-sm leading-6 text-ink">
-                {alert.medical_summary}
-              </p>
-            </div>
+              {expanded ? "Ver menos" : "Ver mas"}
+            </button>
           ) : null}
         </div>
-      </details>
+
+        {alert.medical_summary ? (
+          <div className="rounded-2xl border border-danger/20 bg-danger/10 px-4 py-3">
+            <p className="text-[11px] uppercase tracking-[0.18em] text-danger">
+              Ficha medica compartida
+            </p>
+            <p className="mt-1 break-words text-sm leading-6 text-ink">
+              {alert.medical_summary}
+            </p>
+          </div>
+        ) : null}
+      </div>
 
       <div className="mt-5 rounded-[1.35rem] border border-white/10 bg-black/18 p-3">
         <div className="mb-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">

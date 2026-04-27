@@ -10,7 +10,7 @@ function AdminAccessDenied() {
         <div className="mx-auto grid h-16 w-16 place-items-center rounded-3xl border border-danger/25 bg-danger/12 text-danger">
           <ShieldExclamationIcon className="h-8 w-8" />
         </div>
-        <h1 className="mt-5 text-2xl font-semibold text-ink">
+        <h1 className="mt-5 text-3xl font-semibold leading-tight text-ink sm:text-[2.2rem]">
           Acceso administrativo restringido
         </h1>
         <p className="mx-auto mt-3 max-w-md text-sm leading-6 text-muted">
@@ -43,21 +43,21 @@ export default async function AdminLayout({
     <main className="space-y-5 md:space-y-6">
       <section className="los-hero">
         <div className="pointer-events-none absolute -right-20 -top-24 h-56 w-56 rounded-full bg-accent/12 blur-3xl" />
-        <div className="relative flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
-          <div className="max-w-xl">
+        <div className="relative flex flex-col gap-5 text-center lg:flex-row lg:items-end lg:justify-between lg:text-left">
+          <div className="los-section-head los-section-head-center max-w-xl lg:items-start lg:text-left">
             <div className="los-chip los-chip-accent">
               <ShieldExclamationIcon className="h-4 w-4" />
               Admin V1
             </div>
-            <h1 className="mt-4 text-3xl font-semibold leading-tight text-ink md:text-4xl">
+            <h1 className="los-section-title">
               Centro de control Los+58
             </h1>
-            <p className="mt-3 max-w-lg text-sm leading-6 text-muted md:text-base">
+            <p className="los-section-copy max-w-xl">
               Usuarios, alertas SOS, rutas activas y actividad operativa en un
               panel interno seguro.
             </p>
           </div>
-          <div className="los-info-panel text-sm text-muted">
+          <div className="los-info-panel mx-auto text-sm text-muted lg:mx-0">
             Admin:{" "}
             <span className="font-semibold text-ink">
               {context.profile?.full_name || context.profile?.username || "Los+58"}

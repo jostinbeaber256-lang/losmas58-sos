@@ -66,16 +66,16 @@ export default function HomePage() {
         <div className="pointer-events-none absolute -bottom-24 left-8 h-56 w-56 rounded-full bg-accent/10 blur-3xl" />
 
         <div className="relative space-y-5">
-          <div className="flex flex-col items-center gap-4 text-center sm:flex-row sm:items-start sm:justify-between sm:text-left">
-            <div className="max-w-xl">
+          <div className="flex flex-col items-center gap-5 text-center sm:flex-row sm:items-start sm:justify-between sm:text-left">
+            <div className="los-section-head los-section-head-center sm:items-start sm:text-left">
               <div className="los-chip los-chip-accent mx-auto sm:mx-0">
                 <SignalIcon className="h-4 w-4" />
                 Ruta segura
               </div>
-              <h1 className="mx-auto mt-4 max-w-2xl text-3xl font-semibold leading-tight text-ink sm:mx-0 md:text-4xl">
+              <h1 className="los-section-title mx-auto max-w-2xl sm:mx-0">
                 Dashboard de seguridad para rodar conectado.
               </h1>
-              <p className="mx-auto mt-3 max-w-lg text-sm leading-6 text-muted sm:mx-0 md:text-base">
+              <p className="los-section-copy mx-auto max-w-xl sm:mx-0">
                 Activa tu ruta, mantente visible para tu grupo y dispara un SOS
                 con ubicacion en vivo cuando cada segundo cuenta.
               </p>
@@ -95,7 +95,7 @@ export default function HomePage() {
                   key={stat.label}
                   className="los-card-compact backdrop-blur"
                 >
-                  <div className="flex items-center gap-3">
+                  <div className="flex flex-col items-center gap-3 text-center">
                     <span className="grid h-10 w-10 place-items-center rounded-2xl border border-white/10 bg-background/60">
                       <Icon className={`h-5 w-5 ${stat.tone}`} />
                     </span>
@@ -122,17 +122,17 @@ export default function HomePage() {
           <div className="pointer-events-none absolute inset-x-8 bottom-0 h-px bg-gradient-to-r from-transparent via-danger/30 to-transparent" />
 
           <div className="relative">
-            <div className="mx-auto max-w-xl text-center">
+            <div className="los-section-head los-section-head-center mx-auto max-w-xl">
               <div className="mx-auto grid h-12 w-12 place-items-center rounded-2xl border border-danger/25 bg-danger/10 shadow-[0_0_36px_rgba(255,77,109,0.14)]">
                 <BoltIcon className="h-5 w-5 text-danger" />
               </div>
-              <p className="mt-4 text-xs uppercase tracking-[0.34em] text-danger/80">
+              <p className="los-section-kicker text-danger/80">
                 Emergencia
               </p>
-              <h2 className="mt-2 text-2xl font-semibold tracking-[-0.02em] text-ink">
+              <h2 className="los-section-title text-[1.9rem] sm:text-[2.15rem] md:text-[2.35rem]">
                 Respuesta inmediata
               </h2>
-              <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-muted">
+              <p className="los-section-copy mx-auto max-w-md">
                 Un solo gesto para compartir tu ubicacion y alertar a la comunidad cuando necesitas apoyo real.
               </p>
             </div>
@@ -189,14 +189,14 @@ export default function HomePage() {
         <div className="los-card">
           <div className="pointer-events-none absolute -right-20 top-0 h-44 w-44 rounded-full bg-accent/10 blur-3xl" />
           <div className="relative flex items-start justify-between gap-4">
-            <div>
-              <p className="text-xs uppercase tracking-[0.28em] text-accent/80">
+            <div className="los-section-head">
+              <p className="los-section-kicker text-accent/80">
                 Grupo
               </p>
-              <h2 className="mt-2 text-lg font-semibold text-ink">
+              <h2 className="text-2xl font-semibold leading-tight text-ink">
                 Companeros en ruta
               </h2>
-              <p className="mt-1 text-sm leading-6 text-muted">
+              <p className="los-section-copy max-w-md text-sm">
                 Moteros activos visibles cerca de tu trayecto.
               </p>
             </div>

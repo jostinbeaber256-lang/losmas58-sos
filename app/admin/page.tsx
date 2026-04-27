@@ -96,9 +96,9 @@ export default async function AdminDashboardPage() {
           return (
             <div
               key={card.label}
-              className="los-card-compact transition hover:border-accent/20 hover:bg-white/[0.06]"
+              className="los-card-compact text-center transition hover:border-accent/20 hover:bg-white/[0.06]"
             >
-              <div className="flex items-center gap-3">
+              <div className="flex flex-col items-center gap-3">
                 <span className="grid h-11 w-11 place-items-center rounded-2xl border border-white/10 bg-white/[0.045]">
                   <Icon className={`h-5 w-5 ${card.tone}`} />
                 </span>
@@ -152,14 +152,14 @@ export default async function AdminDashboardPage() {
       <section className="los-card">
         <div className="pointer-events-none absolute -right-20 -top-20 h-52 w-52 rounded-full bg-accent/10 blur-3xl" />
         <div className="relative grid gap-5 lg:grid-cols-[0.9fr_1.1fr] lg:items-start">
-          <div>
-            <span className="los-chip los-chip-accent">
+          <div className="los-section-head los-section-head-center lg:items-start lg:text-left">
+            <span className="los-chip los-chip-accent mx-auto lg:mx-0">
               Rodadas del club
             </span>
-            <h2 className="mt-4 text-xl font-semibold text-ink">
+            <h2 className="text-[1.75rem] font-semibold leading-tight text-ink sm:text-[1.95rem]">
               Control de evento activo
             </h2>
-            <p className="mt-2 text-sm leading-6 text-muted">
+            <p className="los-section-copy max-w-xl text-sm">
               Inicia una salida grupal para que los moteros confirmen asistencia
               y compartan ubicación solo durante la rodada.
             </p>
@@ -232,7 +232,7 @@ export default async function AdminDashboardPage() {
 
 function MiniMetric({ label, value }: { label: string; value: string | number }) {
   return (
-    <div className="los-info-panel p-3">
+    <div className="los-info-panel p-3 text-center">
       <p className="text-[11px] uppercase tracking-[0.18em] text-muted">{label}</p>
       <p className="mt-1 text-sm font-semibold text-ink">{value}</p>
     </div>

@@ -231,9 +231,9 @@ export function LiveMap() {
           return (
             <div
               key={stat.label}
-              className="los-card-compact"
+              className="los-card-compact text-center"
             >
-              <div className="flex items-center gap-3">
+              <div className="flex flex-col items-center gap-3">
                 <span className="grid h-10 w-10 shrink-0 place-items-center rounded-2xl border border-white/10 bg-white/[0.045]">
                   <Icon className={`h-5 w-5 ${stat.tone}`} />
                 </span>
@@ -319,14 +319,14 @@ export function LiveMap() {
         <div className="los-card">
           <div className="pointer-events-none absolute -right-20 top-0 h-44 w-44 rounded-full bg-warning/10 blur-3xl" />
           <div className="relative flex items-start justify-between gap-4">
-            <div>
-              <p className="text-xs uppercase tracking-[0.28em] text-warning/80">
+            <div className="los-section-head">
+              <p className="los-section-kicker text-warning/80">
                 En ruta
               </p>
-              <h2 className="mt-2 text-lg font-semibold text-ink">
+              <h2 className="text-2xl font-semibold leading-tight text-ink">
                 Activos ahora
               </h2>
-              <p className="mt-1 text-sm leading-6 text-muted">
+              <p className="los-section-copy max-w-md text-sm">
                 Companeros visibles mientras mantienen su ruta activa.
               </p>
             </div>
@@ -381,14 +381,14 @@ export function LiveMap() {
         <div className="los-card">
           <div className="pointer-events-none absolute -right-20 top-0 h-44 w-44 rounded-full bg-danger/12 blur-3xl" />
           <div className="relative flex items-start justify-between gap-4">
-            <div>
-              <p className="text-xs uppercase tracking-[0.28em] text-danger/80">
+            <div className="los-section-head">
+              <p className="los-section-kicker text-danger/80">
                 Emergencias
               </p>
-              <h2 className="mt-2 text-lg font-semibold text-ink">
+              <h2 className="text-2xl font-semibold leading-tight text-ink">
                 SOS activos
               </h2>
-              <p className="mt-1 text-sm leading-6 text-muted">
+              <p className="los-section-copy max-w-md text-sm">
                 Alertas abiertas reflejadas tambien en el mapa.
               </p>
             </div>

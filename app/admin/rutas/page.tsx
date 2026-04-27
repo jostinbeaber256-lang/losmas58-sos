@@ -102,15 +102,15 @@ export default async function AdminRoutesPage({
     <section className="space-y-5">
       <div className="los-card md:p-6">
         <div className="pointer-events-none absolute -right-24 -top-16 h-52 w-52 rounded-full bg-warning/12 blur-3xl" />
-        <div className="relative flex flex-col gap-5 xl:flex-row xl:items-end xl:justify-between">
-          <div className="max-w-xl">
-            <p className="text-xs uppercase tracking-[0.28em] text-warning">
+        <div className="relative flex flex-col gap-5 text-center xl:flex-row xl:items-end xl:justify-between xl:text-left">
+          <div className="los-section-head los-section-head-center max-w-xl xl:items-start xl:text-left">
+            <p className="los-section-kicker text-warning">
               Rutas
             </p>
-            <h2 className="mt-2 text-2xl font-semibold text-ink">
+            <h2 className="text-[1.85rem] font-semibold leading-tight text-ink sm:text-[2.1rem]">
               Consola de presencia
             </h2>
-            <p className="mt-2 text-sm leading-6 text-muted">
+            <p className="los-section-copy max-w-xl text-sm">
               Monitorea estado de ruta, ubicacion compartida y ultima
               sincronizacion operativa de cada motero.
             </p>
@@ -375,7 +375,7 @@ function Metric({
   }[tone];
 
   return (
-    <div className={`los-card-compact border p-3 ${toneClasses}`}>
+    <div className={`los-card-compact border p-3 text-center ${toneClasses}`}>
       <p className="text-xl font-semibold text-ink">{value}</p>
       <p className="text-[11px] uppercase tracking-[0.18em]">{label}</p>
     </div>

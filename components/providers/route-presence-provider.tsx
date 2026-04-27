@@ -489,7 +489,9 @@ export function RoutePresenceProvider({
     }
 
     const now = new Date().toISOString();
-    const nextLiveRouteEnabled = liveRouteEnabled ?? false;
+    const shouldDisableLive = attendanceStatus === "declined";
+    const nextLiveRouteEnabled =
+      shouldDisableLive ? false : liveRouteEnabled ?? false;
     const { data, error: participantError } = await supabase
       .from("ride_participants")
       .upsert(
@@ -820,23 +822,14 @@ export function RoutePresenceProvider({
     setError(null);
 
     try {
-      // Declinar asistencia PERO mantener ruta en vivo activa para compartir ubicación
-      const coords = await withTimeout(
-        getDevicePosition(),
-        15000,
-        "No se pudo activar la ubicación. Verifica GPS y permisos."
-      );
-      
+      // Declinar asistencia Y desactivar ruta en vivo automáticamente
       const success = await upsertRideParticipant({
         attendanceStatus: "declined",
-        liveRouteEnabled: true, // Mantener activo para compartir ubicación
-        coords
+        liveRouteEnabled: false
       });
       
-      // Actualizar posición actual si se obtuvo correctamente
-      if (coords) {
-        setLatestPosition(coords);
-      }
+      // Limpiar posición actual al declinar
+      setLatestPosition(null);
       
       await loadActiveRideData();
       return success;
@@ -844,7 +837,7 @@ export function RoutePresenceProvider({
       const message =
         rideError instanceof Error
           ? rideError.message
-          : "No se pudo registrar que no asistirás.";
+          : "No se pudo registrar que no asistiras.";
       setError(message);
       return false;
     } finally {
@@ -867,7 +860,7 @@ export function RoutePresenceProvider({
 
       if (currentParticipant?.live_route_enabled) {
         const success = await upsertRideParticipant({
-          attendanceStatus: currentParticipant.attendance_status,
+          attendanceStatus: "confirmed",
           liveRouteEnabled: false
         });
         await loadActiveRideData();
@@ -1619,7 +1612,7 @@ export function RoutePresenceProvider({
             "No se pudo actualizar tu ubicacion de la rodada."
           );
           await upsertRideParticipant({
-            attendanceStatus: currentRideParticipant.attendance_status,
+            attendanceStatus: "confirmed",
             liveRouteEnabled: true,
             coords
           });
@@ -1641,12 +1634,7 @@ export function RoutePresenceProvider({
       }
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [
-    userId,
-    activeRideEvent?.id,
-    currentRideParticipant?.attendance_status,
-    currentRideParticipant?.live_route_enabled
-  ]);
+  }, [userId, activeRideEvent?.id, currentRideParticipant?.live_route_enabled]);
 
   const alerts = useMemo<SosAlert[]>(() => {
     const responsesByAlert = responses.reduce<Record<string, SosResponse[]>>((acc, response) => {

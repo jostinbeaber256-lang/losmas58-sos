@@ -12,9 +12,10 @@ export function RideMapCanvasBuffered({
   currentUserId: string | null;
 }) {
   const [bufferedParticipants, setBufferedParticipants] = useState<RideParticipant[]>([]);
-  const liveParticipantsRef = useRef<RideParticipant[]>([]);
-  const initialPaintDoneRef = useRef(false);
+  const bufferTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const initialLoadRef = useRef(true);
 
+  // Filtrar participantes con ubicación válida y live_route_enabled
   const liveParticipants = useMemo(
     () =>
       participants.filter(
@@ -29,25 +30,44 @@ export function RideMapCanvasBuffered({
   );
 
   useEffect(() => {
-    liveParticipantsRef.current = liveParticipants;
-
-    if (!initialPaintDoneRef.current && liveParticipants.length > 0) {
+    // Solo actualizar bufferedParticipants si realmente cambió el contenido
+    const hasChanged = JSON.stringify(bufferedParticipants) !== JSON.stringify(liveParticipants);
+    
+    if (hasChanged) {
       setBufferedParticipants(liveParticipants);
-      initialPaintDoneRef.current = true;
     }
+
+    // Configurar actualización cada 20 segundos solo para cambios futuros
+    if (!bufferTimeoutRef.current) {
+      bufferTimeoutRef.current = setInterval(() => {
+        // Verificar si hay cambios antes de actualizar
+        const currentBuffered = JSON.stringify(bufferedParticipants);
+        const newLive = JSON.stringify(liveParticipants);
+        
+        if (currentBuffered !== newLive) {
+          setBufferedParticipants(liveParticipants);
+        }
+      }, 20000);
+    }
+
+    return () => {
+      if (bufferTimeoutRef.current) {
+        clearInterval(bufferTimeoutRef.current);
+        bufferTimeoutRef.current = null;
+      }
+    };
   }, [liveParticipants]);
 
+  // Marcar que ya no es carga inicial después del primer render
   useEffect(() => {
-    const interval = setInterval(() => {
-      setBufferedParticipants(liveParticipantsRef.current);
-    }, 20000);
-
-    return () => clearInterval(interval);
-  }, []);
+    if (initialLoadRef.current && bufferedParticipants.length > 0) {
+      initialLoadRef.current = false;
+    }
+  }, [bufferedParticipants]);
 
   return (
-    <RideMapCanvas
-      participants={bufferedParticipants}
+    <RideMapCanvas 
+      participants={bufferedParticipants} 
       currentUserId={currentUserId}
     />
   );

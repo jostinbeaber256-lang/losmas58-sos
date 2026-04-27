@@ -33,19 +33,19 @@ export function MedicalProfileCard() {
   return (
     <section className="relative overflow-hidden rounded-[2rem] border border-white/10 bg-[radial-gradient(circle_at_100%_0%,rgba(255,77,109,0.14),transparent_34%),linear-gradient(145deg,rgba(18,27,43,0.95),rgba(8,12,22,0.98))] p-5 shadow-[0_24px_70px_rgba(0,0,0,0.3)] md:p-6">
       <div className="pointer-events-none absolute -right-20 -top-16 h-52 w-52 rounded-full bg-danger/12 blur-3xl" />
-      <div className="relative flex items-start justify-between gap-4">
+      <div className="relative flex flex-col gap-5 text-center sm:flex-row sm:items-start sm:justify-between sm:text-left">
         <div className="flex items-start gap-4">
           <div className="rounded-3xl border border-danger/20 bg-danger/12 p-3 text-danger shadow-[0_0_30px_rgba(255,77,109,0.12)]">
             <HeartIcon className="h-6 w-6" />
           </div>
-          <div>
-            <p className="text-xs uppercase tracking-[0.3em] text-danger">
+          <div className="los-section-head sm:items-start">
+            <p className="los-section-kicker text-danger">
               Ficha medica
             </p>
-            <h3 className="mt-2 text-xl font-semibold text-ink">
+            <h3 className="text-[1.55rem] font-semibold leading-tight text-ink sm:text-[1.75rem]">
               Datos vitales para emergencias
             </h3>
-            <p className="mt-2 text-sm leading-6 text-muted">
+            <p className="los-section-copy max-w-lg text-sm">
               Registra alergias, medicamentos, contactos y hospital preferido para
               usarlo en caso de accidente.
             </p>
@@ -53,7 +53,7 @@ export function MedicalProfileCard() {
         </div>
 
         <span
-          className={`shrink-0 rounded-full px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.22em] ${
+          className={`mx-auto shrink-0 rounded-full px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.22em] sm:mx-0 ${
             isComplete
               ? "border border-accent/25 bg-accent/10 text-accent"
               : "border border-danger/25 bg-danger/10 text-danger"

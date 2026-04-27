@@ -237,7 +237,7 @@ export function SecurityMonitoringCard() {
           <div className="mx-auto grid h-14 w-14 place-items-center rounded-3xl border border-accent/20 bg-accent/10 text-accent">
             <UserGroupIcon className="h-7 w-7" />
           </div>
-          <h2 className="mt-4 text-xl font-semibold text-ink">
+          <h2 className="mt-4 text-[1.8rem] font-semibold leading-tight text-ink sm:text-[2rem]">
             No hay una rodada activa en este momento.
           </h2>
           <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-muted">
@@ -252,19 +252,19 @@ export function SecurityMonitoringCard() {
     <section className="relative overflow-hidden rounded-[2rem] border border-white/10 bg-[radial-gradient(circle_at_100%_0%,rgba(32,211,238,0.14),transparent_34%),linear-gradient(145deg,rgba(18,27,43,0.96),rgba(7,11,20,0.98))] p-5 shadow-[0_24px_70px_rgba(0,0,0,0.32)] md:p-6 xl:col-span-2">
       <div className="pointer-events-none absolute -right-20 -top-16 h-52 w-52 rounded-full bg-accent/10 blur-3xl" />
 
-      <div className="relative flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-        <div className="min-w-0">
-          <p className="text-sm uppercase tracking-[0.4em] text-accent font-black">
+      <div className="relative flex flex-col gap-4 text-center sm:flex-row sm:items-start sm:justify-between sm:text-left">
+        <div className="los-section-head los-section-head-center min-w-0 sm:items-start sm:text-left">
+          <p className="los-section-kicker text-accent">
             RODADA GRUPAL
           </p>
-          <h2 className="mt-3 text-3xl font-black text-ink sm:text-4xl">
+          <h2 className="text-[2rem] font-semibold leading-tight text-ink sm:text-[2.35rem]">
             {activeRideEvent.name}
           </h2>
-          <p className="mt-4 max-w-2xl text-sm leading-6 text-muted">
+          <p className="los-section-copy max-w-2xl">
             Confirma tu asistencia y comparte tu ubicación en tiempo real durante la rodada, viaje o evento.
           </p>
           {activeRideEvent.meeting_point || activeRideEvent.starts_at ? (
-            <p className="mt-2 text-xs leading-5 text-muted">
+            <p className="text-xs leading-5 text-muted">
               {activeRideEvent.meeting_point ? `Punto: ${activeRideEvent.meeting_point}` : null}
               {activeRideEvent.meeting_point && activeRideEvent.starts_at ? " / " : null}
               {activeRideEvent.starts_at ? `Salida: ${formatTime(activeRideEvent.starts_at)}` : null}
@@ -273,7 +273,7 @@ export function SecurityMonitoringCard() {
         </div>
 
         <span
-          className={`w-fit rounded-full border px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] ${getStatusClasses(statusLabel)}`}
+          className={`mx-auto w-fit rounded-full border px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] sm:mx-0 ${getStatusClasses(statusLabel)}`}
         >
           {statusLabel}
         </span>
@@ -399,8 +399,8 @@ function SummaryCard({
   const iconClass = tone === "accent" ? "text-accent" : tone === "warning" ? "text-warning" : "text-muted";
 
   return (
-    <div className="los-info-panel p-4">
-      <p className="flex items-center gap-1.5 text-[11px] uppercase tracking-[0.22em] text-muted">
+    <div className="los-info-panel p-4 text-center">
+      <p className="flex items-center justify-center gap-1.5 text-[11px] uppercase tracking-[0.22em] text-muted">
         <Icon className={`h-3.5 w-3.5 ${iconClass}`} />
         {label}
       </p>

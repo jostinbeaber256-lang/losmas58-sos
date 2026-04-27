@@ -83,15 +83,15 @@ export default async function AdminUsersPage({
     <section className="space-y-5">
       <div className="los-card md:p-6">
         <div className="pointer-events-none absolute -right-24 -top-16 h-52 w-52 rounded-full bg-accent/12 blur-3xl" />
-        <div className="relative flex flex-col gap-5 xl:flex-row xl:items-end xl:justify-between">
-          <div className="max-w-xl">
-            <p className="text-xs uppercase tracking-[0.28em] text-accent">
+        <div className="relative flex flex-col gap-5 text-center xl:flex-row xl:items-end xl:justify-between xl:text-left">
+          <div className="los-section-head los-section-head-center max-w-xl xl:items-start xl:text-left">
+            <p className="los-section-kicker text-accent">
               Usuarios
             </p>
-            <h2 className="mt-2 text-2xl font-semibold text-ink">
+            <h2 className="text-[1.85rem] font-semibold leading-tight text-ink sm:text-[2.1rem]">
               Control de moteros
             </h2>
-            <p className="mt-2 text-sm leading-6 text-muted">
+            <p className="los-section-copy max-w-xl text-sm">
               Gestiona identidad, estado de ruta, permisos y datos de seguridad
               sin saturar la vista principal.
             </p>
@@ -370,7 +370,7 @@ function Metric({
   }[tone];
 
   return (
-    <div className={`los-card-compact border p-3 ${toneClasses}`}>
+    <div className={`los-card-compact border p-3 text-center ${toneClasses}`}>
       <p className="text-xl font-semibold text-ink">{value}</p>
       <p className="text-[11px] uppercase tracking-[0.18em]">{label}</p>
     </div>
