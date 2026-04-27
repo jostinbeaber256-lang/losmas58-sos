@@ -276,7 +276,7 @@ export function SecurityMonitoringCard() {
         </p>
       ) : null}
 
-      <div className="relative mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="relative mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
         <button
           type="button"
           onClick={() => void confirmRideAttendance()}
@@ -294,19 +294,6 @@ export function SecurityMonitoringCard() {
         >
           <NoSymbolIcon className="h-4 w-4" />
           No asistiré
-        </button>
-        <button
-          type="button"
-          onClick={() => void toggleRideLiveRoute()}
-          disabled={
-            loading ||
-            currentRideParticipant?.attendance_status === "declined" ||
-            Boolean(currentRideParticipant?.live_route_enabled)
-          }
-          className="los-action-ghost border-accent/25 bg-accent/10 text-accent"
-        >
-          <SignalIcon className="h-4 w-4" />
-          {currentRideParticipant?.live_route_enabled ? "Ruta en vivo activa" : "Activar ruta en vivo"}
         </button>
         <button
           type="button"

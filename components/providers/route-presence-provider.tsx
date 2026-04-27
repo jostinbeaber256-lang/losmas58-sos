@@ -780,10 +780,25 @@ export function RoutePresenceProvider({
     setError(null);
 
     try {
+      // Obtener coordenadas actuales para activar ruta en vivo
+      const coords = await withTimeout(
+        getDevicePosition(),
+        15000,
+        "No se pudo activar la ruta en vivo. Verifica GPS y permisos."
+      );
+      
+      // Confirmar asistencia Y activar ruta en vivo automáticamente
       const success = await upsertRideParticipant({
         attendanceStatus: "confirmed",
-        liveRouteEnabled: false
+        liveRouteEnabled: true,
+        coords
       });
+      
+      // Actualizar posición actual si se obtuvo correctamente
+      if (coords) {
+        setLatestPosition(coords);
+      }
+      
       await loadActiveRideData();
       return success;
     } catch (rideError) {
@@ -807,10 +822,15 @@ export function RoutePresenceProvider({
     setError(null);
 
     try {
+      // Declinar asistencia Y desactivar ruta en vivo automáticamente
       const success = await upsertRideParticipant({
         attendanceStatus: "declined",
         liveRouteEnabled: false
       });
+      
+      // Limpiar posición actual al declinar
+      setLatestPosition(null);
+      
       await loadActiveRideData();
       return success;
     } catch (rideError) {
