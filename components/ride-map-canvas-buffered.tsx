@@ -12,7 +12,8 @@ export function RideMapCanvasBuffered({
   currentUserId: string | null;
 }) {
   const [bufferedParticipants, setBufferedParticipants] = useState<RideParticipant[]>([]);
-  const bufferTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const liveParticipantsRef = useRef<RideParticipant[]>([]);
+  const initialPaintDoneRef = useRef(false);
 
   const liveParticipants = useMemo(
     () =>
@@ -28,19 +29,26 @@ export function RideMapCanvasBuffered({
   );
 
   useEffect(() => {
-    setBufferedParticipants(liveParticipants);
+    liveParticipantsRef.current = liveParticipants;
 
-    bufferTimeoutRef.current = setInterval(() => {
+    if (!initialPaintDoneRef.current && liveParticipants.length > 0) {
       setBufferedParticipants(liveParticipants);
-    }, 20000);
-
-    return () => {
-      if (bufferTimeoutRef.current) {
-        clearInterval(bufferTimeoutRef.current);
-        bufferTimeoutRef.current = null;
-      }
-    };
+      initialPaintDoneRef.current = true;
+    }
   }, [liveParticipants]);
 
-  return <RideMapCanvas participants={bufferedParticipants} currentUserId={currentUserId} />;
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setBufferedParticipants(liveParticipantsRef.current);
+    }, 20000);
+
+    return () => clearInterval(interval);
+  }, []);
+
+  return (
+    <RideMapCanvas
+      participants={bufferedParticipants}
+      currentUserId={currentUserId}
+    />
+  );
 }
