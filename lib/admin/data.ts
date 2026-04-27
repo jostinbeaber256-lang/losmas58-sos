@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
-import type { MedicalProfile, SosAlert } from "@/lib/types";
+import type { GroupRideEvent, MedicalProfile, RideParticipant, SosAlert } from "@/lib/types";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 
@@ -39,11 +39,22 @@ export type AdminAlert = SosAlert & {
   responses: AdminResponse[];
 };
 
+export type AdminRideData = {
+  activeRide: GroupRideEvent | null;
+  participants: RideParticipant[];
+};
+
 const adminProfileSelect =
   "id, username, full_name, bike_model, city, emergency_contact, is_admin, is_on_route, emergency_state, continuous_monitoring_enabled, emergency_tracking_active, latitude, longitude, location_updated_at, monitoring_updated_at, emergency_tracking_started_at, updated_at";
 
 const adminAlertSelect =
   "id, user_id, full_name, username, bike_model, city, emergency_contact, emergency_type, emergency_details, medical_summary, latitude, longitude, status, message, created_at, resolved_at";
+
+const adminGroupRideSelect =
+  "id, name, description, meeting_point, starts_at, status, created_at";
+
+const adminRideParticipantSelect =
+  "id, event_id, user_id, full_name, username, bike_model, city, is_admin, attendance_status, live_route_enabled, current_lat, current_lng, last_seen_at, updated_at";
 
 export function formatAdminDate(value: string | null) {
   if (!value) {
@@ -152,6 +163,44 @@ export async function getAdminDashboardData() {
     monitoredUsers: monitoredUsers.count ?? 0,
     emergencyTrackingUsers: emergencyTrackingUsers.count ?? 0,
     responses: responses.count ?? 0
+  };
+}
+
+export async function getAdminRideData(): Promise<AdminRideData> {
+  const admin = createAdminClient();
+  const { data: activeRide, error: rideError } = await admin
+    .from("group_rides")
+    .select(adminGroupRideSelect)
+    .eq("status", "active")
+    .order("starts_at", { ascending: true, nullsFirst: false })
+    .limit(1)
+    .maybeSingle<GroupRideEvent>();
+
+  if (rideError) {
+    throw new Error(rideError.message);
+  }
+
+  if (!activeRide) {
+    return {
+      activeRide: null,
+      participants: []
+    };
+  }
+
+  const { data: participants, error: participantsError } = await admin
+    .from("ride_participants")
+    .select(adminRideParticipantSelect)
+    .eq("event_id", activeRide.id)
+    .order("updated_at", { ascending: false })
+    .returns<RideParticipant[]>();
+
+  if (participantsError) {
+    throw new Error(participantsError.message);
+  }
+
+  return {
+    activeRide,
+    participants: participants ?? []
   };
 }
 

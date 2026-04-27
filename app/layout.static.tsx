@@ -3,8 +3,6 @@ import "./globals.css";
 import "leaflet/dist/leaflet.css";
 import "leaflet.markercluster/dist/MarkerCluster.css";
 import "leaflet.markercluster/dist/MarkerCluster.Default.css";
-import { AndroidLocationDebug } from "@/components/android-location-debug";
-import { AndroidLocationTestButton } from "@/components/android-location-test-button";
 import { MobileShell } from "@/components/mobile-shell";
 import { RoutePresenceProvider } from "@/components/providers/route-presence-provider";
 
@@ -60,8 +58,6 @@ export default function RootLayout({
             {children}
           </MobileShell>
         </RoutePresenceProvider>
-        <AndroidLocationDebug />
-        <AndroidLocationTestButton />
       </body>
     </html>
   );

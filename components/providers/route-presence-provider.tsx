@@ -12,11 +12,13 @@ import type { Session } from "@supabase/supabase-js";
 import type {
   ActiveRider,
   Coordinates,
+  GroupRideEvent,
   MedicalProfile,
   MedicalProfileFormValues,
   NotificationEvent,
   Profile,
   ProfileFormValues,
+  RideParticipant,
   SosAlert,
   SosPayload,
   SosResponse
@@ -34,6 +36,9 @@ type RoutePresenceContextValue = {
   profile: Profile | null;
   medicalProfile: MedicalProfile | null;
   activeRiders: ActiveRider[];
+  activeRideEvent: GroupRideEvent | null;
+  rideParticipants: RideParticipant[];
+  currentRideParticipant: RideParticipant | null;
   alerts: SosAlert[];
   notificationEvents: NotificationEvent[];
   sosAlertEvents: SosAlert[];
@@ -50,6 +55,9 @@ type RoutePresenceContextValue = {
   error: string | null;
   sosFeedback: string | null;
   toggleRoute: () => Promise<void>;
+  confirmRideAttendance: () => Promise<boolean>;
+  declineRideAttendance: () => Promise<boolean>;
+  toggleRideLiveRoute: () => Promise<boolean>;
   toggleContinuousMonitoring: () => Promise<boolean>;
   toggleEmergencyTracking: () => Promise<boolean>;
   triggerSos: (payload: SosPayload) => Promise<boolean>;
@@ -83,6 +91,12 @@ const responseSelect =
 
 const medicalProfileSelect =
   "user_id, blood_type, allergies, medical_conditions, medications, notes, emergency_contact_name, emergency_contact_phone, secondary_contact_name, secondary_contact_phone, insurance_info, preferred_hospital, show_in_sos, updated_at";
+
+const groupRideSelect =
+  "id, name, description, meeting_point, starts_at, status, created_at";
+
+const rideParticipantSelect =
+  "id, event_id, user_id, full_name, username, bike_model, city, is_admin, attendance_status, live_route_enabled, current_lat, current_lng, last_seen_at, updated_at";
 
 function formatAlertTitle(alert: SosAlert) {
   return alert.full_name || alert.username || "Motero en emergencia";
@@ -210,6 +224,8 @@ export function RoutePresenceProvider({
   const [profile, setProfile] = useState<Profile | null>(null);
   const [medicalProfile, setMedicalProfile] = useState<MedicalProfile | null>(null);
   const [activeRiders, setActiveRiders] = useState<ActiveRider[]>([]);
+  const [activeRideEvent, setActiveRideEvent] = useState<GroupRideEvent | null>(null);
+  const [rideParticipants, setRideParticipants] = useState<RideParticipant[]>([]);
   const [rawAlerts, setRawAlerts] = useState<SosAlert[]>([]);
   const [sosAlertEvents, setSosAlertEvents] = useState<SosAlert[]>([]);
   const [responses, setResponses] = useState<SosResponse[]>([]);
@@ -224,9 +240,11 @@ export function RoutePresenceProvider({
   const [error, setError] = useState<string | null>(null);
   const [sosFeedback, setSosFeedback] = useState<string | null>(null);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const rideIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const watchIdRef = useRef<string | number | null>(null);
   const watchedPositionRef = useRef<Coordinates | null>(null);
   const profileRef = useRef<Profile | null>(null);
+  const trackingSessionRef = useRef(0);
 
   const isAuthenticated = Boolean(session?.user.id);
   const userId = session?.user.id ?? null;
@@ -415,6 +433,102 @@ export function RoutePresenceProvider({
     setResponses(data ?? []);
   }
 
+  async function loadActiveRideData() {
+    if (!userId) {
+      setActiveRideEvent(null);
+      setRideParticipants([]);
+      return;
+    }
+
+    const { data: eventData, error: eventError } = await supabase
+      .from("group_rides")
+      .select(groupRideSelect)
+      .eq("status", "active")
+      .order("starts_at", { ascending: true, nullsFirst: false })
+      .limit(1)
+      .maybeSingle();
+
+    if (eventError) {
+      setError(eventError.message);
+      return;
+    }
+
+    if (!eventData) {
+      setActiveRideEvent(null);
+      setRideParticipants([]);
+      return;
+    }
+
+    setActiveRideEvent(eventData);
+
+    const { data: participantData, error: participantError } = await supabase
+      .from("ride_participants")
+      .select(rideParticipantSelect)
+      .eq("event_id", eventData.id)
+      .order("updated_at", { ascending: false });
+
+    if (participantError) {
+      setError(participantError.message);
+      return;
+    }
+
+    setRideParticipants(participantData ?? []);
+  }
+
+  async function upsertRideParticipant({
+    attendanceStatus,
+    liveRouteEnabled,
+    coords
+  }: {
+    attendanceStatus: RideParticipant["attendance_status"];
+    liveRouteEnabled?: boolean;
+    coords?: Coordinates | null;
+  }) {
+    if (!userId || !activeRideEvent) {
+      return false;
+    }
+
+    const now = new Date().toISOString();
+    const shouldDisableLive = attendanceStatus === "declined";
+    const nextLiveRouteEnabled =
+      shouldDisableLive ? false : liveRouteEnabled ?? false;
+    const { data, error: participantError } = await supabase
+      .from("ride_participants")
+      .upsert(
+        {
+          event_id: activeRideEvent.id,
+          user_id: userId,
+          full_name: profileRef.current?.full_name ?? null,
+          username: profileRef.current?.username ?? null,
+          bike_model: profileRef.current?.bike_model ?? null,
+          city: profileRef.current?.city ?? null,
+          is_admin: Boolean(profileRef.current?.is_admin),
+          attendance_status: attendanceStatus,
+          live_route_enabled: nextLiveRouteEnabled,
+          current_lat: nextLiveRouteEnabled ? coords?.latitude ?? null : null,
+          current_lng: nextLiveRouteEnabled ? coords?.longitude ?? null : null,
+          last_seen_at: nextLiveRouteEnabled && coords ? now : null
+        },
+        { onConflict: "event_id,user_id" }
+      )
+      .select(rideParticipantSelect)
+      .single();
+
+    if (participantError) {
+      setError(participantError.message);
+      return false;
+    }
+
+    setRideParticipants((current) => {
+      const exists = current.some((participant) => participant.id === data.id);
+      return exists
+        ? current.map((participant) => (participant.id === data.id ? data : participant))
+        : [data, ...current];
+    });
+    setError(null);
+    return true;
+  }
+
   async function pushLocationUpdate({
     routeActive,
     clearLocation = false,
@@ -449,8 +563,24 @@ export function RoutePresenceProvider({
         nextEmergencyTracking ||
         nextEmergencyState === "emergency");
     const coords = shouldCaptureLocation
-      ? coordsOverride || watchedPositionRef.current || (await getDevicePosition())
+      ? coordsOverride ||
+        watchedPositionRef.current ||
+        (await withTimeout(
+          getDevicePosition(),
+          15000,
+          "No se pudo obtener tu ubicacion. Verifica permisos, GPS y senal."
+        ))
       : null;
+
+    if (
+      shouldCaptureLocation &&
+      (!coords ||
+        !Number.isFinite(coords.latitude) ||
+        !Number.isFinite(coords.longitude))
+    ) {
+      setError("No se recibieron coordenadas validas del dispositivo.");
+      return false;
+    }
     const now = new Date().toISOString();
 
     const payload = {
@@ -504,6 +634,8 @@ export function RoutePresenceProvider({
   }
 
   function stopTracking() {
+    trackingSessionRef.current += 1;
+
     if (intervalRef.current) {
       clearInterval(intervalRef.current);
       intervalRef.current = null;
@@ -515,31 +647,46 @@ export function RoutePresenceProvider({
     setTracking(false);
   }
 
-  function startTracking() {
+  async function startTracking() {
     const intervalMs = profileRef.current?.emergency_tracking_active ? 5000 : 10000;
 
     stopTracking();
-    setTracking(true);
-    void watchDevicePosition(
-      (coords) => {
-        watchedPositionRef.current = coords;
-        setLatestPosition(coords);
-      },
-      (locationError) => {
-        setError(locationError.message);
-      },
-      intervalMs
-    )
-      .then((watchId) => {
-        watchIdRef.current = watchId;
-      })
-      .catch((locationError) => {
-        const message =
-          locationError instanceof Error
-            ? locationError.message
-            : "No se pudo iniciar el monitoreo nativo de ubicacion.";
-        setError(message);
-      });
+    const trackingSessionId = trackingSessionRef.current + 1;
+    trackingSessionRef.current = trackingSessionId;
+
+    try {
+      const watchId = await withTimeout(
+        watchDevicePosition(
+          (coords) => {
+            watchedPositionRef.current = coords;
+            setLatestPosition(coords);
+          },
+          (locationError) => {
+            setError(locationError.message);
+          },
+          intervalMs
+        ),
+        15000,
+        "No se pudo iniciar el monitoreo de ubicacion. Verifica GPS y permisos."
+      );
+
+      if (trackingSessionRef.current !== trackingSessionId) {
+        void clearDeviceWatch(watchId);
+        return false;
+      }
+
+      watchIdRef.current = watchId;
+      setTracking(true);
+      setError(null);
+    } catch (locationError) {
+      const message =
+        locationError instanceof Error
+          ? locationError.message
+          : "No se pudo iniciar el monitoreo nativo de ubicacion.";
+      setError(message);
+      setTracking(false);
+      return false;
+    }
 
     intervalRef.current = setInterval(async () => {
       try {
@@ -565,6 +712,8 @@ export function RoutePresenceProvider({
         setError(message);
       }
     }, intervalMs);
+
+    return true;
   }
 
   async function toggleRoute() {
@@ -590,13 +739,25 @@ export function RoutePresenceProvider({
           stopTracking();
         }
       } else {
+        const coords = await withTimeout(
+          getDevicePosition(),
+          15000,
+          "No se pudo iniciar la ruta. Verifica GPS y permisos."
+        );
+        const trackingStarted = await startTracking();
+
+        if (!trackingStarted) {
+          return;
+        }
+
         const success = await pushLocationUpdate({
           routeActive: true,
-          emergencyState: profile?.emergency_state ?? "normal"
+          emergencyState: profile?.emergency_state ?? "normal",
+          coordsOverride: coords
         });
 
-        if (success) {
-          startTracking();
+        if (!success) {
+          stopTracking();
         }
       }
     } catch (toggleError) {
@@ -605,6 +766,107 @@ export function RoutePresenceProvider({
           ? toggleError.message
           : "No se pudo cambiar el estado de ruta.";
       setError(message);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function confirmRideAttendance() {
+    if (!userId || loading || !activeRideEvent) {
+      return false;
+    }
+
+    setLoading(true);
+    setError(null);
+
+    try {
+      const success = await upsertRideParticipant({
+        attendanceStatus: "confirmed",
+        liveRouteEnabled: false
+      });
+      await loadActiveRideData();
+      return success;
+    } catch (rideError) {
+      const message =
+        rideError instanceof Error
+          ? rideError.message
+          : "No se pudo confirmar tu asistencia.";
+      setError(message);
+      return false;
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function declineRideAttendance() {
+    if (!userId || loading || !activeRideEvent) {
+      return false;
+    }
+
+    setLoading(true);
+    setError(null);
+
+    try {
+      const success = await upsertRideParticipant({
+        attendanceStatus: "declined",
+        liveRouteEnabled: false
+      });
+      await loadActiveRideData();
+      return success;
+    } catch (rideError) {
+      const message =
+        rideError instanceof Error
+          ? rideError.message
+          : "No se pudo registrar que no asistiras.";
+      setError(message);
+      return false;
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function toggleRideLiveRoute() {
+    if (!userId || loading || !activeRideEvent) {
+      return false;
+    }
+
+    setLoading(true);
+    setError(null);
+
+    try {
+      const currentParticipant = rideParticipants.find(
+        (participant) => participant.user_id === userId
+      );
+
+      if (currentParticipant?.live_route_enabled) {
+        const success = await upsertRideParticipant({
+          attendanceStatus: "confirmed",
+          liveRouteEnabled: false
+        });
+        await loadActiveRideData();
+        return success;
+      }
+
+      const coords = await withTimeout(
+        getDevicePosition(),
+        15000,
+        "No se pudo activar la ruta en vivo. Verifica GPS y permisos."
+      );
+      const success = await upsertRideParticipant({
+        attendanceStatus: "confirmed",
+        liveRouteEnabled: true,
+        coords
+      });
+      setLatestPosition(coords);
+      await loadActiveRideData();
+      return success;
+    } catch (rideError) {
+      const message =
+        rideError instanceof Error
+          ? rideError.message
+          : "No se pudo actualizar tu ruta en vivo.";
+      setError(message);
+      return false;
     } finally {
       setLoading(false);
     }
@@ -624,6 +886,15 @@ export function RoutePresenceProvider({
         nextEnabled ||
         Boolean(profile?.is_on_route) ||
         Boolean(profile?.emergency_tracking_active);
+
+      if (nextEnabled) {
+        const trackingStarted = await startTracking();
+
+        if (!trackingStarted) {
+          return false;
+        }
+      }
+
       const success = await pushLocationUpdate({
         routeActive: profile?.is_on_route ?? false,
         clearLocation: !keepLocation,
@@ -633,11 +904,11 @@ export function RoutePresenceProvider({
       });
 
       if (success) {
-        if (keepLocation) {
-          startTracking();
-        } else {
+        if (!keepLocation) {
           stopTracking();
         }
+      } else if (nextEnabled) {
+        stopTracking();
       }
 
       return success;
@@ -667,6 +938,15 @@ export function RoutePresenceProvider({
         nextEnabled ||
         Boolean(profile?.is_on_route) ||
         Boolean(profile?.continuous_monitoring_enabled);
+
+      if (nextEnabled) {
+        const trackingStarted = await startTracking();
+
+        if (!trackingStarted) {
+          return false;
+        }
+      }
+
       const success = await pushLocationUpdate({
         routeActive: profile?.is_on_route ?? false,
         clearLocation: !keepLocation,
@@ -676,11 +956,11 @@ export function RoutePresenceProvider({
       });
 
       if (success) {
-        if (keepLocation) {
-          startTracking();
-        } else {
+        if (!keepLocation) {
           stopTracking();
         }
+      } else if (nextEnabled) {
+        stopTracking();
       }
 
       return success;
@@ -775,7 +1055,7 @@ export function RoutePresenceProvider({
       setSosFeedback(
         `SOS enviado por ${emergencyType.toLowerCase()}. Tu ubicacion fue compartida con la comunidad.`
       );
-      startTracking();
+      void startTracking();
       try {
         await withTimeout(
           notifyPushEvent({
@@ -789,6 +1069,7 @@ export function RoutePresenceProvider({
       } catch (pushError) {
         console.warn("[Los58SOS] Push event failed after SOS creation", pushError);
       }
+      await Promise.all([loadAlerts(), loadResponses(), loadActiveRiders()]);
       return true;
     } catch (sosError) {
       const messageText =
@@ -815,59 +1096,72 @@ export function RoutePresenceProvider({
     setAlertUpdatingId(alertId);
     setError(null);
 
-    const { data, error: alertError } = await supabase
-      .from("sos_alerts")
-      .update({
-        status,
-        resolved_at: new Date().toISOString()
-      })
-      .eq("id", alertId)
-      .eq("user_id", userId)
-      .select(alertSelect)
-      .single();
-
-    if (alertError) {
-      setError(alertError.message);
-      setAlertUpdatingId(null);
-      return false;
-    }
-
-    setRawAlerts((current) =>
-      current.map((alert) => (alert.id === alertId ? data : alert))
-    );
-
-    const hasAnotherActiveOwnAlert = rawAlerts.some(
-      (alert) =>
-        alert.id !== alertId && alert.user_id === userId && alert.status === "active"
-    );
-
-    if (!hasAnotherActiveOwnAlert) {
-      const keepMonitoring =
-        Boolean(profileRef.current?.continuous_monitoring_enabled) ||
-        Boolean(profileRef.current?.emergency_tracking_active);
-      const { data: nextProfile, error: profileError } = await supabase
-        .from("profiles")
+    try {
+      const { data, error: alertError } = await supabase
+        .from("sos_alerts")
         .update({
-          emergency_state: keepMonitoring ? "normal" : "normal"
+          status,
+          resolved_at: new Date().toISOString()
         })
-        .eq("id", userId)
-        .select(profileSelect)
+        .eq("id", alertId)
+        .eq("user_id", userId)
+        .select(alertSelect)
         .single();
 
-      if (!profileError) {
-        setProfile(nextProfile);
+      if (alertError) {
+        setError(alertError.message);
+        return false;
       }
-    }
 
-    setAlertUpdatingId(null);
-    await loadActiveRiders();
-    if (status === "resolved") {
-      await notifyPushEvent({
-        type: "resolved",
-        alertId
-      });
+      setRawAlerts((current) =>
+        current.map((alert) => (alert.id === alertId ? data : alert))
+      );
+
+      const hasAnotherActiveOwnAlert = rawAlerts.some(
+        (alert) =>
+          alert.id !== alertId && alert.user_id === userId && alert.status === "active"
+      );
+
+      if (!hasAnotherActiveOwnAlert) {
+        const keepMonitoring =
+          Boolean(profileRef.current?.continuous_monitoring_enabled) ||
+          Boolean(profileRef.current?.emergency_tracking_active);
+        const { data: nextProfile, error: profileError } = await supabase
+          .from("profiles")
+          .update({
+            emergency_state: "normal"
+          })
+          .eq("id", userId)
+          .select(profileSelect)
+          .single();
+
+        if (!profileError) {
+          setProfile(nextProfile);
+        }
+
+        if (!keepMonitoring && !profileRef.current?.is_on_route) {
+          stopTracking();
+        }
+      }
+
+      await Promise.all([loadAlerts(), loadResponses(), loadActiveRiders()]);
+      if (status === "resolved") {
+        await notifyPushEvent({
+          type: "resolved",
+          alertId
+        });
+      }
+      return true;
+    } catch (alertStatusError) {
+      const message =
+        alertStatusError instanceof Error
+          ? alertStatusError.message
+          : "No se pudo actualizar la alerta SOS.";
+      setError(message);
+      return false;
+    } finally {
+      setAlertUpdatingId(null);
     }
-    return true;
   }
 
   async function respondToAlert(alertId: string) {
@@ -884,41 +1178,51 @@ export function RoutePresenceProvider({
     setResponseSubmittingAlertId(alertId);
     setError(null);
 
-    const helperName =
-      profile?.full_name?.trim() || profile?.username?.trim() || "Motero Los+58";
-    const { data, error: responseError } = await supabase
-      .from("sos_responses")
-      .upsert(
-        {
-          sos_alert_id: alertId,
-          helper_user_id: userId,
-          helper_name: helperName,
-          status: "on_the_way"
-        },
-        { onConflict: "sos_alert_id,helper_user_id" }
-      )
-      .select(responseSelect)
-      .single();
+    try {
+      const helperName =
+        profile?.full_name?.trim() || profile?.username?.trim() || "Motero Los+58";
+      const { data, error: responseError } = await supabase
+        .from("sos_responses")
+        .upsert(
+          {
+            sos_alert_id: alertId,
+            helper_user_id: userId,
+            helper_name: helperName,
+            status: "on_the_way"
+          },
+          { onConflict: "sos_alert_id,helper_user_id" }
+        )
+        .select(responseSelect)
+        .single();
 
-    if (responseError) {
-      setError(responseError.message);
-      setResponseSubmittingAlertId(null);
-      return false;
-    }
-
-    setResponses((current) => {
-      if (current.some((response) => response.id === data.id)) {
-        return current.map((response) => (response.id === data.id ? data : response));
+      if (responseError) {
+        setError(responseError.message);
+        return false;
       }
 
-      return [...current, data];
-    });
-    setResponseSubmittingAlertId(null);
-    await notifyPushEvent({
-      type: "response",
-      alertId
-    });
-    return true;
+      setResponses((current) => {
+        if (current.some((response) => response.id === data.id)) {
+          return current.map((response) => (response.id === data.id ? data : response));
+        }
+
+        return [...current, data];
+      });
+      await Promise.all([loadResponses(), loadAlerts()]);
+      await notifyPushEvent({
+        type: "response",
+        alertId
+      });
+      return true;
+    } catch (responseError) {
+      const message =
+        responseError instanceof Error
+          ? responseError.message
+          : "No se pudo registrar que vas en camino.";
+      setError(message);
+      return false;
+    } finally {
+      setResponseSubmittingAlertId(null);
+    }
   }
 
   async function updateProfile(values: ProfileFormValues) {
@@ -929,31 +1233,40 @@ export function RoutePresenceProvider({
     setProfileSaving(true);
     setError(null);
 
-    const payload = {
-      id: userId,
-      full_name: values.full_name.trim() || null,
-      username: values.username.trim() || null,
-      bike_model: values.bike_model.trim() || null,
-      city: values.city.trim() || null,
-      emergency_contact: values.emergency_contact.trim() || null
-    };
+    try {
+      const payload = {
+        id: userId,
+        full_name: values.full_name.trim() || null,
+        username: values.username.trim() || null,
+        bike_model: values.bike_model.trim() || null,
+        city: values.city.trim() || null,
+        emergency_contact: values.emergency_contact.trim() || null
+      };
 
-    const { data, error: updateError } = await supabase
-      .from("profiles")
-      .upsert(payload, { onConflict: "id" })
-      .select(profileSelect)
-      .single();
+      const { data, error: updateError } = await supabase
+        .from("profiles")
+        .upsert(payload, { onConflict: "id" })
+        .select(profileSelect)
+        .single();
 
-    if (updateError) {
-      setError(updateError.message);
-      setProfileSaving(false);
+      if (updateError) {
+        setError(updateError.message);
+        return false;
+      }
+
+      setProfile(data);
+      await loadActiveRiders();
+      return true;
+    } catch (profileError) {
+      const message =
+        profileError instanceof Error
+          ? profileError.message
+          : "No se pudo guardar el perfil.";
+      setError(message);
       return false;
+    } finally {
+      setProfileSaving(false);
     }
-
-    setProfile(data);
-    setProfileSaving(false);
-    await loadActiveRiders();
-    return true;
   }
 
   async function updateMedicalProfile(values: MedicalProfileFormValues) {
@@ -964,37 +1277,46 @@ export function RoutePresenceProvider({
     setMedicalProfileSaving(true);
     setError(null);
 
-    const payload = {
-      user_id: userId,
-      blood_type: values.blood_type || null,
-      allergies: values.allergies.trim() || null,
-      medical_conditions: values.medical_conditions.trim() || null,
-      medications: values.medications.trim() || null,
-      notes: values.notes.trim() || null,
-      emergency_contact_name: values.emergency_contact_name.trim() || null,
-      emergency_contact_phone: values.emergency_contact_phone.trim() || null,
-      secondary_contact_name: values.secondary_contact_name.trim() || null,
-      secondary_contact_phone: values.secondary_contact_phone.trim() || null,
-      insurance_info: values.insurance_info.trim() || null,
-      preferred_hospital: values.preferred_hospital.trim() || null,
-      show_in_sos: values.show_in_sos
-    };
+    try {
+      const payload = {
+        user_id: userId,
+        blood_type: values.blood_type || null,
+        allergies: values.allergies.trim() || null,
+        medical_conditions: values.medical_conditions.trim() || null,
+        medications: values.medications.trim() || null,
+        notes: values.notes.trim() || null,
+        emergency_contact_name: values.emergency_contact_name.trim() || null,
+        emergency_contact_phone: values.emergency_contact_phone.trim() || null,
+        secondary_contact_name: values.secondary_contact_name.trim() || null,
+        secondary_contact_phone: values.secondary_contact_phone.trim() || null,
+        insurance_info: values.insurance_info.trim() || null,
+        preferred_hospital: values.preferred_hospital.trim() || null,
+        show_in_sos: values.show_in_sos
+      };
 
-    const { data, error: medicalError } = await supabase
-      .from("medical_profiles")
-      .upsert(payload, { onConflict: "user_id" })
-      .select(medicalProfileSelect)
-      .single();
+      const { data, error: medicalError } = await supabase
+        .from("medical_profiles")
+        .upsert(payload, { onConflict: "user_id" })
+        .select(medicalProfileSelect)
+        .single();
 
-    if (medicalError) {
-      setError(medicalError.message);
-      setMedicalProfileSaving(false);
+      if (medicalError) {
+        setError(medicalError.message);
+        return false;
+      }
+
+      setMedicalProfile(data);
+      return true;
+    } catch (medicalError) {
+      const message =
+        medicalError instanceof Error
+          ? medicalError.message
+          : "No se pudo guardar la ficha medica.";
+      setError(message);
       return false;
+    } finally {
+      setMedicalProfileSaving(false);
     }
-
-    setMedicalProfile(data);
-    setMedicalProfileSaving(false);
-    return true;
   }
 
   function clearSosFeedback() {
@@ -1006,6 +1328,8 @@ export function RoutePresenceProvider({
       setProfile(null);
       setMedicalProfile(null);
       setActiveRiders([]);
+      setActiveRideEvent(null);
+      setRideParticipants([]);
       setRawAlerts([]);
       setResponses([]);
       setLatestPosition(null);
@@ -1018,6 +1342,7 @@ export function RoutePresenceProvider({
     loadActiveRiders();
     loadAlerts();
     loadResponses();
+    loadActiveRideData();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [userId]);
 
@@ -1192,18 +1517,45 @@ export function RoutePresenceProvider({
       )
       .subscribe();
 
+    const ridesChannel = supabase
+      .channel("group-rides")
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "group_rides"
+        },
+        () => {
+          void loadActiveRideData();
+        }
+      )
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "ride_participants"
+        },
+        () => {
+          void loadActiveRideData();
+        }
+      )
+      .subscribe();
+
     return () => {
       supabase.removeChannel(alertChannel);
       supabase.removeChannel(ridersChannel);
       supabase.removeChannel(medicalChannel);
       supabase.removeChannel(responsesChannel);
+      supabase.removeChannel(ridesChannel);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [supabase, userId]);
 
   useEffect(() => {
     if (shouldReportLocation(profile)) {
-      startTracking();
+      void startTracking();
       return;
     }
 
@@ -1217,6 +1569,52 @@ export function RoutePresenceProvider({
   ]);
 
   useEffect(() => () => stopTracking(), []);
+
+  const currentRideParticipant =
+    rideParticipants.find((participant) => participant.user_id === userId) ?? null;
+
+  useEffect(() => {
+    if (rideIntervalRef.current) {
+      clearInterval(rideIntervalRef.current);
+      rideIntervalRef.current = null;
+    }
+
+    if (!userId || !activeRideEvent || !currentRideParticipant?.live_route_enabled) {
+      return;
+    }
+
+    rideIntervalRef.current = setInterval(() => {
+      void (async () => {
+        try {
+          const coords = await withTimeout(
+            getDevicePosition(),
+            15000,
+            "No se pudo actualizar tu ubicacion de la rodada."
+          );
+          await upsertRideParticipant({
+            attendanceStatus: "confirmed",
+            liveRouteEnabled: true,
+            coords
+          });
+          setLatestPosition(coords);
+        } catch (rideLocationError) {
+          const message =
+            rideLocationError instanceof Error
+              ? rideLocationError.message
+              : "No se pudo actualizar la ubicacion de la rodada.";
+          setError(message);
+        }
+      })();
+    }, 10000);
+
+    return () => {
+      if (rideIntervalRef.current) {
+        clearInterval(rideIntervalRef.current);
+        rideIntervalRef.current = null;
+      }
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [userId, activeRideEvent?.id, currentRideParticipant?.live_route_enabled]);
 
   const alerts = useMemo<SosAlert[]>(() => {
     const responsesByAlert = responses.reduce<Record<string, SosResponse[]>>((acc, response) => {
@@ -1318,6 +1716,9 @@ export function RoutePresenceProvider({
       profile,
       medicalProfile,
       activeRiders,
+      activeRideEvent,
+      rideParticipants,
+      currentRideParticipant,
       alerts,
       notificationEvents,
       sosAlertEvents,
@@ -1334,6 +1735,9 @@ export function RoutePresenceProvider({
       error,
       sosFeedback,
       toggleRoute,
+      confirmRideAttendance,
+      declineRideAttendance,
+      toggleRideLiveRoute,
       toggleContinuousMonitoring,
       toggleEmergencyTracking,
       triggerSos,
@@ -1349,9 +1753,11 @@ export function RoutePresenceProvider({
     }),
     [
       activeRiders,
+      activeRideEvent,
       alertUpdatingId,
       activeSosAlert,
       alerts,
+      currentRideParticipant,
       notificationEvents,
       sosAlertEvents,
       userId,
@@ -1364,6 +1770,7 @@ export function RoutePresenceProvider({
       profile,
       profileSaving,
       responseSubmittingAlertId,
+      rideParticipants,
       sosFeedback,
       sosLoading,
       tracking

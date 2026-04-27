@@ -5,12 +5,29 @@ import {
   BellAlertIcon,
   CheckCircleIcon,
   MapIcon,
+  PlayIcon,
+  StopCircleIcon,
   UserGroupIcon
 } from "@heroicons/react/24/solid";
-import { getAdminDashboardData } from "@/lib/admin/data";
+import { finishGroupRide, startGroupRide } from "@/app/admin/rodadas/actions";
+import {
+  formatAdminDate,
+  getAdminDashboardData,
+  getAdminRideData
+} from "@/lib/admin/data";
 
 export default async function AdminDashboardPage() {
-  const stats = await getAdminDashboardData();
+  const [stats, rideData] = await Promise.all([
+    getAdminDashboardData(),
+    getAdminRideData()
+  ]);
+  const activeRide = rideData.activeRide;
+  const confirmedCount = rideData.participants.filter(
+    (participant) => participant.attendance_status === "confirmed"
+  ).length;
+  const liveCount = rideData.participants.filter(
+    (participant) => participant.live_route_enabled
+  ).length;
   const cards = [
     {
       label: "Usuarios registrados",
@@ -131,6 +148,93 @@ export default async function AdminDashboardPage() {
           );
         })}
       </div>
+
+      <section className="los-card">
+        <div className="pointer-events-none absolute -right-20 -top-20 h-52 w-52 rounded-full bg-accent/10 blur-3xl" />
+        <div className="relative grid gap-5 lg:grid-cols-[0.9fr_1.1fr] lg:items-start">
+          <div>
+            <span className="los-chip los-chip-accent">
+              Rodadas del club
+            </span>
+            <h2 className="mt-4 text-xl font-semibold text-ink">
+              Control de evento activo
+            </h2>
+            <p className="mt-2 text-sm leading-6 text-muted">
+              Inicia una salida grupal para que los moteros confirmen asistencia
+              y compartan ubicación solo durante la rodada.
+            </p>
+
+            <div className="mt-4 grid gap-2 sm:grid-cols-3">
+              <MiniMetric label="Evento" value={activeRide ? "Activo" : "Sin rodada"} />
+              <MiniMetric label="Confirmados" value={confirmedCount} />
+              <MiniMetric label="En ruta" value={liveCount} />
+            </div>
+
+            {activeRide ? (
+              <div className="mt-4 rounded-2xl border border-accent/20 bg-accent/8 px-4 py-3">
+                <p className="text-sm font-semibold text-ink">{activeRide.name}</p>
+                <p className="mt-1 text-xs leading-5 text-muted">
+                  Punto: {activeRide.meeting_point || "Sin punto definido"} / Salida:{" "}
+                  {formatAdminDate(activeRide.starts_at)}
+                </p>
+              </div>
+            ) : null}
+          </div>
+
+          <div className="rounded-[1.5rem] border border-white/10 bg-black/18 p-4">
+            {activeRide ? (
+              <form action={finishGroupRide} className="space-y-3">
+                <input type="hidden" name="rideId" value={activeRide.id} />
+                <p className="text-xs uppercase tracking-[0.22em] text-muted">
+                  Acción administrativa
+                </p>
+                <button className="los-action-danger w-full">
+                  <StopCircleIcon className="h-4 w-4" />
+                  Finalizar rodada activa
+                </button>
+                <p className="text-xs leading-5 text-muted">
+                  Al finalizarla, dejará de mostrarse como evento activo en Perfil.
+                </p>
+              </form>
+            ) : (
+              <form action={startGroupRide} className="grid gap-3">
+                <p className="text-xs uppercase tracking-[0.22em] text-muted">
+                  Iniciar nueva rodada
+                </p>
+                <input
+                  name="name"
+                  required
+                  placeholder="Nombre: Jueves Motero"
+                  className="rounded-2xl border border-white/10 bg-white/[0.045] px-4 py-3 text-sm text-ink outline-none placeholder:text-muted/60 focus:border-accent/40"
+                />
+                <input
+                  name="meetingPoint"
+                  placeholder="Punto de encuentro"
+                  className="rounded-2xl border border-white/10 bg-white/[0.045] px-4 py-3 text-sm text-ink outline-none placeholder:text-muted/60 focus:border-accent/40"
+                />
+                <input
+                  name="startsAt"
+                  type="datetime-local"
+                  className="rounded-2xl border border-white/10 bg-white/[0.045] px-4 py-3 text-sm text-ink outline-none focus:border-accent/40"
+                />
+                <button className="los-action-primary w-full">
+                  <PlayIcon className="h-4 w-4" />
+                  Iniciar rodada
+                </button>
+              </form>
+            )}
+          </div>
+        </div>
+      </section>
     </section>
+  );
+}
+
+function MiniMetric({ label, value }: { label: string; value: string | number }) {
+  return (
+    <div className="los-info-panel p-3">
+      <p className="text-[11px] uppercase tracking-[0.18em] text-muted">{label}</p>
+      <p className="mt-1 text-sm font-semibold text-ink">{value}</p>
+    </div>
   );
 }

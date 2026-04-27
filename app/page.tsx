@@ -1,7 +1,7 @@
 "use client";
 
 import { AlertPreview } from "@/components/alert-preview";
-import { RouteStatusCard } from "@/components/route-status-card";
+import { RouteToggleButton } from "@/components/route-toggle-button";
 import { SosButton } from "@/components/sos-button";
 import { useRoutePresence } from "@/components/providers/route-presence-provider";
 import {
@@ -115,36 +115,37 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section className="grid gap-5 lg:grid-cols-[1.03fr_0.97fr] lg:items-stretch">
-        <RouteStatusCard />
-
-        <div className="relative overflow-hidden rounded-[2rem] border border-danger/20 bg-[radial-gradient(circle_at_50%_8%,rgba(239,68,68,0.24),transparent_34%),linear-gradient(180deg,rgba(18,27,43,0.94),rgba(8,12,22,0.98))] px-5 py-6 text-center shadow-[0_24px_70px_rgba(127,29,29,0.16)] md:px-6">
-          <div className="pointer-events-none absolute inset-x-10 top-10 h-32 rounded-full bg-danger/10 blur-3xl" />
+      <section className="mx-auto w-full max-w-3xl">
+        <div className="relative overflow-hidden rounded-[2.2rem] border border-danger/20 bg-[radial-gradient(circle_at_50%_-10%,rgba(255,77,109,0.30),transparent_32%),radial-gradient(circle_at_15%_85%,rgba(136,19,55,0.22),transparent_34%),linear-gradient(155deg,rgba(21,13,25,0.98),rgba(8,12,22,0.98)_52%,rgba(18,7,14,0.98))] px-5 py-6 text-center shadow-[0_28px_90px_rgba(127,29,29,0.18),inset_0_1px_0_rgba(255,255,255,0.07)] md:px-7 md:py-7">
+          <div className="pointer-events-none absolute left-1/2 top-8 h-44 w-44 -translate-x-1/2 rounded-full bg-danger/12 blur-3xl" />
+          <div className="pointer-events-none absolute -right-16 -top-16 h-48 w-48 rounded-full bg-fuchsia-500/10 blur-3xl" />
+          <div className="pointer-events-none absolute inset-x-8 bottom-0 h-px bg-gradient-to-r from-transparent via-danger/30 to-transparent" />
 
           <div className="relative">
-            <div className="flex flex-col items-center gap-3 text-center sm:flex-row sm:justify-between sm:text-left">
-              <div className="min-w-0">
-                <p className="text-xs uppercase tracking-[0.34em] text-danger/80">
-                  Emergencia
-                </p>
-                <h2 className="mt-2 text-xl font-semibold text-ink">
-                  Respuesta inmediata
-                </h2>
-              </div>
-              <span className="grid h-11 w-11 place-items-center rounded-2xl border border-danger/25 bg-danger/12">
+            <div className="mx-auto max-w-xl text-center">
+              <div className="mx-auto grid h-12 w-12 place-items-center rounded-2xl border border-danger/25 bg-danger/10 shadow-[0_0_36px_rgba(255,77,109,0.14)]">
                 <BoltIcon className="h-5 w-5 text-danger" />
-              </span>
+              </div>
+              <p className="mt-4 text-xs uppercase tracking-[0.34em] text-danger/80">
+                Emergencia
+              </p>
+              <h2 className="mt-2 text-2xl font-semibold tracking-[-0.02em] text-ink">
+                Respuesta inmediata
+              </h2>
+              <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-muted">
+                Un solo gesto para compartir tu ubicacion y alertar a la comunidad cuando necesitas apoyo real.
+              </p>
             </div>
 
-            <div className="mt-5 flex justify-center">
+            <div className="mt-6 flex justify-center">
               <SosButton />
             </div>
 
             <div
-              className={`mx-auto mt-5 max-w-md rounded-[1.5rem] border p-4 text-left shadow-[0_0_30px_rgba(239,68,68,0.10)] ${
+              className={`mx-auto mt-6 max-w-md rounded-[1.6rem] border p-4 text-left shadow-[0_18px_48px_rgba(0,0,0,0.22),inset_0_1px_0_rgba(255,255,255,0.05)] ${
                 activeSosAlert || sosFeedback
-                  ? "border-danger/30 bg-danger/12"
-                  : "border-white/10 bg-white/[0.045]"
+                  ? "border-danger/30 bg-[rgba(255,77,109,0.11)]"
+                  : "border-white/10 bg-white/[0.04]"
               }`}
             >
               <div className="flex items-start justify-between gap-3">
@@ -175,6 +176,10 @@ export default function HomePage() {
                   ? "Tu ubicacion ya fue compartida y la alerta esta visible para la comunidad."
                   : "Pulsa el boton solo si necesitas ayuda inmediata en ruta."}
               </p>
+            </div>
+
+            <div className="mx-auto mt-5 max-w-md rounded-[1.6rem] border border-accent/20 bg-[rgba(32,211,238,0.06)] px-4 py-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]">
+              <RouteToggleButton />
             </div>
           </div>
         </div>

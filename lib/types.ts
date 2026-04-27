@@ -59,6 +59,33 @@ export type Coordinates = {
   longitude: number;
 };
 
+export type GroupRideEvent = {
+  id: string;
+  name: string;
+  description: string | null;
+  meeting_point: string | null;
+  starts_at: string | null;
+  status: "active" | "finished" | "draft";
+  created_at: string;
+};
+
+export type RideParticipant = {
+  id: string;
+  event_id: string;
+  user_id: string;
+  full_name: string | null;
+  username: string | null;
+  bike_model: string | null;
+  city: string | null;
+  is_admin: boolean;
+  attendance_status: "pending" | "confirmed" | "declined";
+  live_route_enabled: boolean;
+  current_lat: number | null;
+  current_lng: number | null;
+  last_seen_at: string | null;
+  updated_at: string;
+};
+
 export type Profile = {
   id: string;
   username: string | null;

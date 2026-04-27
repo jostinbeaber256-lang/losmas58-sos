@@ -482,6 +482,179 @@ body {
   }
 }
 
+/* Animaciones Heartbeat Glow para botón SOS */
+
+/* Latido suave en estado idle */
+@keyframes heartbeat-idle {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 0.85;
+  }
+  8% {
+    transform: scale(1.015);
+    opacity: 0.92;
+  }
+  16% {
+    transform: scale(1);
+    opacity: 0.85;
+  }
+  24% {
+    transform: scale(1.008);
+    opacity: 0.88;
+  }
+  32% {
+    transform: scale(1);
+    opacity: 0.85;
+  }
+}
+
+/* Latido fuerte en estado activo */
+@keyframes heartbeat-active {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 0.9;
+  }
+  8% {
+    transform: scale(1.08);
+    opacity: 1;
+  }
+  16% {
+    transform: scale(1);
+    opacity: 0.75;
+  }
+  24% {
+    transform: scale(1.04);
+    opacity: 0.85;
+  }
+  32% {
+    transform: scale(1);
+    opacity: 0.75;
+  }
+}
+
+/* Latido medio en estado sending */
+@keyframes heartbeat-sending {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 0.88;
+  }
+  8% {
+    transform: scale(1.05);
+    opacity: 0.95;
+  }
+  16% {
+    transform: scale(1);
+    opacity: 0.82;
+  }
+  24% {
+    transform: scale(1.025);
+    opacity: 0.86;
+  }
+  32% {
+    transform: scale(1);
+    opacity: 0.82;
+  }
+}
+
+/* Glow pulsante */
+@keyframes heartbeat-glow-idle {
+  0%, 100% {
+    box-shadow: 0 0 20px rgba(255, 77, 109, 0.6), 0 0 40px rgba(255, 77, 109, 0.3), inset 0 0 15px rgba(255, 77, 109, 0.2);
+  }
+  50% {
+    box-shadow: 0 0 28px rgba(255, 77, 109, 0.8), 0 0 55px rgba(255, 77, 109, 0.4), inset 0 0 20px rgba(255, 77, 109, 0.3);
+  }
+}
+
+@keyframes heartbeat-glow-active {
+  0%, 100% {
+    box-shadow: 0 0 30px rgba(255, 77, 109, 0.8), 0 0 60px rgba(255, 77, 109, 0.5), inset 0 0 25px rgba(255, 77, 109, 0.4);
+  }
+  50% {
+    box-shadow: 0 0 40px rgba(255, 77, 109, 1), 0 0 80px rgba(255, 77, 109, 0.6), inset 0 0 30px rgba(255, 77, 109, 0.5);
+  }
+}
+
+@keyframes heartbeat-glow-sending {
+  0%, 100% {
+    box-shadow: 0 0 25px rgba(255, 77, 109, 0.7), 0 0 50px rgba(255, 77, 109, 0.4), inset 0 0 20px rgba(255, 77, 109, 0.3);
+  }
+  50% {
+    box-shadow: 0 0 35px rgba(255, 77, 109, 0.9), 0 0 70px rgba(255, 77, 109, 0.5), inset 0 0 25px rgba(255, 77, 109, 0.4);
+  }
+}
+
+/* Ondas de energía */
+@keyframes heartbeat-wave-1 {
+  0% {
+    opacity: 0.5;
+    transform: scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1.4);
+  }
+}
+
+@keyframes heartbeat-wave-2 {
+  0% {
+    opacity: 0.3;
+    transform: scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1.6);
+  }
+}
+
+/* Brillo sutil */
+@keyframes heartbeat-shimmer {
+  0% {
+    transform: translateX(-100%) translateY(-100%) rotate(45deg);
+  }
+  100% {
+    transform: translateX(100%) translateY(100%) rotate(45deg);
+  }
+}
+
+/* Clases de animación */
+.animate-heartbeat-idle {
+  animation: heartbeat-idle 2.8s ease-in-out infinite;
+}
+
+.animate-heartbeat-active {
+  animation: heartbeat-active 2s ease-in-out infinite;
+}
+
+.animate-heartbeat-sending {
+  animation: heartbeat-sending 1.6s ease-in-out infinite;
+}
+
+.animate-heartbeat-glow-idle {
+  animation: heartbeat-glow-idle 2.5s ease-in-out infinite;
+}
+
+.animate-heartbeat-glow-active {
+  animation: heartbeat-glow-active 1.8s ease-in-out infinite;
+}
+
+.animate-heartbeat-glow-sending {
+  animation: heartbeat-glow-sending 1.4s ease-in-out infinite;
+}
+
+.animate-heartbeat-wave-1 {
+  animation: heartbeat-wave-1 2.2s ease-out infinite;
+}
+
+.animate-heartbeat-wave-2 {
+  animation: heartbeat-wave-2 2.8s ease-out infinite;
+  animation-delay: 0.7s;
+}
+
+.animate-heartbeat-shimmer {
+  animation: heartbeat-shimmer 3s ease-in-out infinite;
+}
+
 .marker-cluster,
 .marker-cluster-small,
 .marker-cluster-medium,

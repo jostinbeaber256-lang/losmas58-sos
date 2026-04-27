@@ -47,15 +47,15 @@ const SOS_VARIANTS = {
   command: {
     name: "Centro de mando",
     idleShell:
-      "bg-[radial-gradient(circle_at_30%_16%,rgba(255,247,250,.62),rgba(255,102,134,.9)_22%,rgba(120,13,38,.96)_42%,rgba(22,10,20,1)_72%,rgba(5,8,22,1))] shadow-[0_30px_92px_rgba(255,77,109,.32)]",
+      "bg-[radial-gradient(circle_at_32%_18%,rgba(255,236,241,.62),rgba(255,94,126,.88)_24%,rgba(119,13,41,.98)_48%,rgba(26,7,17,1)_74%,rgba(5,8,22,1))] shadow-[0_30px_90px_rgba(255,77,109,.28),inset_0_1px_0_rgba(255,255,255,.18),inset_0_-24px_44px_rgba(0,0,0,.28)]",
     activeShell:
-      "bg-[radial-gradient(circle_at_30%_18%,rgba(255,248,250,.76),rgba(255,88,122,.98)_24%,rgba(143,14,44,.98)_44%,rgba(24,8,18,1)_72%,rgba(5,8,22,1))] shadow-[0_36px_105px_rgba(255,77,109,.48)]",
+      "bg-[radial-gradient(circle_at_32%_18%,rgba(255,244,247,.78),rgba(255,74,111,.98)_24%,rgba(156,11,45,.98)_47%,rgba(27,6,16,1)_74%,rgba(5,8,22,1))] shadow-[0_36px_110px_rgba(255,77,109,.48),inset_0_1px_0_rgba(255,255,255,.22),inset_0_-26px_48px_rgba(0,0,0,.34)]",
     innerSurface:
-      "border-cyan-300/12 bg-[linear-gradient(180deg,rgba(255,255,255,.1),rgba(98,157,255,.04)_54%,rgba(255,255,255,.015))]",
+      "border-white/12 bg-[linear-gradient(180deg,rgba(255,255,255,.12),rgba(255,255,255,.035)_48%,rgba(0,0,0,.16))]",
     iconWrap:
-      "border-cyan-200/12 bg-[linear-gradient(180deg,rgba(255,255,255,.12),rgba(255,255,255,.04))]",
+      "border-white/12 bg-[linear-gradient(180deg,rgba(255,255,255,.16),rgba(255,255,255,.045))]",
     subtitle: "Emergencia inmediata",
-    helper: "Centro de respuesta"
+    helper: "Pedir ayuda ahora"
   }
 } as const;
 
@@ -74,6 +74,13 @@ export function SosButton() {
   const [selectedType, setSelectedType] = useState<string | null>(null);
   const [otherDetails, setOtherDetails] = useState("");
   const variant = ACTIVE_VARIANT;
+  const sosState = sosLoading ? "sending" : activeSosAlert ? "active" : "idle";
+  const sosStateLabel =
+    sosState === "sending"
+      ? "Enviando"
+      : sosState === "active"
+        ? "SOS activo"
+        : "Listo";
 
   useEffect(() => {
     if (!confirmOpen) {
@@ -109,39 +116,67 @@ export function SosButton() {
         <button
           type="button"
           onClick={() => setConfirmOpen(true)}
-          className={`group relative flex h-60 w-60 items-center justify-center rounded-full border border-white/10 transition duration-300 hover:scale-[1.02] active:scale-[0.98] ${
-            activeSosAlert
-              ? variant.activeShell
-              : variant.idleShell
+          disabled={sosLoading}
+          aria-busy={sosLoading}
+          className={`group relative flex h-64 w-64 items-center justify-center rounded-full border-2 transition-all duration-300 hover:scale-[1.02] active:scale-[0.97] disabled:cursor-wait sm:h-72 sm:w-72 ${
+            sosState === "active" || sosState === "sending"
+              ? "border-danger/50 bg-[radial-gradient(circle_at_35%_25%,rgba(255,235,240,.85),rgba(255,60,95,.98)_28%,rgba(200,5,35,.98)_52%,rgba(35,8,20,1)_78%,rgba(5,8,22,1))] shadow-[0_35px_100px_rgba(255,77,109,0.5),0_0_80px_rgba(255,77,109,0.35),inset_0_1px_0_rgba(255,255,255,0.4)]"
+              : "border-danger/30 bg-[radial-gradient(circle_at_35%_25%,rgba(255,245,248,.65),rgba(255,120,145,.92)_28%,rgba(180,25,65,.98)_52%,rgba(25,8,15,1)_78%,rgba(5,8,22,1))] shadow-[0_25px_80px_rgba(255,77,109,0.25),0_0_60px_rgba(255,77,109,0.15),inset_0_1px_0_rgba(255,255,255,0.2)]"
           }`}
           aria-label="Activar SOS"
-          title={`Variante visual activa: ${variant.name}`}
         >
-          <span
-            className={`absolute inset-[-14px] rounded-full border ${
-              activeSosAlert
-                ? "border-danger/40 animate-sos-radar-strong"
-                : "border-danger/26 animate-sos-radar-soft"
+          {/* Ondas de energía Heartbeat */}
+          <span className={`absolute inset-[-8px] rounded-full bg-danger/20 animate-heartbeat-wave-1`} />
+          <span className={`absolute inset-[-12px] rounded-full bg-danger/15 animate-heartbeat-wave-2`} />
+
+          {/* Glow exterior animado */}
+          <span 
+            className={`absolute inset-[-16px] rounded-full bg-[radial-gradient(circle,rgba(255,77,109,0.15),transparent_70%)] blur-xl ${
+              sosState === "active" ? "animate-heartbeat-glow-active" :
+              sosState === "sending" ? "animate-heartbeat-glow-sending" :
+              "animate-heartbeat-glow-idle"
             }`}
           />
-          <span className="absolute inset-[16px] rounded-full bg-[radial-gradient(circle_at_30%_20%,rgba(255,255,255,.18),transparent_34%)]" />
-          <span className="absolute bottom-7 left-10 right-10 h-10 rounded-full bg-black/25 blur-2xl" />
+
+          {/* Brillo sutil */}
+          <span className="absolute inset-0 rounded-full overflow-hidden">
+            <span className="absolute inset-0 w-full h-full bg-gradient-to-r from-transparent via-white/10 to-transparent animate-heartbeat-shimmer" />
+          </span>
 
           <div
-            className={`relative flex h-[78%] w-[78%] flex-col items-center justify-center rounded-full text-center backdrop-blur-sm ${variant.innerSurface}`}
+            className={`relative flex h-[75%] w-[75%] flex-col items-center justify-center rounded-full text-center backdrop-blur-sm border border-white/20 bg-[linear-gradient(145deg,rgba(255,255,255,0.15),rgba(255,255,255,0.05)_50%,rgba(0,0,0,0.1))] shadow-[inset_0_2px_4px_rgba(255,255,255,0.3),inset_0_-2px_4px_rgba(0,0,0,0.2)] ${
+              sosState === "active" ? "animate-heartbeat-active" :
+              sosState === "sending" ? "animate-heartbeat-sending" :
+              "animate-heartbeat-idle"
+            }`}
           >
             <div
-              className={`rounded-[1.3rem] border p-3 shadow-[inset_0_1px_0_rgba(255,255,255,.12)] ${variant.iconWrap}`}
+              className={`rounded-2xl border border-white/25 bg-white/10 p-3 shadow-[0_8px_24px_rgba(0,0,0,0.3),inset_0_1px_0_rgba(255,255,255,0.4)] ${
+                sosState === "active" ? "animate-heartbeat-glow-active" :
+                sosState === "sending" ? "animate-heartbeat-glow-sending" :
+                "animate-heartbeat-glow-idle"
+              }`}
             >
-              <ShieldExclamationIcon className="h-10 w-10 text-white" />
+              <ShieldExclamationIcon className="h-10 w-10 text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.5)]" />
             </div>
-            <span className="mt-4 text-[2rem] font-black tracking-[0.28em] text-white drop-shadow-[0_4px_18px_rgba(0,0,0,.25)]">
+            <span className="mt-3 text-[2.2rem] font-black tracking-[0.25em] text-white drop-shadow-[0_4px_12px_rgba(0,0,0,0.6)]">
               SOS
             </span>
-            <span className="mt-2 text-[11px] uppercase tracking-[0.22em] text-white/78">
-              {variant.subtitle}
+            <span className="mt-1 text-[10px] uppercase tracking-[0.2em] text-white/80 font-semibold">
+              Emergencia
             </span>
-            <span className="mt-1 text-xs text-white/58">
+            <span
+              className={`mt-2 rounded-full border px-3 py-1 text-[10px] font-bold uppercase tracking-[0.15em] ${
+                sosState === "active"
+                  ? "border-white/25 bg-white/20 text-white"
+                  : sosState === "sending"
+                    ? "border-white/20 bg-white/15 text-white/90"
+                    : "border-white/15 bg-black/20 text-white/70"
+              }`}
+            >
+              {sosStateLabel}
+            </span>
+            <span className="mt-2 text-xs text-white/58">
               {variant.helper}
             </span>
           </div>

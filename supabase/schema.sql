@@ -91,6 +91,37 @@ create table if not exists public.sos_responses (
   unique (sos_alert_id, helper_user_id)
 );
 
+create table if not exists public.group_rides (
+  id uuid primary key default gen_random_uuid(),
+  name text not null,
+  description text,
+  meeting_point text,
+  starts_at timestamptz,
+  status text not null default 'draft' check (status in ('draft', 'active', 'finished')),
+  created_by uuid references public.profiles (id) on delete set null,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+create table if not exists public.ride_participants (
+  id uuid primary key default gen_random_uuid(),
+  event_id uuid not null references public.group_rides (id) on delete cascade,
+  user_id uuid not null references public.profiles (id) on delete cascade,
+  full_name text,
+  username text,
+  bike_model text,
+  city text,
+  is_admin boolean not null default false,
+  attendance_status text not null default 'pending' check (attendance_status in ('pending', 'confirmed', 'declined')),
+  live_route_enabled boolean not null default false,
+  current_lat double precision,
+  current_lng double precision,
+  last_seen_at timestamptz,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
+  unique (event_id, user_id)
+);
+
 alter table public.profiles add column if not exists latitude double precision;
 alter table public.profiles add column if not exists longitude double precision;
 alter table public.profiles add column if not exists location_updated_at timestamptz;
@@ -117,6 +148,8 @@ alter table public.medical_profiles enable row level security;
 alter table public.push_subscriptions enable row level security;
 alter table public.native_push_tokens enable row level security;
 alter table public.sos_responses enable row level security;
+alter table public.group_rides enable row level security;
+alter table public.ride_participants enable row level security;
 
 drop policy if exists "Users can view their own profile" on public.profiles;
 create policy "Users can view their own profile"
@@ -227,6 +260,59 @@ on public.native_push_tokens (token);
 
 create unique index if not exists sos_responses_unique_alert_helper_idx
 on public.sos_responses (sos_alert_id, helper_user_id);
+
+create unique index if not exists ride_participants_event_user_idx
+on public.ride_participants (event_id, user_id);
+
+create index if not exists group_rides_status_starts_idx
+on public.group_rides (status, starts_at desc);
+
+create index if not exists ride_participants_event_status_idx
+on public.ride_participants (event_id, attendance_status, live_route_enabled, updated_at desc);
+
+drop policy if exists "Authenticated users can view group rides" on public.group_rides;
+create policy "Authenticated users can view group rides"
+on public.group_rides
+for select
+using (auth.role() = 'authenticated');
+
+drop policy if exists "Admins can manage group rides" on public.group_rides;
+create policy "Admins can manage group rides"
+on public.group_rides
+for all
+using (
+  exists (
+    select 1 from public.profiles
+    where profiles.id = auth.uid()
+    and profiles.is_admin = true
+  )
+)
+with check (
+  exists (
+    select 1 from public.profiles
+    where profiles.id = auth.uid()
+    and profiles.is_admin = true
+  )
+);
+
+drop policy if exists "Authenticated users can view ride participants" on public.ride_participants;
+create policy "Authenticated users can view ride participants"
+on public.ride_participants
+for select
+using (auth.role() = 'authenticated');
+
+drop policy if exists "Users can create their own ride participant" on public.ride_participants;
+create policy "Users can create their own ride participant"
+on public.ride_participants
+for insert
+with check (auth.uid() = user_id);
+
+drop policy if exists "Users can update their own ride participant" on public.ride_participants;
+create policy "Users can update their own ride participant"
+on public.ride_participants
+for update
+using (auth.uid() = user_id)
+with check (auth.uid() = user_id);
 
 drop policy if exists "Authenticated users can view sos responses" on public.sos_responses;
 create policy "Authenticated users can view sos responses"
