@@ -98,6 +98,20 @@ function getParticipantTone(participant: RideParticipant, currentUserId: string 
     };
   }
 
+  if (participant.attendance_status === "declined") {
+    return {
+      label: "No asistirá",
+      classes: "border-muted/30 bg-muted/15 text-muted"
+    };
+  }
+
+  if (participant.live_route_enabled) {
+    return {
+      label: "En ruta",
+      classes: "border-accent/35 bg-accent/12 text-accent"
+    };
+  }
+
   if (participant.attendance_status === "confirmed") {
     return {
       label: participant.user_id === currentUserId ? "Tu ruta" : "Confirmado",
@@ -106,8 +120,8 @@ function getParticipantTone(participant: RideParticipant, currentUserId: string 
   }
 
   return {
-    label: "Usuario",
-    classes: "border-accent/30 bg-accent/10 text-accent"
+    label: "Pendiente",
+    classes: "border-white/10 bg-white/[0.035] text-muted"
   };
 }
 
@@ -121,7 +135,7 @@ function getStatusClasses(status: string) {
   }
 
   if (status === "No asistiré" || status === "No asistirá") {
-    return "border-danger/30 bg-danger/12 text-danger";
+    return "border-muted/30 bg-muted/15 text-muted";
   }
 
   if (status === "Confirmado") {
@@ -138,9 +152,9 @@ function MapPreview({
   participants: RideParticipant[];
   currentUserId: string | null;
 }) {
+  // Mostrar todos los participantes con ubicación válida y live_route_enabled activo
   const liveParticipants = participants.filter(
     (participant) =>
-      participant.attendance_status === "confirmed" &&
       participant.live_route_enabled &&
       typeof participant.current_lat === "number" &&
       typeof participant.current_lng === "number"
@@ -155,8 +169,8 @@ function MapPreview({
           </p>
           <p className="mt-1 text-sm text-muted">
             {liveParticipants.length
-              ? `${liveParticipants.length} motero(s) compartiendo ruta`
-              : "Sin ubicaciones en vivo todavía"}
+              ? `${liveParticipants.length} motero(s) compartiendo ubicación`
+              : "Sin ubicaciones compartidas todavía"}
           </p>
         </div>
         <span className="los-chip los-chip-accent">
@@ -238,13 +252,13 @@ export function SecurityMonitoringCard() {
 
       <div className="relative flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div className="min-w-0">
-          <p className="text-xs uppercase tracking-[0.3em] text-accent">
-            Rodada grupal
+          <p className="text-sm uppercase tracking-[0.4em] text-accent font-black">
+            RODADA GRUPAL
           </p>
-          <h2 className="mt-2 text-xl font-semibold text-ink">
+          <h2 className="mt-3 text-3xl font-black text-ink sm:text-4xl">
             {activeRideEvent.name}
           </h2>
-          <p className="mt-2 max-w-2xl text-sm leading-6 text-muted">
+          <p className="mt-4 max-w-2xl text-sm leading-6 text-muted">
             Confirma tu asistencia y comparte tu ubicación en tiempo real durante la rodada, viaje o evento.
           </p>
           {activeRideEvent.meeting_point || activeRideEvent.starts_at ? (
@@ -263,11 +277,11 @@ export function SecurityMonitoringCard() {
         </span>
       </div>
 
-      <div className="relative mt-5 grid gap-3 sm:grid-cols-4">
+      <div className="relative mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         <SummaryCard icon={UserGroupIcon} label="Asistentes" value={confirmed.length} />
         <SummaryCard icon={SignalIcon} label="En ruta" value={live.length} tone="accent" />
+        <SummaryCard icon={NoSymbolIcon} label="No asistirán" value={declined.length} tone="muted" />
         <SummaryCard icon={ClockIcon} label="Pendientes" value={pending} tone="warning" />
-        <SummaryCard icon={MapPinIcon} label="Último update" value={formatTime(lastUpdate)} compact />
       </div>
 
       {error ? (

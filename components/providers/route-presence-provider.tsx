@@ -822,14 +822,23 @@ export function RoutePresenceProvider({
     setError(null);
 
     try {
-      // Declinar asistencia Y desactivar ruta en vivo automáticamente
+      // Declinar asistencia PERO mantener ruta en vivo activa para compartir ubicación
+      const coords = await withTimeout(
+        getDevicePosition(),
+        15000,
+        "No se pudo activar la ubicación. Verifica GPS y permisos."
+      );
+      
       const success = await upsertRideParticipant({
         attendanceStatus: "declined",
-        liveRouteEnabled: false
+        liveRouteEnabled: true, // Mantener activo para compartir ubicación
+        coords
       });
       
-      // Limpiar posición actual al declinar
-      setLatestPosition(null);
+      // Actualizar posición actual si se obtuvo correctamente
+      if (coords) {
+        setLatestPosition(coords);
+      }
       
       await loadActiveRideData();
       return success;
@@ -837,7 +846,7 @@ export function RoutePresenceProvider({
       const message =
         rideError instanceof Error
           ? rideError.message
-          : "No se pudo registrar que no asistiras.";
+          : "No se pudo registrar que no asistirás.";
       setError(message);
       return false;
     } finally {

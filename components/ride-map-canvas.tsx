@@ -203,7 +203,6 @@ function RideMarkers({
       if (
         participant.current_lat === null ||
         participant.current_lng === null ||
-        participant.attendance_status !== "confirmed" ||
         !participant.live_route_enabled
       ) {
         continue;
@@ -238,7 +237,6 @@ export function RideMapCanvas({
     () =>
       participants.filter(
         (participant) =>
-          participant.attendance_status === "confirmed" &&
           participant.live_route_enabled &&
           typeof participant.current_lat === "number" &&
           typeof participant.current_lng === "number"
