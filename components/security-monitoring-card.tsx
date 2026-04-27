@@ -215,7 +215,7 @@ export function SecurityMonitoringCard() {
   const confirmed = rideParticipants.filter(
     (participant) => participant.attendance_status === "confirmed"
   );
-  const live = confirmed.filter((participant) => participant.live_route_enabled);
+  const live = rideParticipants.filter((participant) => participant.live_route_enabled);
   const declined = rideParticipants.filter(
     (participant) => participant.attendance_status === "declined"
   );

@@ -489,9 +489,7 @@ export function RoutePresenceProvider({
     }
 
     const now = new Date().toISOString();
-    const shouldDisableLive = attendanceStatus === "declined";
-    const nextLiveRouteEnabled =
-      shouldDisableLive ? false : liveRouteEnabled ?? false;
+    const nextLiveRouteEnabled = liveRouteEnabled ?? false;
     const { data, error: participantError } = await supabase
       .from("ride_participants")
       .upsert(
@@ -869,7 +867,7 @@ export function RoutePresenceProvider({
 
       if (currentParticipant?.live_route_enabled) {
         const success = await upsertRideParticipant({
-          attendanceStatus: "confirmed",
+          attendanceStatus: currentParticipant.attendance_status,
           liveRouteEnabled: false
         });
         await loadActiveRideData();
@@ -1621,7 +1619,7 @@ export function RoutePresenceProvider({
             "No se pudo actualizar tu ubicacion de la rodada."
           );
           await upsertRideParticipant({
-            attendanceStatus: "confirmed",
+            attendanceStatus: currentRideParticipant.attendance_status,
             liveRouteEnabled: true,
             coords
           });
@@ -1643,7 +1641,12 @@ export function RoutePresenceProvider({
       }
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [userId, activeRideEvent?.id, currentRideParticipant?.live_route_enabled]);
+  }, [
+    userId,
+    activeRideEvent?.id,
+    currentRideParticipant?.attendance_status,
+    currentRideParticipant?.live_route_enabled
+  ]);
 
   const alerts = useMemo<SosAlert[]>(() => {
     const responsesByAlert = responses.reduce<Record<string, SosResponse[]>>((acc, response) => {
