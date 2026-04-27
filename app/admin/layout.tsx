@@ -1,24 +1,7 @@
 import Link from "next/link";
-import type { Route } from "next";
-import {
-  BellAlertIcon,
-  ChartBarIcon,
-  MapIcon,
-  ShieldExclamationIcon,
-  UserGroupIcon
-} from "@heroicons/react/24/solid";
+import { ShieldExclamationIcon } from "@heroicons/react/24/solid";
+import { AdminNav } from "@/components/admin-nav";
 import { getAdminContext } from "@/lib/admin/data";
-
-const adminLinks: Array<{
-  href: Route;
-  label: string;
-  icon: typeof ChartBarIcon;
-}> = [
-  { href: "/admin" as Route, label: "Dashboard", icon: ChartBarIcon },
-  { href: "/admin/usuarios" as Route, label: "Usuarios", icon: UserGroupIcon },
-  { href: "/admin/alertas" as Route, label: "Alertas", icon: BellAlertIcon },
-  { href: "/admin/rutas" as Route, label: "Rutas", icon: MapIcon }
-];
 
 function AdminAccessDenied() {
   return (
@@ -83,18 +66,7 @@ export default async function AdminLayout({
         </div>
       </section>
 
-      <nav className="grid gap-2 sm:grid-cols-4">
-        {adminLinks.map(({ href, label, icon: Icon }) => (
-          <Link
-            key={href}
-            href={href}
-            className="los-action-ghost justify-start"
-          >
-            <Icon className="h-5 w-5" />
-            {label}
-          </Link>
-        ))}
-      </nav>
+      <AdminNav />
 
       {children}
     </main>

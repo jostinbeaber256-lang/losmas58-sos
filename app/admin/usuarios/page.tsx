@@ -239,9 +239,14 @@ function UserCard({ user }: { user: AdminProfile }) {
         </span>
       </div>
 
-      <details className="group mt-4 rounded-2xl border border-white/10 bg-white/[0.045] px-4 py-3">
+      <details className="group mt-4 rounded-2xl border border-white/10 bg-white/[0.045] px-4 py-3 shadow-[inset_0_1px_0_rgba(255,255,255,.05)]">
         <summary className="flex cursor-pointer list-none items-center justify-between gap-3 text-sm font-semibold text-ink">
-          Ver detalle administrativo
+          <span>
+            Ver detalle administrativo
+            <span className="ml-2 text-xs font-medium text-muted">
+              contacto, seguridad y rol
+            </span>
+          </span>
           <ShieldCheckIcon className="h-4 w-4 text-accent transition group-open:rotate-45" />
         </summary>
 
@@ -305,15 +310,17 @@ function UserCard({ user }: { user: AdminProfile }) {
           <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap">
             <button
               type="button"
-              className="los-action-ghost text-muted"
+              disabled
+              className="los-action-ghost text-muted/70"
             >
-              Ver perfil
+              Ver perfil: pendiente
             </button>
             <button
               type="button"
-              className="los-action-ghost text-muted"
+              disabled
+              className="los-action-ghost text-muted/70"
             >
-              Ver ficha medica
+              Ver ficha medica: pendiente
             </button>
             <form action={updateUserAdminRole} className="contents">
               <input type="hidden" name="userId" value={user.id} />

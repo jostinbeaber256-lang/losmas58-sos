@@ -244,9 +244,14 @@ export default async function AdminAlertsPage({
                 />
               </div>
 
-              <details className="group mt-4 rounded-2xl border border-white/10 bg-white/[0.045] px-4 py-3">
+              <details className="group mt-4 rounded-2xl border border-white/10 bg-white/[0.045] px-4 py-3 shadow-[inset_0_1px_0_rgba(255,255,255,.05)]">
                 <summary className="flex cursor-pointer list-none items-center justify-between gap-3 text-sm font-semibold text-ink">
-                  Ver detalle operativo
+                  <span>
+                    Ver detalle operativo
+                    <span className="ml-2 text-xs font-medium text-muted">
+                      incidente, ficha y apoyos
+                    </span>
+                  </span>
                   <ArrowTopRightOnSquareIcon className="h-4 w-4 text-accent transition group-open:rotate-45" />
                 </summary>
 
@@ -289,7 +294,7 @@ export default async function AdminAlertsPage({
                 <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap">
                   <Link
                     href={`/mapa?alerta=${alert.id}` as Route}
-                    className="los-action-ghost border-accent/25 bg-accent/10 text-accent hover:bg-accent/15"
+                    className="los-action-primary"
                   >
                     Ver en mapa
                     <ArrowTopRightOnSquareIcon className="h-4 w-4" />

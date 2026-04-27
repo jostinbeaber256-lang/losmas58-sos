@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { Route } from "next";
 import {
+  ArrowRightIcon,
   BellAlertIcon,
   CheckCircleIcon,
   MapIcon,
@@ -42,6 +43,32 @@ export default async function AdminDashboardPage() {
       tone: "text-accent"
     }
   ];
+  const operationLinks = [
+    {
+      href: "/admin/usuarios" as Route,
+      title: "Gestionar usuarios",
+      description: "Revisa identidad, roles, ficha medica, push y estado de seguridad.",
+      action: "Abrir usuarios",
+      tone: "accent",
+      icon: UserGroupIcon
+    },
+    {
+      href: "/admin/alertas" as Route,
+      title: "Gestionar alertas",
+      description: "Filtra SOS, revisa apoyos y cierra incidentes manualmente.",
+      action: "Abrir incidentes",
+      tone: "danger",
+      icon: BellAlertIcon
+    },
+    {
+      href: "/admin/rutas" as Route,
+      title: "Monitorear rutas",
+      description: "Mira presencia, ubicacion, monitoreo continuo y ultima actividad.",
+      action: "Abrir rutas",
+      tone: "warning",
+      icon: MapIcon
+    }
+  ];
 
   return (
     <section className="space-y-5">
@@ -52,7 +79,7 @@ export default async function AdminDashboardPage() {
           return (
             <div
               key={card.label}
-              className="los-card-compact"
+              className="los-card-compact transition hover:border-accent/20 hover:bg-white/[0.06]"
             >
               <div className="flex items-center gap-3">
                 <span className="grid h-11 w-11 place-items-center rounded-2xl border border-white/10 bg-white/[0.045]">
@@ -71,33 +98,38 @@ export default async function AdminDashboardPage() {
       </div>
 
       <div className="grid gap-4 lg:grid-cols-3">
-        <Link
-          href={"/admin/usuarios" as Route}
-          className="los-card transition hover:border-accent/30 hover:bg-accent/10"
-        >
-          <h2 className="text-lg font-semibold text-ink">Gestionar usuarios</h2>
-          <p className="mt-2 text-sm leading-6 text-muted">
-            Revisa perfiles, ficha médica, push y rol admin.
-          </p>
-        </Link>
-        <Link
-          href={"/admin/alertas" as Route}
-          className="los-card transition hover:border-danger/30 hover:bg-danger/10"
-        >
-          <h2 className="text-lg font-semibold text-ink">Gestionar alertas</h2>
-          <p className="mt-2 text-sm leading-6 text-muted">
-            Filtra SOS, revisa apoyos y cierra incidentes manualmente.
-          </p>
-        </Link>
-        <Link
-          href={"/admin/rutas" as Route}
-          className="los-card transition hover:border-warning/30 hover:bg-warning/10"
-        >
-          <h2 className="text-lg font-semibold text-ink">Monitorear rutas</h2>
-          <p className="mt-2 text-sm leading-6 text-muted">
-            Mira usuarios en ruta, ubicación y última actividad.
-          </p>
-        </Link>
+        {operationLinks.map((item) => {
+          const Icon = item.icon;
+          const toneClass =
+            item.tone === "danger"
+              ? "border-danger/25 bg-danger/10 text-danger"
+              : item.tone === "warning"
+                ? "border-warning/25 bg-warning/10 text-warning"
+                : "border-accent/25 bg-accent/10 text-accent";
+
+          return (
+            <Link
+              key={item.href}
+              href={item.href}
+              className="los-card group transition hover:border-accent/25 hover:bg-white/[0.055]"
+            >
+              <div className="flex items-start justify-between gap-4">
+                <span className={`grid h-12 w-12 place-items-center rounded-2xl border ${toneClass}`}>
+                  <Icon className="h-6 w-6" />
+                </span>
+                <span className="los-chip los-chip-muted transition group-hover:border-accent/25 group-hover:text-accent">
+                  Consola
+                </span>
+              </div>
+              <h2 className="mt-5 text-lg font-semibold text-ink">{item.title}</h2>
+              <p className="mt-2 text-sm leading-6 text-muted">{item.description}</p>
+              <div className="mt-5 inline-flex items-center gap-2 text-sm font-semibold text-accent">
+                {item.action}
+                <ArrowRightIcon className="h-4 w-4 transition group-hover:translate-x-1" />
+              </div>
+            </Link>
+          );
+        })}
       </div>
     </section>
   );

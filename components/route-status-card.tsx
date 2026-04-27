@@ -98,15 +98,53 @@ export function RouteStatusCard() {
             <ClockIcon className="h-4 w-4 text-accent" />
             Sincronizacion
           </div>
-          <p className="mt-2 text-sm font-semibold text-ink">
-            {tracking ? "Cada 10 segundos" : syncLabel}
-          </p>
-          {tracking ? (
-            <p className="mt-1 inline-flex items-center gap-1 text-xs font-medium text-accent">
-              <SignalIcon className="h-3.5 w-3.5" />
-              En vivo
-            </p>
-          ) : null}
+          <details className="group mt-4 rounded-2xl border border-white/10 bg-white/[0.045] px-4 py-3 shadow-[inset_0_1px_0_rgba(255,255,255,.05)]">
+            <summary className="flex cursor-pointer list-none items-center justify-between gap-3 text-sm font-semibold text-ink">
+              <span>
+                Ver detalles tecnicos
+                <span className="ml-2 text-xs font-medium text-muted">
+                  permisos, sincronizacion y estado del sistema
+                </span>
+              </span>
+              <ClockIcon className="h-4 w-4 text-accent transition group-open:rotate-45" />
+            </summary>
+
+            <div className="mt-4 space-y-3">
+              <div className="rounded-2xl border border-white/10 bg-black/18 px-4 py-3">
+                <p className="text-[11px] uppercase tracking-[0.22em] text-muted">
+                  Sincronizacion
+                </p>
+                <p className="mt-1 break-words text-sm leading-6 text-ink">
+                  Ultima actualizacion: {syncLabel} / Estado: {tracking ? "activo" : "inactivo"} / 
+                  Errores: {error ? "si" : "no"}
+                </p>
+              </div>
+
+              <div className="rounded-2xl border border-white/10 bg-black/18 px-4 py-3">
+                <p className="text-[11px] uppercase tracking-[0.22em] text-muted">
+                  Permisos del sistema
+                </p>
+                <p className="mt-1 break-words text-sm leading-6 text-ink">
+                  Ubicacion: {permissionLabel} / Estado: {permissionState} / 
+                  Acceso: {permissionState === "granted" ? "concedido" : "limitado"}
+                </p>
+              </div>
+
+              <div className="rounded-2xl border border-white/10 bg-black/18 px-4 py-3">
+                <p className="text-[11px] uppercase tracking-[0.22em] text-muted">
+                  Diagnostico de permisos
+                </p>
+                <p className="mt-1 break-words text-sm leading-6 text-ink">
+                  {permissionState === "denied"
+                    ? "Android bloqueo la ubicacion. Abre ajustes de la app y permite ubicacion."
+                    : "Se pedira al activar ruta, entrar al mapa o enviar un SOS."}
+                </p>
+              </div>
+            </div>
+          </details>
+          <span className={`w-fit rounded-full border px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.16em] ${permissionClass}`}>
+            {permissionLabel}
+          </span>
         </div>
       </div>
 
@@ -115,24 +153,6 @@ export function RouteStatusCard() {
           {error}
         </p>
       ) : null}
-
-      <div className="relative mt-4 rounded-2xl border border-white/10 bg-white/[0.045] px-4 py-3">
-        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <p className="text-[11px] uppercase tracking-[0.22em] text-muted">
-              Permiso de ubicacion
-            </p>
-            <p className="mt-1 text-sm leading-5 text-muted">
-              {permissionState === "denied"
-                ? "Android bloqueo la ubicacion. Abre ajustes de la app y permite ubicacion."
-                : "Se pedira al activar ruta, entrar al mapa o enviar un SOS."}
-            </p>
-          </div>
-          <span className={`w-fit rounded-full border px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.16em] ${permissionClass}`}>
-            {permissionLabel}
-          </span>
-        </div>
-      </div>
 
       <div className="relative mt-5 grid grid-cols-2 gap-3">
         <button

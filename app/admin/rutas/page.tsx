@@ -276,16 +276,21 @@ function RouteCard({ user }: { user: AdminProfile }) {
         />
       </div>
 
-      <details className="group mt-4 rounded-2xl border border-white/10 bg-white/[0.045] px-4 py-3">
+      <details className="group mt-4 rounded-2xl border border-white/10 bg-white/[0.045] px-4 py-3 shadow-[inset_0_1px_0_rgba(255,255,255,.05)]">
         <summary className="flex cursor-pointer list-none items-center justify-between gap-3 text-sm font-semibold text-ink">
-          Revisar actividad reciente
+          <span>
+            Revisar actividad reciente
+            <span className="ml-2 text-xs font-medium text-muted">
+              presencia, monitoreo y contacto
+            </span>
+          </span>
           <SignalIcon className="h-4 w-4 text-accent transition group-open:rotate-45" />
         </summary>
 
         <div className="mt-4 grid gap-3">
           <div className="los-info-panel bg-black/18">
             <p className="text-[11px] uppercase tracking-[0.22em] text-muted">
-          Estado operativo
+              Estado operativo
             </p>
             <p className="mt-1 break-words text-sm leading-6 text-ink">
               Ruta: {user.is_on_route ? "activa" : "inactiva"} / Ubicacion:{" "}
@@ -324,13 +329,13 @@ function RouteCard({ user }: { user: AdminProfile }) {
           <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap">
             <Link
               href={"/mapa" as Route}
-              className="los-action-ghost border-accent/25 bg-accent/10 text-accent hover:bg-accent/15"
+              className="los-action-primary"
             >
               Abrir mapa
               <ArrowTopRightOnSquareIcon className="h-4 w-4" />
             </Link>
-            <button type="button" className="los-action-ghost text-muted">
-              Ver perfil
+            <button type="button" disabled className="los-action-ghost text-muted/70">
+              Ver perfil: pendiente
             </button>
             {locationUrl ? (
               <a

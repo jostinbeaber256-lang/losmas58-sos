@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import {
   CheckCircleIcon,
+  ShieldCheckIcon,
   ShieldExclamationIcon,
   XMarkIcon
 } from "@heroicons/react/24/solid";
@@ -233,54 +234,68 @@ export function SosButton() {
                   ) : null}
 
                   <div className="mt-4 grid gap-2 text-left">
-                    <div className="grid grid-cols-2 gap-2">
-                      <div className="rounded-2xl border border-white/10 bg-black/20 px-3 py-3">
-                        <p className="text-[11px] uppercase tracking-[0.22em] text-muted">
-                          Motero
-                        </p>
-                        <p className="mt-1 text-sm font-medium text-ink">
-                          {profile?.full_name || profile?.username || "Usuario actual"}
-                        </p>
-                      </div>
-                      <div className="rounded-2xl border border-white/10 bg-black/20 px-3 py-3">
-                        <p className="text-[11px] uppercase tracking-[0.22em] text-muted">
-                          Moto
-                        </p>
-                        <p className="mt-1 text-sm font-medium text-ink">
-                          {profile?.bike_model || "Sin registrar"}
-                        </p>
-                      </div>
-                    </div>
+                    <details className="group rounded-2xl border border-white/10 bg-white/[0.045] px-4 py-3 shadow-[inset_0_1px_0_rgba(255,255,255,.05)]">
+                      <summary className="flex cursor-pointer list-none items-center justify-between gap-3 text-sm font-semibold text-ink">
+                        <span>
+                          Ver datos del motero
+                          <span className="ml-2 text-xs font-medium text-muted">
+                            perfil, contacto y ubicacion
+                          </span>
+                        </span>
+                        <ShieldCheckIcon className="h-4 w-4 text-accent transition group-open:rotate-45" />
+                      </summary>
 
-                    <div className="grid grid-cols-2 gap-2">
-                      <div className="rounded-2xl border border-white/10 bg-black/20 px-3 py-3">
-                        <p className="text-[11px] uppercase tracking-[0.22em] text-muted">
-                          Ciudad
-                        </p>
-                        <p className="mt-1 text-sm text-ink">
-                          {profile?.city || "Sin ciudad"}
-                        </p>
-                      </div>
-                      <div className="rounded-2xl border border-white/10 bg-black/20 px-3 py-3">
-                        <p className="text-[11px] uppercase tracking-[0.22em] text-muted">
-                          Ubicacion
-                        </p>
-                        <p className="mt-1 break-all text-sm text-ink">
-                          {latestPosition
-                            ? `${latestPosition.latitude.toFixed(4)}, ${latestPosition.longitude.toFixed(4)}`
-                            : "Se capturara al confirmar"}
-                        </p>
-                      </div>
-                    </div>
+                      <div className="mt-4 grid gap-2">
+                        <div className="grid grid-cols-2 gap-2">
+                          <div className="rounded-2xl border border-white/10 bg-black/20 px-3 py-3">
+                            <p className="text-[11px] uppercase tracking-[0.22em] text-muted">
+                              Motero
+                            </p>
+                            <p className="mt-1 text-sm font-medium text-ink">
+                              {profile?.full_name || profile?.username || "Usuario actual"}
+                            </p>
+                          </div>
+                          <div className="rounded-2xl border border-white/10 bg-black/20 px-3 py-3">
+                            <p className="text-[11px] uppercase tracking-[0.22em] text-muted">
+                              Moto
+                            </p>
+                            <p className="mt-1 text-sm font-medium text-ink">
+                              {profile?.bike_model || "Sin registrar"}
+                            </p>
+                          </div>
+                        </div>
 
-                    <div className="rounded-2xl border border-white/10 bg-black/20 px-3 py-3">
-                      <p className="text-[11px] uppercase tracking-[0.22em] text-muted">
-                        Contacto de emergencia
-                      </p>
-                      <p className="mt-1 text-sm text-ink">
-                        {profile?.emergency_contact || "Sin contacto configurado"}
-                      </p>
-                    </div>
+                        <div className="grid grid-cols-2 gap-2">
+                          <div className="rounded-2xl border border-white/10 bg-black/20 px-3 py-3">
+                            <p className="text-[11px] uppercase tracking-[0.22em] text-muted">
+                              Ciudad
+                            </p>
+                            <p className="mt-1 text-sm text-ink">
+                              {profile?.city || "Sin ciudad"}
+                            </p>
+                          </div>
+                          <div className="rounded-2xl border border-white/10 bg-black/20 px-3 py-3">
+                            <p className="text-[11px] uppercase tracking-[0.22em] text-muted">
+                              Ubicacion
+                            </p>
+                            <p className="mt-1 break-all text-sm text-ink">
+                              {latestPosition
+                                ? `${latestPosition.latitude.toFixed(4)}, ${latestPosition.longitude.toFixed(4)}`
+                                : "Se capturara al confirmar"}
+                            </p>
+                          </div>
+                        </div>
+
+                        <div className="rounded-2xl border border-white/10 bg-black/20 px-3 py-3">
+                          <p className="text-[11px] uppercase tracking-[0.22em] text-muted">
+                            Contacto de emergencia
+                          </p>
+                          <p className="mt-1 text-sm text-ink">
+                            {profile?.emergency_contact || "Sin contacto configurado"}
+                          </p>
+                        </div>
+                      </div>
+                    </details>
                   </div>
                 </div>
 
