@@ -177,10 +177,15 @@ using (auth.uid() = id)
 with check (auth.uid() = id);
 
 drop policy if exists "Authenticated users can view active sos alerts" on public.sos_alerts;
-create policy "Authenticated users can view active sos alerts"
+create policy "Authenticated users can view sos alerts"
 on public.sos_alerts
 for select
-using (auth.role() = 'authenticated' and status = 'active');
+using (
+  auth.role() = 'authenticated' and (
+    auth.uid() = user_id or 
+    status = 'active'
+  )
+);
 
 drop policy if exists "Users can create their own sos alerts" on public.sos_alerts;
 create policy "Users can create their own sos alerts"

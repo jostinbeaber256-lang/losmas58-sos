@@ -20,6 +20,22 @@ export async function updateAdminAlertStatus(formData: FormData) {
   }
 
   const admin = createAdminClient();
+  
+  // Primero obtener el user_id de la alerta para limpiar su estado de emergencia
+  const { data: alertData, error: fetchError } = await admin
+    .from("sos_alerts")
+    .select("user_id")
+    .eq("id", alertId)
+    .single();
+  
+  if (fetchError || !alertData) {
+    console.error("[push:admin-alert-action] Could not fetch alert user_id", {
+      alertId,
+      error: fetchError?.message
+    });
+    return;
+  }
+  
   const { error } = await admin
     .from("sos_alerts")
     .update({
@@ -35,6 +51,19 @@ export async function updateAdminAlertStatus(formData: FormData) {
       error: error.message
     });
     return;
+  }
+  
+  // Limpiar el estado de emergencia del usuario
+  const { error: profileError } = await admin
+    .from("profiles")
+    .update({ emergency_state: "normal" })
+    .eq("id", alertData.user_id);
+  
+  if (profileError) {
+    console.error("[push:admin-alert-action] Could not clear user emergency state", {
+      userId: alertData.user_id,
+      error: profileError.message
+    });
   }
 
   if (status === "resolved") {

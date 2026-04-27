@@ -82,7 +82,7 @@ export async function getAdminContext() {
   } = await supabase.auth.getUser();
 
   if (!user) {
-    redirect("/login?redirectTo=/admin");
+    redirect("/login?next=/admin");
   }
 
   const admin = createAdminClient();

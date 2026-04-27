@@ -1,8 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 
-export const dynamic = "force-static";
-
 function getSafeRedirectTo(value: string | null) {
   if (!value || !value.startsWith("/") || value.startsWith("//")) {
     return "/";
