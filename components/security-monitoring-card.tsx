@@ -12,8 +12,9 @@ import {
 import { useRoutePresence } from "@/components/providers/route-presence-provider";
 import type { RideParticipant } from "@/lib/types";
 
-const RideMapCanvas = dynamic(
-  () => import("@/components/ride-map-canvas").then((module) => module.RideMapCanvas),
+// Importar el componente con actualización amortiguada
+const RideMapCanvasBuffered = dynamic(
+  () => import("@/components/ride-map-canvas-buffered").then((module) => module.RideMapCanvasBuffered),
   {
     ssr: false,
     loading: () => (
@@ -180,16 +181,15 @@ function MapPreview({
 
       <div className="relative overflow-hidden border-t border-white/10">
         {liveParticipants.length ? (
-          <RideMapCanvas participants={participants} currentUserId={currentUserId} />
+          <RideMapCanvasBuffered participants={participants} currentUserId={currentUserId} />
         ) : (
-          <div className="grid h-72 place-items-center bg-black/18 text-center md:h-80">
-            <div>
-              <MapPinIcon className="mx-auto h-8 w-8 text-muted" />
-              <p className="mt-2 text-sm font-semibold text-ink">
-                Esperando rutas en vivo
+          <div className="grid h-72 w-full place-items-center bg-surface text-sm text-muted md:h-80">
+            <div className="text-center">
+              <p className="text-muted">
+                Esperando que los moteros compartan su ubicación...
               </p>
               <p className="mt-1 text-xs text-muted">
-                Aparecerán aquí cuando los confirmados activen ubicación.
+                Los participantes aparecerán aquí al activar su ruta en vivo.
               </p>
             </div>
           </div>
