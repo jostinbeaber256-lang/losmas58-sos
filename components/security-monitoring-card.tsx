@@ -64,24 +64,24 @@ function getStatusLabel(participant: RideParticipant | null) {
     return "Asistencia pendiente";
   }
 
-  if (participant.attendance_status === "declined") {
-    return "No asistiré";
-  }
-
   if (participant.live_route_enabled) {
     return "En ruta";
+  }
+
+  if (participant.attendance_status === "declined") {
+    return "No asistiré";
   }
 
   return "Confirmado";
 }
 
 function getParticipantStatus(participant: RideParticipant) {
-  if (participant.attendance_status === "declined") {
-    return "No asistirá";
-  }
-
   if (participant.live_route_enabled) {
     return isInactive(participant.last_seen_at) ? "Detenido" : "En ruta";
+  }
+
+  if (participant.attendance_status === "declined") {
+    return "No asistirá";
   }
 
   if (participant.attendance_status === "confirmed") {
@@ -99,17 +99,17 @@ function getParticipantTone(participant: RideParticipant, currentUserId: string 
     };
   }
 
-  if (participant.attendance_status === "declined") {
-    return {
-      label: "No asistirá",
-      classes: "border-muted/30 bg-muted/15 text-muted"
-    };
-  }
-
   if (participant.live_route_enabled) {
     return {
       label: "En ruta",
       classes: "border-accent/35 bg-accent/12 text-accent"
+    };
+  }
+
+  if (participant.attendance_status === "declined") {
+    return {
+      label: "No asistirá",
+      classes: "border-muted/30 bg-muted/15 text-muted"
     };
   }
 
@@ -158,7 +158,9 @@ function MapPreview({
     (participant) =>
       participant.live_route_enabled &&
       typeof participant.current_lat === "number" &&
-      typeof participant.current_lng === "number"
+      typeof participant.current_lng === "number" &&
+      Number.isFinite(participant.current_lat) &&
+      Number.isFinite(participant.current_lng)
   );
 
   return (

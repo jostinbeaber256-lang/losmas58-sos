@@ -164,7 +164,9 @@ function FitBounds({
       .filter(
         (participant) =>
           typeof participant.current_lat === "number" &&
-          typeof participant.current_lng === "number"
+          typeof participant.current_lng === "number" &&
+          Number.isFinite(participant.current_lat) &&
+          Number.isFinite(participant.current_lng)
       )
       .map((participant) => [participant.current_lat!, participant.current_lng!] as [number, number]);
 
@@ -201,9 +203,11 @@ function RideMarkers({
 
     for (const participant of participants) {
       if (
-        participant.current_lat === null ||
-        participant.current_lng === null ||
-        !participant.live_route_enabled
+        !participant.live_route_enabled ||
+        typeof participant.current_lat !== "number" ||
+        typeof participant.current_lng !== "number" ||
+        !Number.isFinite(participant.current_lat) ||
+        !Number.isFinite(participant.current_lng)
       ) {
         continue;
       }
@@ -239,7 +243,9 @@ export function RideMapCanvas({
         (participant) =>
           participant.live_route_enabled &&
           typeof participant.current_lat === "number" &&
-          typeof participant.current_lng === "number"
+          typeof participant.current_lng === "number" &&
+          Number.isFinite(participant.current_lat) &&
+          Number.isFinite(participant.current_lng)
       ),
     [participants]
   );
