@@ -509,6 +509,142 @@ body {
   }
 }
 
+/* Animaciones Premium SOS Button */
+
+/* Onda de energía principal */
+@keyframes sos-energy-wave {
+  0% {
+    transform: scale(1);
+    opacity: 0.6;
+  }
+  50% {
+    transform: scale(1.15);
+    opacity: 0.3;
+  }
+  100% {
+    transform: scale(1.3);
+    opacity: 0;
+  }
+}
+
+/* Onda secundaria con delay */
+@keyframes sos-energy-wave-secondary {
+  0% {
+    transform: scale(1);
+    opacity: 0.4;
+  }
+  50% {
+    transform: scale(1.2);
+    opacity: 0.2;
+  }
+  100% {
+    transform: scale(1.4);
+    opacity: 0;
+  }
+}
+
+/* Pulso del núcleo */
+@keyframes sos-core-pulse {
+  0%, 100% {
+    transform: scale(1);
+    box-shadow: 0 0 30px rgba(255, 77, 109, 0.5), 0 0 60px rgba(255, 77, 109, 0.3), inset 0 0 20px rgba(255, 77, 109, 0.2);
+  }
+  50% {
+    transform: scale(1.02);
+    box-shadow: 0 0 40px rgba(255, 77, 109, 0.7), 0 0 80px rgba(255, 77, 109, 0.4), inset 0 0 30px rgba(255, 77, 109, 0.3);
+  }
+}
+
+/* Pulso intenso para estado activo */
+@keyframes sos-core-pulse-intense {
+  0%, 100% {
+    transform: scale(1);
+    box-shadow: 0 0 40px rgba(255, 77, 109, 0.8), 0 0 80px rgba(255, 77, 109, 0.5), inset 0 0 30px rgba(255, 77, 109, 0.4);
+  }
+  50% {
+    transform: scale(1.04);
+    box-shadow: 0 0 60px rgba(255, 77, 109, 1), 0 0 120px rgba(255, 77, 109, 0.6), inset 0 0 40px rgba(255, 77, 109, 0.5);
+  }
+}
+
+/* Efecto de brillo giratorio */
+@keyframes sos-shimmer-rotate {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+/* Partículas flotantes */
+@keyframes sos-particle-float {
+  0%, 100% {
+    transform: translateY(0) scale(1);
+    opacity: 0.6;
+  }
+  50% {
+    transform: translateY(-8px) scale(1.1);
+    opacity: 0.9;
+  }
+}
+
+/* Resplandor de borde */
+@keyframes sos-border-glow {
+  0%, 100% {
+    border-color: rgba(255, 77, 109, 0.3);
+    box-shadow: 0 0 20px rgba(255, 77, 109, 0.2), inset 0 0 10px rgba(255, 77, 109, 0.1);
+  }
+  50% {
+    border-color: rgba(255, 77, 109, 0.6);
+    box-shadow: 0 0 30px rgba(255, 77, 109, 0.4), inset 0 0 15px rgba(255, 77, 109, 0.2);
+  }
+}
+
+/* Texto brillante */
+@keyframes sos-text-glow {
+  0%, 100% {
+    text-shadow: 0 0 10px rgba(255, 77, 109, 0.5), 0 0 20px rgba(255, 77, 109, 0.3);
+  }
+  50% {
+    text-shadow: 0 0 15px rgba(255, 77, 109, 0.8), 0 0 30px rgba(255, 77, 109, 0.5);
+  }
+}
+
+/* Clases de animación premium */
+.animate-sos-energy-wave {
+  animation: sos-energy-wave 2.5s ease-out infinite;
+}
+
+.animate-sos-energy-wave-secondary {
+  animation: sos-energy-wave-secondary 2.5s ease-out infinite;
+  animation-delay: 0.8s;
+}
+
+.animate-sos-core-pulse {
+  animation: sos-core-pulse 2s ease-in-out infinite;
+}
+
+.animate-sos-core-pulse-intense {
+  animation: sos-core-pulse-intense 1.5s ease-in-out infinite;
+}
+
+.animate-sos-shimmer-rotate {
+  animation: sos-shimmer-rotate 8s linear infinite;
+}
+
+.animate-sos-particle-float {
+  animation: sos-particle-float 3s ease-in-out infinite;
+}
+
+.animate-sos-border-glow {
+  animation: sos-border-glow 2s ease-in-out infinite;
+}
+
+.animate-sos-text-glow {
+  animation: sos-text-glow 2s ease-in-out infinite;
+}
+
 /* Animaciones Heartbeat Glow para botón SOS */
 
 /* Latido suave en estado idle */

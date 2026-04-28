@@ -118,52 +118,83 @@ export function SosButton() {
           onClick={() => setConfirmOpen(true)}
           disabled={sosLoading}
           aria-busy={sosLoading}
-          className={`group relative flex h-60 w-60 items-center justify-center rounded-full border border-danger/20 transition duration-300 hover:scale-[1.015] active:scale-[0.98] disabled:cursor-wait sm:h-64 sm:w-64 ${
+          className={`group relative flex h-64 w-64 items-center justify-center rounded-full border transition duration-300 hover:scale-[1.02] active:scale-[0.98] disabled:cursor-wait sm:h-72 sm:w-72 ${
             sosState === "active" || sosState === "sending"
               ? variant.activeShell
               : variant.idleShell
+          } ${
+            sosState === "active"
+              ? "animate-sos-core-pulse-intense"
+              : sosState === "sending"
+                ? "animate-sos-core-pulse"
+                : "animate-sos-core-pulse"
           }`}
           aria-label="Activar SOS"
         >
-          <span className="absolute inset-[-12px] rounded-full bg-[radial-gradient(circle,rgba(255,77,109,.18),transparent_62%)] blur-md transition group-hover:opacity-90" />
+          {/* Onda de energía principal */}
+          <span className="absolute inset-[-20px] rounded-full border border-danger/30 animate-sos-energy-wave" />
+          
+          {/* Onda de energía secundaria */}
+          <span className="absolute inset-[-25px] rounded-full border border-danger/20 animate-sos-energy-wave-secondary" />
+          
+          {/* Glow de fondo */}
+          <span className="absolute inset-[-12px] rounded-full bg-[radial-gradient(circle,rgba(255,77,109,.25),transparent_70%)] blur-md transition group-hover:opacity-90" />
+          
+          {/* Borde con glow */}
           <span
-            className={`absolute inset-[-13px] rounded-full border ${
+            className={`absolute inset-[-14px] rounded-full border ${
               sosState === "active"
-                ? "animate-sos-radar-strong border-danger/38"
+                ? "animate-sos-border-glow border-danger/50"
                 : sosState === "sending"
-                  ? "animate-sos-radar-soft border-danger/32"
-                  : "border-danger/18 opacity-70"
+                  ? "animate-sos-border-glow border-danger/40"
+                  : "animate-sos-border-glow border-danger/25"
             }`}
           />
-          <span className="absolute inset-[12px] rounded-full border border-white/8 bg-[radial-gradient(circle_at_30%_18%,rgba(255,255,255,.20),transparent_32%)] shadow-[inset_0_1px_0_rgba(255,255,255,.14)]" />
-          <span className="absolute bottom-8 left-12 right-12 h-10 rounded-full bg-black/30 blur-2xl" />
+          
+          {/* Superficie interna con gradiente */}
+          <span className="absolute inset-[14px] rounded-full border border-white/10 bg-[radial-gradient(circle_at_30%_18%,rgba(255,255,255,.18),transparent_40%)] shadow-[inset_0_1px_0_rgba(255,255,255,.16),inset_0_-20px_36px_rgba(0,0,0,.32)]" />
+          
+          {/* Sombra inferior */}
+          <span className="absolute bottom-10 left-14 right-14 h-12 rounded-full bg-black/40 blur-2xl" />
 
+          {/* Contenido central */}
           <div
-            className={`relative flex h-[77%] w-[77%] flex-col items-center justify-center rounded-full text-center backdrop-blur-sm shadow-[inset_0_1px_0_rgba(255,255,255,.14),inset_0_-18px_32px_rgba(0,0,0,.30)] ${variant.innerSurface}`}
+            className={`relative flex h-[78%] w-[78%] flex-col items-center justify-center rounded-full text-center backdrop-blur-sm shadow-[inset_0_1px_0_rgba(255,255,255,.18),inset_0_-20px_36px_rgba(0,0,0,.35)] ${variant.innerSurface}`}
           >
+            {/* Icono con contenedor */}
             <div
-              className={`rounded-[1.35rem] border p-3 shadow-[inset_0_1px_0_rgba(255,255,255,.16),0_12px_28px_rgba(0,0,0,.22)] ${variant.iconWrap}`}
+              className={`rounded-[1.4rem] border p-3.5 shadow-[inset_0_1px_0_rgba(255,255,255,.18),0_14px_32px_rgba(0,0,0,.28)] ${variant.iconWrap} animate-sos-particle-float`}
             >
-              <ShieldExclamationIcon className="h-9 w-9 text-white" />
+              <ShieldExclamationIcon className="h-10 w-10 text-white" />
             </div>
-            <span className="mt-4 text-[2.15rem] font-black tracking-[0.28em] text-white drop-shadow-[0_5px_18px_rgba(0,0,0,.30)]">
+            
+            {/* Texto SOS con glow */}
+            <span className={`mt-4 text-[2.3rem] font-black tracking-[0.28em] text-white drop-shadow-[0_6px_20px_rgba(0,0,0,.35)] ${
+              sosState === "active" ? "animate-sos-text-glow" : ""
+            }`}>
               SOS
             </span>
-            <span className="mt-2 text-[11px] uppercase tracking-[0.22em] text-white/78">
+            
+            {/* Subtítulo */}
+            <span className="mt-2 text-[11px] uppercase tracking-[0.24em] text-white/80">
               {variant.subtitle}
             </span>
+            
+            {/* Badge de estado */}
             <span
-              className={`mt-2 rounded-full border px-3 py-1 text-[10px] font-bold uppercase tracking-[0.16em] ${
+              className={`mt-2.5 rounded-full border px-3.5 py-1.5 text-[10px] font-bold uppercase tracking-[0.18em] ${
                 sosState === "active"
-                  ? "border-white/18 bg-white/12 text-white"
+                  ? "border-white/20 bg-white/15 text-white shadow-[0_0_20px_rgba(255,77,109,0.4)]"
                   : sosState === "sending"
-                    ? "border-white/16 bg-white/10 text-white/82"
-                    : "border-white/10 bg-black/12 text-white/58"
+                    ? "border-white/18 bg-white/12 text-white/90"
+                    : "border-white/12 bg-black/16 text-white/70"
               }`}
             >
               {sosStateLabel}
             </span>
-            <span className="mt-2 text-xs text-white/58">{variant.helper}</span>
+            
+            {/* Helper text */}
+            <span className="mt-2.5 text-xs text-white/65">{variant.helper}</span>
           </div>
         </button>
       </div>

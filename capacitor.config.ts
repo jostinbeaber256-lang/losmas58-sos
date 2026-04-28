@@ -5,7 +5,8 @@ const config: CapacitorConfig = {
   appName: "los-plus-58",
   webDir: ".next",
   server: {
-    cleartext: false
+    cleartext: false,
+    url: "http://localhost:3000"
   },
   android: {
     webContentsDebuggingEnabled: true
