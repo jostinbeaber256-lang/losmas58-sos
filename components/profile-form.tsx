@@ -11,6 +11,7 @@ import {
 } from "@heroicons/react/24/solid";
 import type { ProfileFormValues } from "@/lib/types";
 import { useRoutePresence } from "@/components/providers/route-presence-provider";
+import { AvatarUploader } from "@/components/avatar-uploader";
 
 function getInitials(name: string | null, username: string | null) {
   const source = (name || username || "M").trim();
@@ -36,6 +37,7 @@ export function ProfileForm() {
   const [initializedProfileId, setInitializedProfileId] = useState<string | null>(null);
   const [isDirty, setIsDirty] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
+  const [localAvatarUrl, setLocalAvatarUrl] = useState<string | null>(null);
 
   function createFormValues() {
     return {
@@ -56,6 +58,7 @@ export function ProfileForm() {
       setValues(createFormValues());
       setInitializedProfileId(profile.id);
       setIsDirty(false);
+      setLocalAvatarUrl(profile.avatar_url ?? null);
     }
   }, [initializedProfileId, profile]);
 
@@ -227,6 +230,15 @@ export function ProfileForm() {
         >
           <div className="overflow-hidden">
             <form onSubmit={handleSubmit}>
+              <div className="mb-6 flex justify-center">
+                <AvatarUploader
+                  currentAvatarUrl={localAvatarUrl}
+                  name={values.full_name || profile?.full_name || null}
+                  username={values.username || profile?.username || null}
+                  onAvatarChange={(newUrl) => setLocalAvatarUrl(newUrl)}
+                />
+              </div>
+
               <p className="text-sm leading-6 text-muted">
                 Esta informacion se usara en perfil, mapa, alertas SOS y presencia en ruta.
               </p>

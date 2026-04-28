@@ -3,6 +3,7 @@
 import { AlertPreview } from "@/components/alert-preview";
 import { RouteToggleButton } from "@/components/route-toggle-button";
 import { SosButton } from "@/components/sos-button";
+import { Avatar } from "@/components/avatar";
 import { useRoutePresence } from "@/components/providers/route-presence-provider";
 import {
   formatDistanceKm,
@@ -85,33 +86,6 @@ export default function HomePage() {
               {routeStatusLabel}
             </div>
           </div>
-
-          <div className="grid gap-3 sm:grid-cols-3">
-            {heroStats.map((stat) => {
-              const Icon = stat.icon;
-
-              return (
-                <div
-                  key={stat.label}
-                  className="los-card-compact backdrop-blur"
-                >
-                  <div className="flex flex-col items-center gap-3 text-center">
-                    <span className="grid h-10 w-10 place-items-center rounded-2xl border border-white/10 bg-background/60">
-                      <Icon className={`h-5 w-5 ${stat.tone}`} />
-                    </span>
-                    <div className="min-w-0">
-                      <p className="text-xs uppercase tracking-[0.22em] text-muted">
-                        {stat.label}
-                      </p>
-                      <p className="mt-1 truncate text-lg font-semibold text-ink">
-                        {stat.value}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
         </div>
       </section>
 
@@ -178,8 +152,37 @@ export default function HomePage() {
               </p>
             </div>
 
-            <div className="mx-auto mt-5 max-w-md rounded-[1.6rem] border border-accent/20 bg-[rgba(32,211,238,0.06)] px-4 py-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]">
-              <RouteToggleButton />
+            <div className="mx-auto mt-6 max-w-md">
+              <div className="rounded-[1.6rem] border border-accent/20 bg-[rgba(32,211,238,0.06)] px-4 py-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]">
+                <RouteToggleButton />
+              </div>
+            </div>
+
+            <div className="mt-6 grid gap-3 sm:grid-cols-3">
+              {heroStats.map((stat) => {
+                const Icon = stat.icon;
+
+                return (
+                  <div
+                    key={stat.label}
+                    className="los-card-compact backdrop-blur"
+                  >
+                    <div className="flex flex-col items-center gap-3 text-center">
+                      <span className="grid h-10 w-10 place-items-center rounded-2xl border border-white/10 bg-background/60">
+                        <Icon className={`h-5 w-5 ${stat.tone}`} />
+                      </span>
+                      <div className="min-w-0">
+                        <p className="text-xs uppercase tracking-[0.22em] text-muted">
+                          {stat.label}
+                        </p>
+                        <p className="mt-1 truncate text-lg font-semibold text-ink">
+                          {stat.value}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           </div>
         </div>
@@ -211,7 +214,13 @@ export default function HomePage() {
                   key={rider.id}
                   className="flex items-center justify-between gap-4 rounded-2xl border border-white/10 bg-white/[0.045] px-4 py-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]"
                 >
-                  <div className="min-w-0">
+                  <Avatar
+                    imageUrl={rider.avatar_url}
+                    name={rider.full_name}
+                    username={rider.username}
+                    size="sm"
+                  />
+                  <div className="min-w-0 flex-1">
                     <p className="truncate font-medium text-ink">
                       {formatRiderName(rider)}
                     </p>

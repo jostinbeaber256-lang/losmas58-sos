@@ -58,6 +58,7 @@ type RoutePresenceContextValue = {
   confirmRideAttendance: () => Promise<boolean>;
   declineRideAttendance: () => Promise<boolean>;
   toggleRideLiveRoute: () => Promise<boolean>;
+  leaveRide: () => Promise<boolean>;
   toggleContinuousMonitoring: () => Promise<boolean>;
   toggleEmergencyTracking: () => Promise<boolean>;
   triggerSos: (payload: SosPayload) => Promise<boolean>;
@@ -78,10 +79,10 @@ type RoutePresenceContextValue = {
 const RoutePresenceContext = createContext<RoutePresenceContextValue | null>(null);
 
 const profileSelect =
-  "id, username, full_name, bike_model, city, emergency_contact, is_admin, is_on_route, emergency_state, continuous_monitoring_enabled, emergency_tracking_active, latitude, longitude, location_updated_at, sharing_started_at, monitoring_updated_at, emergency_tracking_started_at, updated_at";
+  "id, username, full_name, bike_model, city, emergency_contact, is_admin, is_on_route, emergency_state, continuous_monitoring_enabled, emergency_tracking_active, latitude, longitude, location_updated_at, sharing_started_at, monitoring_updated_at, emergency_tracking_started_at, avatar_url, updated_at";
 
 const riderSelect =
-  "id, username, full_name, bike_model, city, emergency_contact, emergency_state, continuous_monitoring_enabled, emergency_tracking_active, latitude, longitude, is_on_route, location_updated_at";
+  "id, username, full_name, bike_model, city, emergency_contact, emergency_state, continuous_monitoring_enabled, emergency_tracking_active, latitude, longitude, is_on_route, location_updated_at, avatar_url";
 
 const alertSelect =
   "id, user_id, full_name, username, bike_model, city, emergency_contact, emergency_type, emergency_details, medical_summary, latitude, longitude, status, message, created_at, resolved_at";
@@ -885,6 +886,44 @@ export function RoutePresenceProvider({
         rideError instanceof Error
           ? rideError.message
           : "No se pudo actualizar tu ruta en vivo.";
+      setError(message);
+      return false;
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function leaveRide() {
+    if (!userId || loading || !activeRideEvent) {
+      return false;
+    }
+
+    setLoading(true);
+    setError(null);
+
+    try {
+      // Eliminar al participante de la rodada
+      const { error: deleteError } = await supabase
+        .from("ride_participants")
+        .delete()
+        .eq("event_id", activeRideEvent.id)
+        .eq("user_id", userId);
+
+      if (deleteError) {
+        setError(deleteError.message);
+        return false;
+      }
+
+      // Limpiar posición local
+      setLatestPosition(null);
+
+      await loadActiveRideData();
+      return true;
+    } catch (rideError) {
+      const message =
+        rideError instanceof Error
+          ? rideError.message
+          : "No se pudo salir de la rodada.";
       setError(message);
       return false;
     } finally {
@@ -1758,6 +1797,7 @@ export function RoutePresenceProvider({
       confirmRideAttendance,
       declineRideAttendance,
       toggleRideLiveRoute,
+      leaveRide,
       toggleContinuousMonitoring,
       toggleEmergencyTracking,
       triggerSos,

@@ -7,8 +7,10 @@ import {
   MapPinIcon,
   NoSymbolIcon,
   SignalIcon,
-  UserGroupIcon
+  UserGroupIcon,
+  UserIcon
 } from "@heroicons/react/24/solid";
+import { Avatar } from "@/components/avatar";
 import { useRoutePresence } from "@/components/providers/route-presence-provider";
 import type { RideParticipant } from "@/lib/types";
 
@@ -211,7 +213,8 @@ export function SecurityMonitoringCard() {
     error,
     confirmRideAttendance,
     declineRideAttendance,
-    toggleRideLiveRoute
+    toggleRideLiveRoute,
+    leaveRide
   } = useRoutePresence();
 
   const confirmed = rideParticipants.filter(
@@ -313,8 +316,8 @@ export function SecurityMonitoringCard() {
         </button>
         <button
           type="button"
-          onClick={() => void toggleRideLiveRoute()}
-          disabled={loading || !currentRideParticipant?.live_route_enabled}
+          onClick={() => void leaveRide()}
+          disabled={loading || !currentRideParticipant}
           className="los-action-danger"
         >
           Salir de la rodada
@@ -348,9 +351,12 @@ export function SecurityMonitoringCard() {
                     key={participant.id}
                     className="flex items-center gap-3 rounded-2xl border border-white/10 bg-black/18 px-3 py-3"
                   >
-                    <span className="grid h-10 w-10 shrink-0 place-items-center rounded-2xl border border-accent/20 bg-accent/10 text-xs font-black text-accent">
-                      {getInitials(name)}
-                    </span>
+                    <Avatar
+                      imageUrl={null}
+                      name={participant.full_name}
+                      username={participant.username}
+                      size="sm"
+                    />
                     <div className="min-w-0 flex-1">
                       <p className="truncate text-sm font-semibold text-ink">{name}</p>
                       <p className="mt-0.5 truncate text-xs text-muted">

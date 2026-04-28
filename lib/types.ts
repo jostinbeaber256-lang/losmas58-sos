@@ -104,6 +104,7 @@ export type Profile = {
   sharing_started_at: string | null;
   monitoring_updated_at: string | null;
   emergency_tracking_started_at: string | null;
+  avatar_url: string | null;
   updated_at: string;
 };
 
@@ -121,6 +122,7 @@ export type ActiveRider = {
   longitude: number | null;
   is_on_route: boolean;
   location_updated_at: string | null;
+  avatar_url: string | null;
 };
 
 export type ProfileFormValues = {

@@ -54,14 +54,26 @@ function createDotIcon({
   color,
   glow,
   border = "#ffffff",
-  innerHtml
+  innerHtml,
+  imageUrl
 }: {
   size: number;
   color: string;
   glow: string;
   border?: string;
   innerHtml?: string;
+  imageUrl?: string | null;
 }) {
+  if (imageUrl) {
+    return L.divIcon({
+      className: "",
+      html: `<div style="display:flex;align-items:center;justify-content:center;width:${size}px;height:${size}px;border-radius:999px;background:${color};border:2px solid ${border};box-shadow:${glow};overflow:hidden;"><img src="${imageUrl}" style="width:100%;height:100%;object-cover;" /></div>`,
+      iconSize: [size, size],
+      iconAnchor: [size / 2, size / 2],
+      popupAnchor: [0, -size / 2]
+    });
+  }
+
   return L.divIcon({
     className: "",
     html: `<div style="display:flex;align-items:center;justify-content:center;width:${size}px;height:${size}px;border-radius:999px;background:${color};border:2px solid ${border};box-shadow:${glow};">${innerHtml || ""}</div>`,
@@ -179,8 +191,15 @@ function MarkerLayer({
         latitude: rider.latitude,
         longitude: rider.longitude
       });
-      const icon =
-        rider.emergency_state === "emergency" ? emergencyRiderIcon : riderIcon;
+      const icon = rider.avatar_url
+        ? createDotIcon({
+            size: 32,
+            color: rider.emergency_state === "emergency" ? "rgba(255,77,109,0.15)" : "rgba(255,181,71,0.15)",
+            glow: rider.emergency_state === "emergency" ? "0 0 18px rgba(255,77,109,.5)" : "0 0 18px rgba(255,181,71,.5)",
+            border: rider.emergency_state === "emergency" ? "#ff4d6d" : "#ffb547",
+            imageUrl: rider.avatar_url
+          })
+        : rider.emergency_state === "emergency" ? emergencyRiderIcon : riderIcon;
 
       const marker = L.marker([rider.latitude, rider.longitude], { icon }).bindPopup(
         `<div class="alert-popup"><div class="alert-popup__header"><span class="alert-popup__type">Companero</span><span class="alert-popup__status">${rider.emergency_state === "emergency" ? "SOS" : "Activo"}</span></div><div class="alert-popup__name">${formatRiderName(rider)}</div><div class="alert-popup__body"><p>${rider.bike_model || "Moto no registrada"}</p><p><strong>Ciudad:</strong> ${rider.city || "Ciudad no registrada"}</p></div><div class="alert-popup__distance">${formatDistanceKm(distance)}</div></div>`
@@ -232,19 +251,17 @@ const userIcon = createDotIcon({
 });
 
 const riderIcon = createDotIcon({
-  size: 16,
-  color: "#ffb547",
-  glow: "0 0 18px rgba(255,181,71,.8)",
-  innerHtml:
-    '<div style="width:5px;height:5px;border-radius:999px;background:#0b1220;"></div>'
+  size: 32,
+  color: "rgba(255,181,71,0.15)",
+  glow: "0 0 18px rgba(255,181,71,.5)",
+  border: "#ffb547"
 });
 
 const emergencyRiderIcon = createDotIcon({
-  size: 18,
-  color: "#ff4d6d",
-  glow: "0 0 20px rgba(255,77,109,.95)",
-  innerHtml:
-    '<div style="width:6px;height:6px;border-radius:999px;background:#ffffff;"></div>'
+  size: 32,
+  color: "rgba(255,77,109,0.15)",
+  glow: "0 0 18px rgba(255,77,109,.5)",
+  border: "#ff4d6d"
 });
 
 export function LeafletMapCanvas({

@@ -11,6 +11,7 @@ import {
   UserGroupIcon
 } from "@heroicons/react/24/solid";
 import { SosAlertCard } from "@/components/sos-alert-card";
+import { Avatar } from "@/components/avatar";
 import { useRoutePresence } from "@/components/providers/route-presence-provider";
 import {
   formatCoordinatesCompact,
@@ -224,6 +225,30 @@ export function LiveMap() {
 
   return (
     <section className="space-y-5">
+      <div className="relative overflow-hidden rounded-[2rem] border border-white/10 bg-[radial-gradient(circle_at_50%_0%,rgba(32,211,238,0.12),transparent_34%),linear-gradient(180deg,rgba(18,27,43,0.94),rgba(5,8,18,0.98))] p-2 shadow-[0_28px_80px_rgba(0,0,0,0.36)]">
+        <div className="pointer-events-none absolute inset-x-8 top-0 h-24 rounded-full bg-accent/10 blur-3xl" />
+        <div className="relative overflow-hidden rounded-[1.55rem] border border-white/10">
+          <LeafletMapCanvas
+            latestPosition={latestPosition}
+            focusedPosition={focusedAlertPosition}
+            focusedAlertId={focusedAlertId}
+            visibleRiders={visibleRiders}
+            emergencyAlerts={emergencyAlerts}
+          />
+        </div>
+        <div className="relative grid gap-2 px-2 pb-2 pt-3 text-xs text-muted sm:grid-cols-3">
+          {legendItems.map((item) => (
+            <div
+              key={item.label}
+              className="flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.045] px-3 py-2"
+            >
+              <span className={`h-3 w-3 rounded-full ${item.dot}`} />
+              {item.label}
+            </div>
+          ))}
+        </div>
+      </div>
+
       <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
         {mapStats.map((stat) => {
           const Icon = stat.icon;
@@ -250,30 +275,6 @@ export function LiveMap() {
             </div>
           );
         })}
-      </div>
-
-      <div className="relative overflow-hidden rounded-[2rem] border border-white/10 bg-[radial-gradient(circle_at_50%_0%,rgba(32,211,238,0.12),transparent_34%),linear-gradient(180deg,rgba(18,27,43,0.94),rgba(5,8,18,0.98))] p-2 shadow-[0_28px_80px_rgba(0,0,0,0.36)]">
-        <div className="pointer-events-none absolute inset-x-8 top-0 h-24 rounded-full bg-accent/10 blur-3xl" />
-        <div className="relative overflow-hidden rounded-[1.55rem] border border-white/10">
-          <LeafletMapCanvas
-            latestPosition={latestPosition}
-            focusedPosition={focusedAlertPosition}
-            focusedAlertId={focusedAlertId}
-            visibleRiders={visibleRiders}
-            emergencyAlerts={emergencyAlerts}
-          />
-        </div>
-        <div className="relative grid gap-2 px-2 pb-2 pt-3 text-xs text-muted sm:grid-cols-3">
-          {legendItems.map((item) => (
-            <div
-              key={item.label}
-              className="flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.045] px-3 py-2"
-            >
-              <span className={`h-3 w-3 rounded-full ${item.dot}`} />
-              {item.label}
-            </div>
-          ))}
-        </div>
       </div>
 
       {error ? (
@@ -342,7 +343,13 @@ export function LiveMap() {
                   key={rider.id}
                   className="los-info-panel flex items-center justify-between gap-4"
                 >
-                  <div className="min-w-0">
+                  <Avatar
+                    imageUrl={rider.avatar_url}
+                    name={rider.full_name}
+                    username={rider.username}
+                    size="sm"
+                  />
+                  <div className="min-w-0 flex-1">
                     <p className="truncate font-medium text-ink">
                       {formatRiderName(rider)}
                     </p>

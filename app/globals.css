@@ -360,7 +360,7 @@ body {
   }
 
   .los-section-head {
-    @apply flex flex-col gap-4;
+    @apply flex flex-col gap-4 items-center text-center;
   }
 
   .los-section-head-center {
@@ -373,8 +373,9 @@ body {
   }
 
   .los-section-title {
-    @apply text-[2.2rem] font-bold leading-tight text-ink sm:text-[2.6rem] md:text-[3rem];
+    @apply text-[2.5rem] font-bold leading-tight text-ink sm:text-[3rem] md:text-[3.5rem];
     letter-spacing: -0.04em;
+    text-align: center;
   }
 
   .los-section-copy {
