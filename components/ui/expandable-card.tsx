@@ -34,13 +34,15 @@ export function ExpandTrigger({
   onToggle,
   collapsedLabel = "Ver más",
   expandedLabel = "Ver menos",
-  className = ""
+  className = "",
+  children
 }: {
   isExpanded: boolean;
   onToggle: () => void;
   collapsedLabel?: string;
   expandedLabel?: string;
   className?: string;
+  children?: React.ReactNode;
 }) {
   return (
     <button
@@ -48,7 +50,7 @@ export function ExpandTrigger({
       onClick={onToggle}
       className={`inline-flex items-center gap-1.5 rounded-full border border-accent/22 bg-accent/8 px-3 py-1 text-sm font-semibold text-accent transition hover:border-accent/32 hover:bg-accent/12 ${className}`}
     >
-      {isExpanded ? expandedLabel : collapsedLabel}
+      {children || (isExpanded ? expandedLabel : collapsedLabel)}
       <ChevronDownIcon className={`h-4 w-4 transition-transform ${isExpanded ? 'rotate-180' : ''}`} />
     </button>
   );
