@@ -118,83 +118,58 @@ export function SosButton() {
           onClick={() => setConfirmOpen(true)}
           disabled={sosLoading}
           aria-busy={sosLoading}
-          className={`group relative flex h-64 w-64 items-center justify-center rounded-full border transition duration-300 hover:scale-[1.02] active:scale-[0.98] disabled:cursor-wait sm:h-72 sm:w-72 ${
+          className={`group relative flex h-72 w-72 items-center justify-center rounded-full border transition duration-300 hover:scale-[1.02] active:scale-[0.98] disabled:cursor-wait sm:h-80 sm:w-80 ${
             sosState === "active" || sosState === "sending"
               ? variant.activeShell
               : variant.idleShell
-          } ${
-            sosState === "active"
-              ? "animate-sos-core-pulse-intense"
-              : sosState === "sending"
-                ? "animate-sos-core-pulse"
-                : "animate-sos-core-pulse"
           }`}
           aria-label="Activar SOS"
         >
-          {/* Onda de energía principal */}
-          <span className="absolute inset-[-20px] rounded-full border border-danger/30 animate-sos-energy-wave" />
+          {/* Borde exterior con gradiente */}
+          <span className="absolute inset-[-16px] rounded-full border border-danger/20 bg-[radial-gradient(circle,rgba(255,77,109,.15),transparent_60%)] blur-sm" />
           
-          {/* Onda de energía secundaria */}
-          <span className="absolute inset-[-25px] rounded-full border border-danger/20 animate-sos-energy-wave-secondary" />
-          
-          {/* Glow de fondo */}
-          <span className="absolute inset-[-12px] rounded-full bg-[radial-gradient(circle,rgba(255,77,109,.25),transparent_70%)] blur-md transition group-hover:opacity-90" />
-          
-          {/* Borde con glow */}
-          <span
-            className={`absolute inset-[-14px] rounded-full border ${
-              sosState === "active"
-                ? "animate-sos-border-glow border-danger/50"
-                : sosState === "sending"
-                  ? "animate-sos-border-glow border-danger/40"
-                  : "animate-sos-border-glow border-danger/25"
-            }`}
-          />
-          
-          {/* Superficie interna con gradiente */}
-          <span className="absolute inset-[14px] rounded-full border border-white/10 bg-[radial-gradient(circle_at_30%_18%,rgba(255,255,255,.18),transparent_40%)] shadow-[inset_0_1px_0_rgba(255,255,255,.16),inset_0_-20px_36px_rgba(0,0,0,.32)]" />
+          {/* Superficie interna con gradiente premium */}
+          <span className="absolute inset-[16px] rounded-full border border-white/12 bg-[radial-gradient(circle_at_35%_20%,rgba(255,255,255,.22),transparent_45%)] shadow-[inset_0_1px_0_rgba(255,255,255,.20),inset_0_-24px_44px_rgba(0,0,0,.38),0_0_60px_rgba(255,77,109,.25)]" />
           
           {/* Sombra inferior */}
-          <span className="absolute bottom-10 left-14 right-14 h-12 rounded-full bg-black/40 blur-2xl" />
+          <span className="absolute bottom-12 left-16 right-16 h-14 rounded-full bg-black/50 blur-2xl" />
 
           {/* Contenido central */}
           <div
-            className={`relative flex h-[78%] w-[78%] flex-col items-center justify-center rounded-full text-center backdrop-blur-sm shadow-[inset_0_1px_0_rgba(255,255,255,.18),inset_0_-20px_36px_rgba(0,0,0,.35)] ${variant.innerSurface}`}
+            className={`relative flex h-[76%] w-[76%] flex-col items-center justify-center rounded-full text-center backdrop-blur-sm shadow-[inset_0_1px_0_rgba(255,255,255,.20),inset_0_-24px_44px_rgba(0,0,0,.40)] ${variant.innerSurface}`}
           >
-            {/* Icono con contenedor */}
+            {/* Icono con contenedor premium */}
             <div
-              className={`rounded-[1.4rem] border p-3.5 shadow-[inset_0_1px_0_rgba(255,255,255,.18),0_14px_32px_rgba(0,0,0,.28)] ${variant.iconWrap} animate-sos-particle-float`}
+              className={`rounded-[1.5rem] border p-4 shadow-[inset_0_1px_0_rgba(255,255,255,.20),0_16px_36px_rgba(0,0,0,.32)] ${variant.iconWrap}`}
             >
-              <ShieldExclamationIcon className="h-10 w-10 text-white" />
+              <ShieldExclamationIcon className="h-11 w-11 text-white" />
             </div>
             
-            {/* Texto SOS con glow */}
-            <span className={`mt-4 text-[2.3rem] font-black tracking-[0.28em] text-white drop-shadow-[0_6px_20px_rgba(0,0,0,.35)] ${
-              sosState === "active" ? "animate-sos-text-glow" : ""
-            }`}>
+            {/* Texto SOS con sombra premium */}
+            <span className="mt-5 text-[2.5rem] font-black tracking-[0.28em] text-white drop-shadow-[0_8px_24px_rgba(0,0,0,.40)]">
               SOS
             </span>
             
             {/* Subtítulo */}
-            <span className="mt-2 text-[11px] uppercase tracking-[0.24em] text-white/80">
+            <span className="mt-2.5 text-[11px] uppercase tracking-[0.24em] text-white/85">
               {variant.subtitle}
             </span>
             
-            {/* Badge de estado */}
+            {/* Badge de estado premium */}
             <span
-              className={`mt-2.5 rounded-full border px-3.5 py-1.5 text-[10px] font-bold uppercase tracking-[0.18em] ${
+              className={`mt-3 rounded-full border px-4 py-1.5 text-[10px] font-bold uppercase tracking-[0.18em] ${
                 sosState === "active"
-                  ? "border-white/20 bg-white/15 text-white shadow-[0_0_20px_rgba(255,77,109,0.4)]"
+                  ? "border-white/25 bg-white/18 text-white shadow-[0_0_24px_rgba(255,77,109,0.5)]"
                   : sosState === "sending"
-                    ? "border-white/18 bg-white/12 text-white/90"
-                    : "border-white/12 bg-black/16 text-white/70"
+                    ? "border-white/20 bg-white/14 text-white/95"
+                    : "border-white/14 bg-black/20 text-white/75"
               }`}
             >
               {sosStateLabel}
             </span>
             
             {/* Helper text */}
-            <span className="mt-2.5 text-xs text-white/65">{variant.helper}</span>
+            <span className="mt-3 text-xs text-white/70">{variant.helper}</span>
           </div>
         </button>
       </div>
