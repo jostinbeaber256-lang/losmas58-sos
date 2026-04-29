@@ -166,10 +166,10 @@ function MapPreview({
   );
 
   return (
-    <div className="relative overflow-hidden rounded-[1.65rem] border border-white/10 bg-[linear-gradient(145deg,rgba(10,18,31,.96),rgba(5,8,16,.98))]">
+    <div className="relative overflow-hidden rounded-[1.65rem] border border-white/8 bg-[linear-gradient(145deg,rgba(10,18,31,.96),rgba(5,8,16,.98))] shadow-[0_4px_16px_rgba(0,0,0,0.12)]">
       <div className="relative flex items-center justify-between gap-3 p-4">
         <div>
-          <p className="text-xs uppercase tracking-[0.24em] text-accent">
+          <p className="text-xs uppercase tracking-[0.18em] text-accent">
             Mapa grupal
           </p>
           <p className="mt-1 text-sm text-muted">
@@ -234,10 +234,10 @@ export function SecurityMonitoringCard() {
 
   if (!activeRideEvent) {
     return (
-      <section className="relative overflow-hidden rounded-[2rem] border border-white/10 bg-[radial-gradient(circle_at_100%_0%,rgba(32,211,238,0.12),transparent_34%),linear-gradient(145deg,rgba(18,27,43,0.96),rgba(7,11,20,0.98))] p-5 shadow-[0_24px_70px_rgba(0,0,0,0.32)] md:p-6">
-        <div className="pointer-events-none absolute -right-20 -top-16 h-52 w-52 rounded-full bg-accent/10 blur-3xl" />
+      <section className="relative overflow-hidden rounded-[2rem] border border-white/8 bg-[radial-gradient(circle_at_100%_0%,rgba(32,211,238,0.10),transparent_36%),linear-gradient(145deg,rgba(18,27,43,0.96),rgba(7,11,20,0.98))] p-6 shadow-[0_28px_80px_rgba(0,0,0,0.28),inset_0_1px_0_rgba(255,255,255,0.03)] md:p-7">
+        <div className="pointer-events-none absolute -right-20 -top-16 h-52 w-52 rounded-full bg-accent/8 blur-3xl" />
         <div className="relative text-center">
-          <div className="mx-auto grid h-14 w-14 place-items-center rounded-3xl border border-accent/20 bg-accent/10 text-accent">
+          <div className="mx-auto grid h-14 w-14 place-items-center rounded-3xl border border-accent/18 bg-accent/8 text-accent shadow-[0_0_24px_rgba(32,211,238,0.08)]">
             <UserGroupIcon className="h-7 w-7" />
           </div>
           <h2 className="mt-4 text-[1.8rem] font-semibold leading-tight text-ink sm:text-[2rem]">
@@ -252,8 +252,8 @@ export function SecurityMonitoringCard() {
   }
 
   return (
-    <section className="relative overflow-hidden rounded-[2rem] border border-white/10 bg-[radial-gradient(circle_at_100%_0%,rgba(32,211,238,0.14),transparent_34%),linear-gradient(145deg,rgba(18,27,43,0.96),rgba(7,11,20,0.98))] p-5 shadow-[0_24px_70px_rgba(0,0,0,0.32)] md:p-6 xl:col-span-2">
-      <div className="pointer-events-none absolute -right-20 -top-16 h-52 w-52 rounded-full bg-accent/10 blur-3xl" />
+    <section className="relative overflow-hidden rounded-[2rem] border border-white/8 bg-[radial-gradient(circle_at_100%_0%,rgba(32,211,238,0.12),transparent_36%),linear-gradient(145deg,rgba(18,27,43,0.96),rgba(7,11,20,0.98))] p-6 shadow-[0_28px_80px_rgba(0,0,0,0.28),inset_0_1px_0_rgba(255,255,255,0.03)] md:p-7 xl:col-span-2">
+      <div className="pointer-events-none absolute -right-20 -top-16 h-52 w-52 rounded-full bg-accent/8 blur-3xl" />
 
       <div className="relative flex flex-col gap-4 text-center sm:flex-row sm:items-start sm:justify-between sm:text-left">
         <div className="los-section-head los-section-head-center min-w-0 sm:items-start sm:text-left">
@@ -290,7 +290,7 @@ export function SecurityMonitoringCard() {
       </div>
 
       {error ? (
-        <p className="relative mt-4 rounded-2xl border border-danger/25 bg-danger/10 px-4 py-3 text-sm text-danger">
+        <p className="relative mt-4 rounded-2xl border border-danger/22 bg-danger/8 px-4 py-3 text-sm text-danger shadow-[0_0_20px_rgba(255,77,109,0.08)]">
           {error}
         </p>
       ) : null}
@@ -326,10 +326,10 @@ export function SecurityMonitoringCard() {
 
       <div className="relative mt-5 grid gap-4 xl:grid-cols-[1.05fr_0.95fr]">
         <MapPreview participants={rideParticipants} currentUserId={currentUserId} />
-        <div className="rounded-[1.65rem] border border-white/10 bg-white/[0.045] p-4">
+        <div className="rounded-[1.65rem] border border-white/8 bg-white/[0.04] p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.04),0_2px_12px_rgba(0,0,0,0.06)]">
           <div className="flex items-center justify-between gap-3">
             <div>
-              <p className="text-xs uppercase tracking-[0.24em] text-muted">
+              <p className="text-xs uppercase tracking-[0.18em] text-muted">
                 Participantes
               </p>
               <p className="mt-1 text-sm text-muted">
@@ -349,7 +349,7 @@ export function SecurityMonitoringCard() {
                 return (
                   <div
                     key={participant.id}
-                    className="flex items-center gap-3 rounded-2xl border border-white/10 bg-black/18 px-3 py-3"
+                    className="flex items-center gap-3 rounded-2xl border border-white/8 bg-black/16 px-3 py-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.04),0_2px_8px_rgba(0,0,0,0.06)] transition hover:border-white/12 hover:bg-black/20"
                   >
                     <Avatar
                       imageUrl={null}
@@ -362,11 +362,11 @@ export function SecurityMonitoringCard() {
                       <p className="mt-0.5 truncate text-xs text-muted">
                         {participant.city || "Sin ciudad"} / {formatTime(participant.last_seen_at || participant.updated_at)}
                       </p>
-                      <span className={`mt-2 inline-flex rounded-full border px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.12em] ${tone.classes}`}>
+                      <span className={`mt-2 inline-flex rounded-full border px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.10em] ${tone.classes}`}>
                         {tone.label}
                       </span>
                     </div>
-                    <span className={`shrink-0 rounded-full border px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] ${getStatusClasses(status)}`}>
+                    <span className={`shrink-0 rounded-full border px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.12em] ${getStatusClasses(status)}`}>
                       {status}
                     </span>
                   </div>
@@ -406,7 +406,7 @@ function SummaryCard({
 
   return (
     <div className="los-info-panel p-4 text-center">
-      <p className="flex items-center justify-center gap-1.5 text-[11px] uppercase tracking-[0.22em] text-muted">
+      <p className="flex items-center justify-center gap-1.5 text-[11px] uppercase tracking-[0.18em] text-muted">
         <Icon className={`h-3.5 w-3.5 ${iconClass}`} />
         {label}
       </p>

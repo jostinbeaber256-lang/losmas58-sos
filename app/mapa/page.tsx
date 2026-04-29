@@ -1,7 +1,10 @@
+"use client";
+
 import { LiveMap } from "@/components/live-map";
 import { MapIcon, SignalIcon } from "@heroicons/react/24/solid";
 
 export default function MapPage() {
+
   return (
     <main className="space-y-5 md:space-y-6">
       <section className="los-hero">

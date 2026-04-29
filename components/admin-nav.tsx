@@ -65,28 +65,28 @@ export function AdminNav() {
             aria-current={active ? "page" : undefined}
             className={`group relative overflow-hidden rounded-[1.35rem] border px-4 py-3 transition ${
               active
-                ? "border-accent/35 bg-accent/12 text-ink shadow-[0_0_34px_rgba(32,211,238,.13)]"
-                : "border-white/10 bg-white/[0.045] text-muted hover:border-accent/25 hover:bg-accent/8 hover:text-ink"
+                ? "border-accent/30 bg-accent/10 text-ink shadow-[0_0_28px_rgba(32,211,238,.10)]"
+                : "border-white/8 bg-white/[0.04] text-muted hover:border-accent/22 hover:bg-accent/6 hover:text-ink"
             }`}
           >
             <div
               className={`pointer-events-none absolute inset-y-3 left-0 w-1 rounded-r-full transition ${
-                active ? "bg-accent shadow-[0_0_18px_rgba(32,211,238,.65)]" : "bg-white/10"
+                active ? "bg-accent shadow-[0_0_16px_rgba(32,211,238,.55)]" : "bg-white/8"
               }`}
             />
             <div className="flex items-center gap-3 pl-1">
               <span
                 className={`grid h-10 w-10 place-items-center rounded-2xl border transition ${
                   active
-                    ? "border-accent/25 bg-accent/12 text-accent"
-                    : "border-white/10 bg-black/20 text-muted group-hover:text-accent"
+                    ? "border-accent/22 bg-accent/10 text-accent"
+                    : "border-white/8 bg-black/18 text-muted group-hover:text-accent"
                 }`}
               >
                 <Icon className="h-5 w-5" />
               </span>
               <span className="min-w-0">
                 <span className="block text-sm font-semibold">{label}</span>
-                <span className="mt-0.5 block truncate text-[11px] uppercase tracking-[0.16em] text-muted">
+                <span className="mt-0.5 block truncate text-[11px] uppercase tracking-[0.14em] text-muted">
                   {description}
                 </span>
               </span>

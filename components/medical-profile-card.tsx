@@ -31,11 +31,11 @@ export function MedicalProfileCard() {
   ];
 
   return (
-    <section className="relative overflow-hidden rounded-[2rem] border border-white/10 bg-[radial-gradient(circle_at_100%_0%,rgba(255,77,109,0.14),transparent_34%),linear-gradient(145deg,rgba(18,27,43,0.95),rgba(8,12,22,0.98))] p-5 shadow-[0_24px_70px_rgba(0,0,0,0.3)] md:p-6">
-      <div className="pointer-events-none absolute -right-20 -top-16 h-52 w-52 rounded-full bg-danger/12 blur-3xl" />
+    <section className="relative overflow-hidden rounded-[2rem] border border-white/8 bg-[radial-gradient(circle_at_100%_0%,rgba(255,77,109,0.12),transparent_36%),linear-gradient(145deg,rgba(18,27,43,0.95),rgba(8,12,22,0.98))] p-6 shadow-[0_28px_80px_rgba(0,0,0,0.26),inset_0_1px_0_rgba(255,255,255,0.03)] md:p-7">
+      <div className="pointer-events-none absolute -right-20 -top-16 h-52 w-52 rounded-full bg-danger/10 blur-3xl" />
       <div className="relative flex flex-col gap-5 text-center sm:flex-row sm:items-start sm:justify-between sm:text-left">
         <div className="flex items-start gap-4">
-          <div className="rounded-3xl border border-danger/20 bg-danger/12 p-3 text-danger shadow-[0_0_30px_rgba(255,77,109,0.12)]">
+          <div className="rounded-3xl border border-danger/18 bg-danger/8 p-3 text-danger shadow-[0_0_24px_rgba(255,77,109,0.08)]">
             <HeartIcon className="h-6 w-6" />
           </div>
           <div className="los-section-head sm:items-start">
@@ -53,17 +53,17 @@ export function MedicalProfileCard() {
         </div>
 
         <span
-          className={`mx-auto shrink-0 rounded-full px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.22em] sm:mx-0 ${
+          className={`mx-auto shrink-0 rounded-full px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.18em] sm:mx-0 ${
             isComplete
-              ? "border border-accent/25 bg-accent/10 text-accent"
-              : "border border-danger/25 bg-danger/10 text-danger"
+              ? "border border-accent/22 bg-accent/8 text-accent"
+              : "border border-danger/22 bg-danger/8 text-danger"
           }`}
         >
           {isComplete ? "Completa" : "Incompleta"}
         </span>
       </div>
 
-      <div className="relative mt-5 rounded-2xl border border-white/10 bg-black/18 px-4 py-3">
+      <div className="relative mt-5 rounded-2xl border border-white/8 bg-black/16 px-4 py-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.04),0_2px_12px_rgba(0,0,0,0.06)]">
         <div className="flex items-center justify-between gap-3">
           <div>
             <p className="text-sm font-semibold text-ink">
@@ -89,9 +89,9 @@ export function MedicalProfileCard() {
         {medicalItems.map((item) => (
           <div
             key={item.label}
-            className="rounded-2xl border border-white/10 bg-white/[0.045] px-4 py-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]"
+            className="rounded-2xl border border-white/8 bg-white/[0.04] px-4 py-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.04),0_2px_12px_rgba(0,0,0,0.06)] transition hover:border-white/12 hover:bg-white/[0.05]"
           >
-            <p className="text-[11px] uppercase tracking-[0.22em] text-muted">
+            <p className="text-[11px] uppercase tracking-[0.18em] text-muted">
               {item.label}
             </p>
             <p className="mt-1 line-clamp-2 break-words text-sm font-medium text-ink">
@@ -103,7 +103,7 @@ export function MedicalProfileCard() {
 
       <Link
         href="/perfil/ficha-medica"
-        className="relative mt-5 inline-flex w-full items-center justify-center gap-2 rounded-2xl border border-danger/25 bg-danger/12 px-4 py-3.5 text-center font-semibold text-danger transition hover:border-danger/40 hover:bg-danger/18"
+        className="relative mt-5 inline-flex w-full items-center justify-center gap-2 rounded-2xl border border-danger/22 bg-danger/8 px-4 py-3.5 text-center font-semibold text-danger transition hover:border-danger/32 hover:bg-danger/12 shadow-[inset_0_1px_0_rgba(255,255,255,0.04),0_4px_16px_rgba(255,77,109,0.08)]"
       >
         {isComplete ? "Editar ficha medica" : "Completar ficha medica"}
         <ArrowRightIcon className="h-4 w-4" />

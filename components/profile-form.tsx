@@ -107,8 +107,8 @@ export function ProfileForm() {
 
   return (
     <>
-      <section className="relative overflow-hidden rounded-[2rem] border border-white/10 bg-[radial-gradient(circle_at_0%_0%,rgba(32,211,238,0.14),transparent_34%),linear-gradient(145deg,rgba(18,27,43,0.96),rgba(7,11,20,0.98))] p-5 shadow-[0_24px_70px_rgba(0,0,0,0.32)] md:p-6">
-        <div className="pointer-events-none absolute -right-20 top-0 h-52 w-52 rounded-full bg-accent/10 blur-3xl" />
+      <section className="relative overflow-hidden rounded-[2rem] border border-white/8 bg-[radial-gradient(circle_at_0%_0%,rgba(32,211,238,0.12),transparent_36%),linear-gradient(145deg,rgba(18,27,43,0.96),rgba(7,11,20,0.98))] p-6 shadow-[0_28px_80px_rgba(0,0,0,0.28),inset_0_1px_0_rgba(255,255,255,0.03)] md:p-7">
+        <div className="pointer-events-none absolute -right-20 top-0 h-52 w-52 rounded-full bg-accent/8 blur-3xl" />
 
         <div className="relative flex flex-col gap-5 text-center sm:flex-row sm:items-start sm:justify-between sm:text-left">
           <div className="flex items-center gap-4">
@@ -141,8 +141,8 @@ export function ProfileForm() {
         </div>
 
         <div className="relative mt-5 grid gap-3 sm:grid-cols-3">
-          <div className="rounded-2xl border border-white/10 bg-white/[0.045] px-4 py-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]">
-            <p className="flex items-center gap-1.5 text-[11px] uppercase tracking-[0.22em] text-muted">
+          <div className="rounded-2xl border border-white/8 bg-white/[0.04] px-4 py-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.04),0_2px_12px_rgba(0,0,0,0.06)]">
+            <p className="flex items-center gap-1.5 text-[11px] uppercase tracking-[0.18em] text-muted">
               <UserIcon className="h-3.5 w-3.5 text-accent" />
               Username
             </p>
@@ -150,8 +150,8 @@ export function ProfileForm() {
               {values.username || "Sin definir"}
             </p>
           </div>
-          <div className="rounded-2xl border border-white/10 bg-white/[0.045] px-4 py-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]">
-            <p className="flex items-center gap-1.5 text-[11px] uppercase tracking-[0.22em] text-muted">
+          <div className="rounded-2xl border border-white/8 bg-white/[0.04] px-4 py-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.04),0_2px_12px_rgba(0,0,0,0.06)]">
+            <p className="flex items-center gap-1.5 text-[11px] uppercase tracking-[0.18em] text-muted">
               <MapPinIcon className="h-3.5 w-3.5 text-accent" />
               Ciudad
             </p>
@@ -159,8 +159,8 @@ export function ProfileForm() {
               {values.city || "Sin definir"}
             </p>
           </div>
-          <div className="rounded-2xl border border-white/10 bg-white/[0.045] px-4 py-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]">
-            <p className="flex items-center gap-1.5 text-[11px] uppercase tracking-[0.22em] text-muted">
+          <div className="rounded-2xl border border-white/8 bg-white/[0.04] px-4 py-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.04),0_2px_12px_rgba(0,0,0,0.06)]">
+            <p className="flex items-center gap-1.5 text-[11px] uppercase tracking-[0.18em] text-muted">
               <PhoneIcon className="h-3.5 w-3.5 text-accent" />
               Contacto SOS
             </p>
@@ -170,7 +170,7 @@ export function ProfileForm() {
           </div>
         </div>
 
-        <div className="relative mt-4 rounded-2xl border border-white/10 bg-black/18 px-4 py-3">
+        <div className="relative mt-4 rounded-2xl border border-white/8 bg-black/16 px-4 py-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.04),0_2px_12px_rgba(0,0,0,0.06)]">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <p className="text-sm font-semibold text-ink">
@@ -191,8 +191,8 @@ export function ProfileForm() {
         </div>
       </section>
 
-      <section className="relative overflow-hidden rounded-[2rem] border border-white/10 bg-[linear-gradient(145deg,rgba(18,27,43,0.95),rgba(8,12,22,0.98))] p-5 shadow-[0_24px_70px_rgba(0,0,0,0.3)] md:p-6">
-        <div className="pointer-events-none absolute -right-24 -top-20 h-52 w-52 rounded-full bg-accent/10 blur-3xl" />
+      <section className="relative overflow-hidden rounded-[2rem] border border-white/8 bg-[linear-gradient(145deg,rgba(18,27,43,0.95),rgba(8,12,22,0.98))] p-6 shadow-[0_28px_80px_rgba(0,0,0,0.26),inset_0_1px_0_rgba(255,255,255,0.03)] md:p-7">
+        <div className="pointer-events-none absolute -right-24 -top-20 h-52 w-52 rounded-full bg-accent/8 blur-3xl" />
         <div className="relative flex flex-col gap-4 text-center sm:flex-row sm:items-center sm:justify-between sm:text-left">
           <div className="los-section-head los-section-head-center min-w-0 sm:items-start sm:text-left">
             <p className="los-section-kicker text-accent">
@@ -211,7 +211,7 @@ export function ProfileForm() {
           <button
             type="button"
             onClick={() => setEditOpen((current) => !current)}
-          className="inline-flex w-full items-center justify-center gap-2 rounded-2xl border border-accent/25 bg-accent/10 px-4 py-3 text-sm font-semibold text-accent transition hover:bg-accent/15 sm:w-auto"
+            className="inline-flex w-full items-center justify-center gap-2 rounded-2xl border border-accent/22 bg-accent/8 px-4 py-3 text-sm font-semibold text-accent transition hover:border-accent/32 hover:bg-accent/12 sm:w-auto"
             aria-expanded={editOpen}
           >
             {editOpen ? "Cerrar" : "Editar"}
@@ -250,7 +250,7 @@ export function ProfileForm() {
                     type="text"
                     value={values.full_name}
                     onChange={(event) => updateField("full_name", event.target.value)}
-                    className="w-full rounded-2xl border border-white/10 bg-white/[0.045] px-4 py-3.5 text-ink outline-none transition placeholder:text-muted/60 focus:border-accent/50 focus:bg-accent/8"
+                    className="w-full rounded-2xl border border-white/8 bg-white/[0.04] px-4 py-3.5 text-ink outline-none transition placeholder:text-muted/60 focus:border-accent/40 focus:bg-accent/6 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]"
                     placeholder="Ej. Jordan Rivas"
                   />
                 </label>
@@ -261,7 +261,7 @@ export function ProfileForm() {
                     type="text"
                     value={values.username}
                     onChange={(event) => updateField("username", event.target.value)}
-                    className="w-full rounded-2xl border border-white/10 bg-white/[0.045] px-4 py-3.5 text-ink outline-none transition placeholder:text-muted/60 focus:border-accent/50 focus:bg-accent/8"
+                    className="w-full rounded-2xl border border-white/8 bg-white/[0.04] px-4 py-3.5 text-ink outline-none transition placeholder:text-muted/60 focus:border-accent/40 focus:bg-accent/6 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]"
                     placeholder="Ej. jordanrivas"
                   />
                 </label>
@@ -272,7 +272,7 @@ export function ProfileForm() {
                     type="text"
                     value={values.bike_model}
                     onChange={(event) => updateField("bike_model", event.target.value)}
-                    className="w-full rounded-2xl border border-white/10 bg-white/[0.045] px-4 py-3.5 text-ink outline-none transition placeholder:text-muted/60 focus:border-accent/50 focus:bg-accent/8"
+                    className="w-full rounded-2xl border border-white/8 bg-white/[0.04] px-4 py-3.5 text-ink outline-none transition placeholder:text-muted/60 focus:border-accent/40 focus:bg-accent/6 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]"
                     placeholder="Ej. Yamaha Tenere 700"
                   />
                 </label>
@@ -283,7 +283,7 @@ export function ProfileForm() {
                     type="text"
                     value={values.city}
                     onChange={(event) => updateField("city", event.target.value)}
-                    className="w-full rounded-2xl border border-white/10 bg-white/[0.045] px-4 py-3.5 text-ink outline-none transition placeholder:text-muted/60 focus:border-accent/50 focus:bg-accent/8"
+                    className="w-full rounded-2xl border border-white/8 bg-white/[0.04] px-4 py-3.5 text-ink outline-none transition placeholder:text-muted/60 focus:border-accent/40 focus:bg-accent/6 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]"
                     placeholder="Ej. Caracas"
                   />
                 </label>
@@ -296,20 +296,20 @@ export function ProfileForm() {
                     type="text"
                     value={values.emergency_contact}
                     onChange={(event) => updateField("emergency_contact", event.target.value)}
-                    className="w-full rounded-2xl border border-white/10 bg-white/[0.045] px-4 py-3.5 text-ink outline-none transition placeholder:text-muted/60 focus:border-accent/50 focus:bg-accent/8"
+                    className="w-full rounded-2xl border border-white/8 bg-white/[0.04] px-4 py-3.5 text-ink outline-none transition placeholder:text-muted/60 focus:border-accent/40 focus:bg-accent/6 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]"
                     placeholder="Ej. Ana Rivas / +58 412 000 0000"
                   />
                 </label>
               </div>
 
               {error ? (
-                <p className="relative mt-4 rounded-2xl border border-danger/25 bg-danger/10 px-4 py-3 text-sm text-danger">
+                <p className="relative mt-4 rounded-2xl border border-danger/22 bg-danger/8 px-4 py-3 text-sm text-danger shadow-[0_0_20px_rgba(255,77,109,0.08)]">
                   {error}
                 </p>
               ) : null}
 
               {saved ? (
-                <p className="relative mt-4 rounded-2xl border border-accent/25 bg-accent/10 px-4 py-3 text-sm text-accent">
+                <p className="relative mt-4 rounded-2xl border border-accent/22 bg-accent/8 px-4 py-3 text-sm text-accent shadow-[0_0_20px_rgba(32,211,238,0.08)]">
                   {saved}
                 </p>
               ) : null}
@@ -318,14 +318,14 @@ export function ProfileForm() {
                 <button
                   type="submit"
                   disabled={profileSaving}
-                  className="relative w-full rounded-2xl bg-accent px-4 py-3.5 font-semibold text-background shadow-[0_0_28px_rgba(32,211,238,0.18)] transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-70"
+                  className="relative w-full rounded-2xl bg-accent px-4 py-3.5 font-semibold text-background shadow-[0_0_28px_rgba(32,211,238,0.18),inset_0_1px_0_rgba(255,255,255,0.2)] transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-70"
                 >
                   {profileSaving ? "Guardando..." : isDirty ? "Guardar cambios" : "Perfil guardado"}
                 </button>
                 <button
                   type="button"
                   onClick={() => setEditOpen(false)}
-                  className="rounded-2xl border border-white/10 bg-white/[0.045] px-4 py-3.5 font-semibold text-muted transition hover:border-accent/30 hover:text-accent"
+                  className="rounded-2xl border border-white/8 bg-white/[0.04] px-4 py-3.5 font-semibold text-muted transition hover:border-accent/28 hover:text-accent shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]"
                 >
                   Cerrar
                 </button>

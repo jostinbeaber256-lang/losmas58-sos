@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { ChevronDownIcon } from "@heroicons/react/24/solid";
 
 export function ExpandableCard({
   children,
@@ -14,7 +15,7 @@ export function ExpandableCard({
   const [isExpanded, setIsExpanded] = useState(defaultExpanded);
 
   return (
-    <div className="rounded-2xl border border-white/10 bg-black/18">
+    <div className="rounded-2xl border border-white/8 bg-white/[0.04]">
       {children}
     </div>
   );
@@ -25,21 +26,32 @@ export function CompactView({ children }: { children: React.ReactNode }) {
 }
 
 export function ExpandedView({ children }: { children: React.ReactNode }) {
-  return <div className="border-t border-white/10 p-4">{children}</div>;
+  return <div className="border-t border-white/8 p-4">{children}</div>;
 }
 
 export function ExpandTrigger({
-  collapsedLabel,
-  expandedLabel,
-  className,
-  children
+  isExpanded,
+  onToggle,
+  collapsedLabel = "Ver más",
+  expandedLabel = "Ver menos",
+  className = ""
 }: {
+  isExpanded: boolean;
+  onToggle: () => void;
   collapsedLabel?: string;
   expandedLabel?: string;
   className?: string;
-  children: React.ReactNode;
 }) {
-  return <button className={className}>{children}</button>;
+  return (
+    <button
+      type="button"
+      onClick={onToggle}
+      className={`inline-flex items-center gap-1.5 rounded-full border border-accent/22 bg-accent/8 px-3 py-1 text-sm font-semibold text-accent transition hover:border-accent/32 hover:bg-accent/12 ${className}`}
+    >
+      {isExpanded ? expandedLabel : collapsedLabel}
+      <ChevronDownIcon className={`h-4 w-4 transition-transform ${isExpanded ? 'rotate-180' : ''}`} />
+    </button>
+  );
 }
 
 export function CompactInfo({
@@ -57,7 +69,7 @@ export function CompactInfo({
     <div className="flex items-center gap-2 text-sm">
       {icon}
       <span className="text-muted">{label}:</span>
-      <span className="font-medium text-ink">{value}</span>
+      <span className={`font-medium ${tone || 'text-ink'}`}>{value}</span>
     </div>
   );
 }
@@ -73,5 +85,5 @@ export function CompactInfoGrid({
 }
 
 export function CardDivider() {
-  return <div className="my-3 h-px bg-white/10" />;
+  return <div className="my-3 h-px bg-white/8" />;
 }

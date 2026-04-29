@@ -68,8 +68,8 @@ export function AlertPreview({
   };
 
   return (
-    <section className="los-card md:p-6">
-      <div className="pointer-events-none absolute -right-24 -top-16 h-52 w-52 rounded-full bg-danger/12 blur-3xl" />
+    <section className="los-card md:p-7">
+      <div className="pointer-events-none absolute -right-24 -top-16 h-52 w-52 rounded-full bg-danger/10 blur-3xl" />
       <div className="relative flex flex-col gap-4 text-center sm:flex-row sm:items-start sm:justify-between sm:text-left">
         <div className="los-section-head los-section-head-center sm:items-start sm:text-left">
           <p className="los-section-kicker text-danger/80">
@@ -102,11 +102,11 @@ export function AlertPreview({
                 onClick={() => setSelectedFilter(filter.id)}
                 className={`rounded-2xl px-3 py-3 text-left text-sm font-medium transition ${
                   isActive
-                    ? "border border-accent/35 bg-accent/12 text-accent shadow-[0_0_22px_rgba(32,211,238,0.12)]"
-                    : "border border-white/10 bg-white/[0.045] text-muted hover:border-accent/25 hover:bg-white/[0.065] hover:text-ink"
+                    ? "border border-accent/30 bg-accent/10 text-accent shadow-[0_0_20px_rgba(32,211,238,0.10)]"
+                    : "border border-white/8 bg-white/[0.04] text-muted hover:border-accent/22 hover:bg-white/[0.06] hover:text-ink"
                 }`}
               >
-                <span className="block text-xs uppercase tracking-[0.18em]">
+                <span className="block text-xs uppercase tracking-[0.16em]">
                   {filter.label}
                 </span>
                 <span className="mt-1 block text-lg font-semibold text-ink">
@@ -125,7 +125,7 @@ export function AlertPreview({
 
         {!filteredAlerts.length ? (
           <div className="los-empty xl:col-span-2">
-            <div className="mx-auto grid h-14 w-14 place-items-center rounded-2xl border border-accent/20 bg-accent/10 shadow-[0_0_30px_rgba(32,211,238,0.12)]">
+            <div className="mx-auto grid h-14 w-14 place-items-center rounded-2xl border border-accent/18 bg-accent/8 shadow-[0_0_24px_rgba(32,211,238,0.08)]">
               <ShieldCheckIcon className="h-6 w-6 text-accent" />
             </div>
             <p className="mt-3 text-sm font-semibold text-ink">

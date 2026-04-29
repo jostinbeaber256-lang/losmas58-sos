@@ -63,8 +63,10 @@ export function SosAlertCard({
     respondToAlert
   } = useRoutePresence();
   const messageRef = useRef<HTMLParagraphElement | null>(null);
-  const [expanded, setExpanded] = useState(false);
-  const [canExpand, setCanExpand] = useState(false);
+  const [descriptionExpanded, setDescriptionExpanded] = useState(false);
+  const [canExpandDescription, setCanExpandDescription] = useState(false);
+  const [operationalDataExpanded, setOperationalDataExpanded] = useState(false);
+  const [helperInfoExpanded, setHelperInfoExpanded] = useState(false);
 
   const isOwner = currentUserId === alert.user_id;
   const isActive = alert.status === "active";
@@ -97,8 +99,8 @@ export function SosAlertCard({
       return;
     }
 
-    setCanExpand(element.scrollHeight > element.clientHeight + 1);
-  }, [description, expanded]);
+    setCanExpandDescription(element.scrollHeight > element.clientHeight + 1);
+  }, [description, descriptionExpanded]);
 
   const heroCopy = useMemo(() => {
     if (isResponding && isActive) {
@@ -120,8 +122,8 @@ export function SosAlertCard({
     <article
       className={`relative w-full min-w-0 overflow-hidden rounded-[1.85rem] border ${
         isActive
-          ? "border-white/10 bg-[radial-gradient(circle_at_100%_0%,rgba(255,77,109,.12),transparent_34%),linear-gradient(180deg,rgba(16,21,34,.97),rgba(7,10,19,.99))] shadow-[0_26px_62px_rgba(0,0,0,.36)]"
-          : "border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,.045),rgba(11,18,32,.92))] shadow-[0_18px_42px_rgba(0,0,0,.22)]"
+          ? "border-white/8 bg-[radial-gradient(circle_at_100%_0%,rgba(255,77,109,.10),transparent_36%),linear-gradient(180deg,rgba(16,21,34,.97),rgba(7,10,19,.99))] shadow-[0_28px_68px_rgba(0,0,0,.32),inset_0_1px_0_rgba(255,255,255,0.03)]"
+          : "border-white/8 bg-[linear-gradient(180deg,rgba(255,255,255,.04),rgba(11,18,32,.92))] shadow-[0_20px_48px_rgba(0,0,0,.20),inset_0_1px_0_rgba(255,255,255,0.03)]"
       } ${compact ? "p-4" : "p-5 md:p-6"}`}
     >
       <div
@@ -149,26 +151,26 @@ export function SosAlertCard({
       ) : null}
 
       <div className="relative mb-4 flex flex-col items-start gap-2 pl-1 sm:flex-row sm:items-center sm:justify-between">
-        <div className="inline-flex max-w-full items-center gap-2 rounded-full border border-white/10 bg-white/[0.045] px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-muted">
+        <div className="inline-flex max-w-full items-center gap-2 rounded-full border border-white/8 bg-white/[0.04] px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.16em] text-muted">
           <ClipboardDocumentListIcon className="h-4 w-4 text-accent" />
           {incidentCode}
         </div>
         <span
-          className={`rounded-full border px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.16em] ${priorityClasses}`}
+          className={`rounded-full border px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.14em] ${priorityClasses}`}
         >
           {priorityLabel}
         </span>
       </div>
 
       <div className="flex min-w-0 flex-col gap-3 sm:flex-row sm:items-start">
-        <div className={`w-fit shrink-0 rounded-2xl p-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.06)] ${emergencyMeta.iconClasses}`}>
+        <div className={`w-fit shrink-0 rounded-2xl p-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.04),0_2px_12px_rgba(0,0,0,0.06)] ${emergencyMeta.iconClasses}`}>
           <EmergencyIcon className="h-5 w-5" />
         </div>
 
         <div className="min-w-0 flex-1">
           <div className="flex min-w-0 flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
             <div className="min-w-0 flex-1">
-              <p className="text-[11px] uppercase tracking-[0.22em] text-muted">
+              <p className="text-[11px] uppercase tracking-[0.18em] text-muted">
                 {heroCopy}
               </p>
               <h3 className="mt-1 text-lg font-semibold leading-6 text-ink [overflow-wrap:normal] [word-break:normal]">
@@ -176,12 +178,12 @@ export function SosAlertCard({
               </h3>
               <div className="mt-2 flex min-w-0 flex-wrap items-center gap-2">
                 <span
-                  className={`max-w-full rounded-full px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.14em] ${emergencyMeta.chipClasses}`}
+                  className={`max-w-full rounded-full px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.12em] ${emergencyMeta.chipClasses}`}
                 >
                   {emergencyMeta.label}
                 </span>
                 {alertTime ? (
-                  <span className="inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full border border-white/10 bg-white/[0.045] px-3 py-1 text-[11px] font-medium text-muted">
+                  <span className="inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full border border-white/8 bg-white/[0.04] px-3 py-1 text-[11px] font-medium text-muted">
                     <ClockIcon className="h-3.5 w-3.5" />
                     {alertTime}
                   </span>
@@ -191,7 +193,7 @@ export function SosAlertCard({
 
             <div className="flex shrink-0 items-start sm:items-end">
               <span
-                className={`rounded-full px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.16em] ${statusMeta.classes} ${
+                className={`rounded-full px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.14em] ${statusMeta.classes} ${
                   isActive && !isResponding ? "animate-pulse" : ""
                 }`}
               >
@@ -204,66 +206,72 @@ export function SosAlertCard({
 
       <div className="mt-5 flex flex-col gap-3 border-t border-white/8 pt-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="min-w-0">
-          <p className="text-[11px] uppercase tracking-[0.2em] text-muted">
+          <p className="text-[11px] uppercase tracking-[0.18em] text-muted">
             Datos operativos
           </p>
           <p className="mt-1 text-sm text-muted">
             Lectura rapida para coordinar respuesta.
           </p>
         </div>
-        <span className="hidden rounded-full border border-white/10 bg-white/[0.045] px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-muted sm:inline-flex">
-          Ruta SOS
-        </span>
+        <button
+          type="button"
+          onClick={() => setOperationalDataExpanded((current) => !current)}
+          className="inline-flex items-center gap-1.5 rounded-full border border-accent/22 bg-accent/8 px-3 py-1 text-sm font-semibold text-accent transition hover:border-accent/32 hover:bg-accent/12"
+        >
+          {operationalDataExpanded ? "Ver menos" : "Ver más"}
+        </button>
       </div>
 
-      <div className="mt-5 grid min-w-0 grid-cols-1 gap-3 sm:grid-cols-2">
-        <div className={`rounded-2xl border px-4 py-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.05)] ${emergencyMeta.panelClasses}`}>
-          <p className="text-[11px] uppercase tracking-[0.18em] text-muted">
-            Tipo de emergencia
-          </p>
-          <p className="mt-1 break-words text-sm font-semibold text-ink">
-            {emergencyMeta.label}
-          </p>
-        </div>
+      {operationalDataExpanded ? (
+        <div className="mt-5 grid min-w-0 grid-cols-1 gap-3 sm:grid-cols-2">
+          <div className={`rounded-2xl border px-4 py-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.04),0_2px_12px_rgba(0,0,0,0.06)] ${emergencyMeta.panelClasses}`}>
+            <p className="text-[11px] uppercase tracking-[0.16em] text-muted">
+              Tipo de emergencia
+            </p>
+            <p className="mt-1 break-words text-sm font-semibold text-ink">
+              {emergencyMeta.label}
+            </p>
+          </div>
 
-        <div className="rounded-2xl border border-white/10 bg-white/[0.045] px-4 py-3">
-          <p className="text-[11px] uppercase tracking-[0.18em] text-muted">
-            Moto / modelo
-          </p>
-          <p className="mt-1 break-words text-sm font-medium text-ink">
-            {alert.bike_model || "Sin moto registrada"}
-          </p>
-        </div>
+          <div className="rounded-2xl border border-white/8 bg-white/[0.04] px-4 py-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.04),0_2px_12px_rgba(0,0,0,0.06)]">
+            <p className="text-[11px] uppercase tracking-[0.16em] text-muted">
+              Moto / modelo
+            </p>
+            <p className="mt-1 break-words text-sm font-medium text-ink">
+              {alert.bike_model || "Sin moto registrada"}
+            </p>
+          </div>
 
-        <div className="rounded-2xl border border-white/10 bg-white/[0.045] px-4 py-3">
-          <p className="flex items-center gap-1.5 text-[11px] uppercase tracking-[0.18em] text-muted">
-            <MapPinIcon className="h-3.5 w-3.5 text-accent" />
-            Ciudad
-          </p>
-          <p className="mt-1 break-words text-sm font-medium text-ink">
-            {alert.city || "Sin ciudad registrada"}
-          </p>
-        </div>
+          <div className="rounded-2xl border border-white/8 bg-white/[0.04] px-4 py-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.04),0_2px_12px_rgba(0,0,0,0.06)]">
+            <p className="flex items-center gap-1.5 text-[11px] uppercase tracking-[0.16em] text-muted">
+              <MapPinIcon className="h-3.5 w-3.5 text-accent" />
+              Ciudad
+            </p>
+            <p className="mt-1 break-words text-sm font-medium text-ink">
+              {alert.city || "Sin ciudad registrada"}
+            </p>
+          </div>
 
-        <div className="rounded-2xl border border-white/10 bg-white/[0.045] px-4 py-3">
-          <p className="flex items-center gap-1.5 text-[11px] uppercase tracking-[0.18em] text-muted">
-            <PhoneIcon className="h-3.5 w-3.5 text-accent" />
-            Contacto
-          </p>
-          <p className="mt-1 break-words text-sm font-medium tracking-[0.05em] text-ink">
-            {formatPhoneNumber(alert.emergency_contact)}
-          </p>
+          <div className="rounded-2xl border border-white/8 bg-white/[0.04] px-4 py-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.04),0_2px_12px_rgba(0,0,0,0.06)]">
+            <p className="flex items-center gap-1.5 text-[11px] uppercase tracking-[0.16em] text-muted">
+              <PhoneIcon className="h-3.5 w-3.5 text-accent" />
+              Contacto
+            </p>
+            <p className="mt-1 break-words text-sm font-medium tracking-[0.05em] text-ink">
+              {formatPhoneNumber(alert.emergency_contact)}
+            </p>
+          </div>
         </div>
-      </div>
+      ) : null}
 
-      <div className="mt-3 rounded-2xl border border-accent/18 bg-accent/8 px-4 py-3 shadow-[0_0_26px_rgba(32,211,238,0.08)]">
+      <div className="mt-3 rounded-2xl border border-accent/16 bg-accent/6 px-4 py-3 shadow-[0_0_24px_rgba(32,211,238,0.06)]">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex min-w-0 items-center gap-2">
-            <div className="rounded-xl bg-accent/12 p-2 text-accent">
+            <div className="rounded-xl bg-accent/10 p-2 text-accent">
               <UserGroupIcon className="h-4 w-4" />
             </div>
             <div className="min-w-0">
-              <p className="text-[11px] uppercase tracking-[0.18em] text-muted">
+              <p className="text-[11px] uppercase tracking-[0.16em] text-muted">
                 Apoyo en camino
               </p>
               <p className="mt-1 text-sm font-semibold text-ink">
@@ -271,13 +279,24 @@ export function SosAlertCard({
               </p>
             </div>
           </div>
-          {isResponding ? (
-            <span className="w-fit shrink-0 rounded-full border border-accent/25 bg-accent/12 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.16em] text-accent">
-              Tu respuesta
-            </span>
-          ) : null}
+          <div className="flex items-center gap-2">
+            {isResponding ? (
+              <span className="w-fit shrink-0 rounded-full border border-accent/22 bg-accent/10 px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.14em] text-accent">
+                Tu respuesta
+              </span>
+            ) : null}
+            {alert.helper_names?.length ? (
+              <button
+                type="button"
+                onClick={() => setHelperInfoExpanded((current) => !current)}
+                className="inline-flex items-center gap-1.5 rounded-full border border-accent/22 bg-accent/8 px-3 py-1 text-sm font-semibold text-accent transition hover:border-accent/32 hover:bg-accent/12"
+              >
+                {helperInfoExpanded ? "Ver menos" : "Ver más"}
+              </button>
+            ) : null}
+          </div>
         </div>
-        {alert.helper_names?.length ? (
+        {helperInfoExpanded && alert.helper_names?.length ? (
           <p className="mt-2 break-words text-sm text-muted">
             {alert.helper_names.slice(0, 3).join(" - ")}
             {alert.helper_names.length > 3 ? ` +${alert.helper_names.length - 3}` : ""}
@@ -286,8 +305,8 @@ export function SosAlertCard({
       </div>
 
       <div className="mt-3 grid gap-3">
-        <div className="rounded-2xl border border-white/10 bg-white/[0.045] px-4 py-3">
-          <p className="text-[11px] uppercase tracking-[0.18em] text-muted">
+        <div className="rounded-2xl border border-white/8 bg-white/[0.04] px-4 py-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.04),0_2px_12px_rgba(0,0,0,0.06)]">
+          <p className="text-[11px] uppercase tracking-[0.16em] text-muted">
             Ubicacion
           </p>
           <p className="mt-1 break-words text-sm font-medium tracking-[0.05em] text-ink">
@@ -295,32 +314,32 @@ export function SosAlertCard({
           </p>
         </div>
 
-        <div className="rounded-2xl border border-white/10 bg-white/[0.045] px-4 py-3">
-          <p className="text-[11px] uppercase tracking-[0.18em] text-muted">
+        <div className="rounded-2xl border border-white/8 bg-white/[0.04] px-4 py-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.04),0_2px_12px_rgba(0,0,0,0.06)]">
+          <p className="text-[11px] uppercase tracking-[0.16em] text-muted">
             {detailLabel}
           </p>
           <p
             ref={messageRef}
             className={`mt-1 break-words text-sm leading-6 text-ink ${
-              expanded ? "" : "line-clamp-4"
+              descriptionExpanded ? "" : "line-clamp-4"
             }`}
           >
             {description}
           </p>
-          {canExpand ? (
+          {canExpandDescription ? (
             <button
               type="button"
-              onClick={() => setExpanded((current) => !current)}
-              className="mt-2 rounded-full border border-accent/25 bg-accent/10 px-3 py-1 text-sm font-semibold text-accent transition hover:bg-accent/15"
+              onClick={() => setDescriptionExpanded((current) => !current)}
+              className="mt-2 rounded-full border border-accent/22 bg-accent/8 px-3 py-1 text-sm font-semibold text-accent transition hover:border-accent/32 hover:bg-accent/12"
             >
-              {expanded ? "Ver menos" : "Ver mas"}
+              {descriptionExpanded ? "Ver menos" : "Ver más"}
             </button>
           ) : null}
         </div>
 
         {alert.medical_summary ? (
-          <div className="rounded-2xl border border-danger/20 bg-danger/10 px-4 py-3">
-            <p className="text-[11px] uppercase tracking-[0.18em] text-danger">
+          <div className="rounded-2xl border border-danger/18 bg-danger/8 px-4 py-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.04),0_2px_12px_rgba(255,77,109,0.06)]">
+            <p className="text-[11px] uppercase tracking-[0.16em] text-danger">
               Ficha medica compartida
             </p>
             <p className="mt-1 break-words text-sm leading-6 text-ink">
@@ -330,13 +349,13 @@ export function SosAlertCard({
         ) : null}
       </div>
 
-      <div className="mt-5 rounded-[1.35rem] border border-white/10 bg-black/18 p-3">
+      <div className="mt-5 rounded-[1.35rem] border border-white/8 bg-black/16 p-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.04),0_2px_12px_rgba(0,0,0,0.06)]">
         <div className="mb-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-          <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-muted">
             Acciones de respuesta
           </p>
           {responseCount > 0 ? (
-            <span className="w-fit rounded-full border border-accent/25 bg-accent/10 px-3 py-1 text-[11px] font-semibold text-accent">
+            <span className="w-fit rounded-full border border-accent/22 bg-accent/8 px-3 py-1.5 text-[11px] font-semibold text-accent">
               {responseCount} en camino
             </span>
           ) : null}
@@ -345,7 +364,7 @@ export function SosAlertCard({
         <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap">
           <Link
             href={`/mapa?alerta=${alert.id}`}
-            className="inline-flex items-center justify-center gap-2 rounded-2xl border border-accent/25 bg-accent/10 px-4 py-3 text-sm font-semibold text-accent transition hover:border-accent/40 hover:bg-accent/15"
+            className="inline-flex items-center justify-center gap-2 rounded-2xl border border-accent/22 bg-accent/8 px-4 py-3 text-sm font-semibold text-accent transition hover:border-accent/32 hover:bg-accent/12 shadow-[inset_0_1px_0_rgba(255,255,255,0.04),0_2px_12px_rgba(32,211,238,0.06)]"
           >
             Ver en mapa
             <ArrowRightIcon className="h-4 w-4" />
@@ -357,7 +376,7 @@ export function SosAlertCard({
                 type="button"
                 onClick={() => updateAlertStatus(alert.id, "resolved")}
                 disabled={isUpdating}
-                className="rounded-2xl bg-accent px-4 py-3 text-sm font-semibold text-background shadow-[0_0_24px_rgba(32,211,238,0.16)] transition hover:brightness-110 disabled:opacity-70"
+                className="rounded-2xl bg-accent px-4 py-3 text-sm font-semibold text-background shadow-[0_0_24px_rgba(32,211,238,0.18),inset_0_1px_0_rgba(255,255,255,0.2)] transition hover:brightness-110 disabled:opacity-70"
               >
                 {isUpdating ? "Actualizando..." : "Marcar resuelta"}
               </button>
@@ -365,7 +384,7 @@ export function SosAlertCard({
                 type="button"
                 onClick={() => updateAlertStatus(alert.id, "cancelled")}
                 disabled={isUpdating}
-                className="rounded-2xl border border-danger/30 bg-danger/12 px-4 py-3 text-sm font-semibold text-danger transition hover:bg-danger/18 disabled:opacity-70"
+                className="rounded-2xl border border-danger/25 bg-danger/8 px-4 py-3 text-sm font-semibold text-danger transition hover:border-danger/35 hover:bg-danger/12 shadow-[inset_0_1px_0_rgba(255,255,255,0.04),0_2px_12px_rgba(255,77,109,0.06)] disabled:opacity-70"
               >
                 Cancelar SOS
               </button>
@@ -379,8 +398,8 @@ export function SosAlertCard({
               disabled={isSubmittingResponse || isResponding}
               className={`rounded-2xl px-4 py-3 text-sm font-semibold transition ${
                 isResponding
-                  ? "border border-accent/30 bg-accent/12 text-accent"
-                  : "border border-accent/30 bg-accent/10 text-accent hover:bg-accent/16"
+                  ? "border border-accent/25 bg-accent/10 text-accent"
+                  : "border border-accent/25 bg-accent/8 text-accent hover:bg-accent/12 hover:border-accent/32"
               }`}
             >
               {isSubmittingResponse ? (
