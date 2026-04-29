@@ -185,96 +185,100 @@ export default async function AdminAlertsPage({
 
           return (
             <ExpandableCard key={alert.id} cardId={`alert-${alert.id}`} defaultExpanded={false}>
-              <article className="relative">
-                <div
-                  className="pointer-events-none absolute inset-y-5 left-0 w-1 rounded-r-full"
-                  style={{
-                    backgroundColor: meta.mapColor,
-                    boxShadow: isActive ? meta.mapGlow : "none",
-                    opacity: isActive ? 0.9 : 0.35
-                  }}
-                />
+              {({ isExpanded, setIsExpanded }) => (
+                <article className="relative">
+                  <div
+                    className="pointer-events-none absolute inset-y-5 left-0 w-1 rounded-r-full"
+                    style={{
+                      backgroundColor: meta.mapColor,
+                      boxShadow: isActive ? meta.mapGlow : "none",
+                      opacity: isActive ? 0.9 : 0.35
+                    }}
+                  />
 
-                {/* Vista Compacta */}
-                <CompactView>
-                  <div className="flex items-start justify-between gap-4">
-                    <div className="flex min-w-0 gap-3">
-                      <div className={`h-fit rounded-2xl p-3 ${meta.iconClasses}`}>
-                        <Icon className="h-5 w-5" />
-                      </div>
-                      <div className="min-w-0">
-                        <div className="flex flex-wrap items-center gap-2">
-                          <span
-                            className={`rounded-full px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] ${meta.chipClasses}`}
-                          >
-                            {meta.label}
-                          </span>
-                          <span className="inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-white/[0.045] px-3 py-1 text-[11px] font-medium text-muted">
-                            <ClockIcon className="h-3.5 w-3.5" />
-                            {formatAdminDate(alert.created_at)}
-                          </span>
+                  {/* Vista Compacta */}
+                  <CompactView>
+                    <div className="flex items-start justify-between gap-4">
+                      <div className="flex min-w-0 gap-3">
+                        <div className={`h-fit rounded-2xl p-3 ${meta.iconClasses}`}>
+                          <Icon className="h-5 w-5" />
                         </div>
-                        <h3 className="mt-3 break-words text-lg font-semibold text-ink">
-                          {getAdminDisplayName(alert)}
-                        </h3>
-                        <p className="mt-1 break-words text-sm text-muted">
-                          {alert.bike_model || "Moto no registrada"} /{" "}
-                          {alert.city || "Sin ciudad"}
-                        </p>
+                        <div className="min-w-0">
+                          <div className="flex flex-wrap items-center gap-2">
+                            <span
+                              className={`rounded-full px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] ${meta.chipClasses}`}
+                            >
+                              {meta.label}
+                            </span>
+                            <span className="inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-white/[0.045] px-3 py-1 text-[11px] font-medium text-muted">
+                              <ClockIcon className="h-3.5 w-3.5" />
+                              {formatAdminDate(alert.created_at)}
+                            </span>
+                          </div>
+                          <h3 className="mt-3 break-words text-lg font-semibold text-ink">
+                            {getAdminDisplayName(alert)}
+                          </h3>
+                          <p className="mt-1 break-words text-sm text-muted">
+                            {alert.bike_model || "Moto no registrada"} /{" "}
+                            {alert.city || "Sin ciudad"}
+                          </p>
+                        </div>
                       </div>
-                    </div>
-                    <span
-                      className={`shrink-0 rounded-full border px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] ${statusTone}`}
-                    >
-                      {getStatusLabel(alert.status)}
-                    </span>
-                  </div>
-
-                  <CardDivider />
-
-                  <CompactInfoGrid maxItems={4}>
-                    <CompactInfo
-                      icon={<MapPinIcon className="h-3.5 w-3.5" />}
-                      label="Ciudad"
-                      value={alert.city || "Sin ciudad"}
-                      tone="accent"
-                    />
-                    <CompactInfo
-                      icon={<PhoneIcon className="h-3.5 w-3.5" />}
-                      label="Contacto"
-                      value={formatPhoneNumber(alert.emergency_contact)}
-                      tone="accent"
-                    />
-                    <CompactInfo
-                      icon={<MapPinIcon className="h-3.5 w-3.5" />}
-                      label="Ubicacion"
-                      value={formatCoordinatesCompact(alert.latitude, alert.longitude)}
-                      tone="accent"
-                    />
-                    <CompactInfo
-                      icon={<UserGroupIcon className="h-3.5 w-3.5" />}
-                      label="En camino"
-                      value={`${alert.responses.length} motero(s)`}
-                      tone={alert.responses.length > 0 ? "accent" : "muted"}
-                    />
-                  </CompactInfoGrid>
-
-                  <div className="mt-3">
-                    <ExpandTrigger 
-                      collapsedLabel="Ver detalles completos" 
-                      expandedLabel="Ocultar detalles"
-                      className="text-accent/80 hover:text-accent"
-                    >
-                      <span className="text-sm font-medium">
-                        Ver detalles completos
+                      <span
+                        className={`shrink-0 rounded-full border px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] ${statusTone}`}
+                      >
+                        {getStatusLabel(alert.status)}
                       </span>
-                    </ExpandTrigger>
-                  </div>
-                </CompactView>
+                    </div>
 
-                {/* Vista Expandida */}
-                <ExpandedView>
-                  <div className="flex items-start justify-between gap-4">
+                    <CardDivider />
+
+                    <CompactInfoGrid maxItems={4}>
+                      <CompactInfo
+                        icon={<MapPinIcon className="h-3.5 w-3.5" />}
+                        label="Ciudad"
+                        value={alert.city || "Sin ciudad"}
+                        tone="accent"
+                      />
+                      <CompactInfo
+                        icon={<PhoneIcon className="h-3.5 w-3.5" />}
+                        label="Contacto"
+                        value={formatPhoneNumber(alert.emergency_contact)}
+                        tone="accent"
+                      />
+                      <CompactInfo
+                        icon={<MapPinIcon className="h-3.5 w-3.5" />}
+                        label="Ubicacion"
+                        value={formatCoordinatesCompact(alert.latitude, alert.longitude)}
+                        tone="accent"
+                      />
+                      <CompactInfo
+                        icon={<UserGroupIcon className="h-3.5 w-3.5" />}
+                        label="En camino"
+                        value={`${alert.responses.length} motero(s)`}
+                        tone={alert.responses.length > 0 ? "accent" : "muted"}
+                      />
+                    </CompactInfoGrid>
+
+                    <div className="mt-3">
+                      <ExpandTrigger 
+                        isExpanded={isExpanded}
+                        onToggle={() => setIsExpanded((prev) => !prev)}
+                        collapsedLabel="Ver detalles completos" 
+                        expandedLabel="Ocultar detalles"
+                        className="text-accent/80 hover:text-accent"
+                      >
+                        <span className="text-sm font-medium">
+                          {isExpanded ? "Ocultar detalles" : "Ver detalles completos"}
+                        </span>
+                      </ExpandTrigger>
+                    </div>
+                  </CompactView>
+
+                  {/* Vista Expandida */}
+                  {isExpanded ? (
+                    <ExpandedView>
+                      <div className="flex items-start justify-between gap-4">
                     <div className="flex min-w-0 gap-3">
                       <div className={`h-fit rounded-2xl p-3 ${meta.iconClasses}`}>
                         <Icon className="h-5 w-5" />
@@ -397,8 +401,10 @@ export default async function AdminAlertsPage({
                       ) : null}
                     </div>
                   </div>
-                </ExpandedView>
-              </article>
+                    </ExpandedView>
+                  ) : null}
+                </article>
+              )}
             </ExpandableCard>
           );
         })}

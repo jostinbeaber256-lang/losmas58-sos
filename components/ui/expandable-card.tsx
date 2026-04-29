@@ -8,7 +8,7 @@ export function ExpandableCard({
   cardId,
   defaultExpanded = false
 }: {
-  children: React.ReactNode;
+  children: React.ReactNode | ((props: { isExpanded: boolean; setIsExpanded: (value: boolean | ((prev: boolean) => boolean)) => void }) => React.ReactNode);
   cardId: string;
   defaultExpanded?: boolean;
 }) {
@@ -16,7 +16,7 @@ export function ExpandableCard({
 
   return (
     <div className="rounded-2xl border border-white/8 bg-white/[0.04]">
-      {children}
+      {typeof children === 'function' ? children({ isExpanded, setIsExpanded }) : children}
     </div>
   );
 }
