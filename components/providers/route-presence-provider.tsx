@@ -1664,7 +1664,7 @@ export function RoutePresenceProvider({
           setError(message);
         }
       })();
-    }, 10000);
+    }, 20000);
 
     return () => {
       if (rideIntervalRef.current) {

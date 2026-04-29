@@ -133,33 +133,25 @@ function buildRidePopup(participant: RideParticipant, currentUserId: string | nu
   `;
 }
 
-function RecenterRideMap({ position }: { position: Coordinates | null }) {
-  const map = useMap();
-
-  useEffect(() => {
-    if (!position) {
-      return;
-    }
-
-    map.flyTo([position.latitude, position.longitude], 13, {
-      animate: true,
-      duration: 0.8
-    });
-  }, [map, position]);
-
-  return null;
-}
-
 function FitBounds({
   participants,
-  request
+  request,
+  initialLoad,
+  setInitialLoad
 }: {
   participants: RideParticipant[];
   request: number;
+  initialLoad: boolean;
+  setInitialLoad: (value: boolean) => void;
 }) {
   const map = useMap();
 
   useEffect(() => {
+    // Solo recentrar si es carga inicial o solicitud manual del usuario
+    if (!initialLoad && request === 0) {
+      return;
+    }
+
     const points = participants
       .filter(
         (participant) =>
@@ -174,15 +166,19 @@ function FitBounds({
 
     if (points.length === 1) {
       map.flyTo(points[0], 14, { animate: true, duration: 0.7 });
-      return;
+    } else {
+      map.fitBounds(L.latLngBounds(points), {
+        padding: [34, 34],
+        animate: true,
+        duration: 0.7
+      });
     }
 
-    map.fitBounds(L.latLngBounds(points), {
-      padding: [34, 34],
-      animate: true,
-      duration: 0.7
-    });
-  }, [map, participants, request]);
+    // Marcar que ya no es carga inicial después del primer centrado
+    if (initialLoad) {
+      setInitialLoad(false);
+    }
+  }, [map, participants, request, initialLoad, setInitialLoad]);
 
   return null;
 }
@@ -234,6 +230,7 @@ export function RideMapCanvas({
   currentUserId: string | null;
 }) {
   const [fitRequest, setFitRequest] = useState(0);
+  const [initialLoad, setInitialLoad] = useState(true);
   const liveParticipants = useMemo(
     () =>
       participants.filter(
@@ -276,8 +273,7 @@ export function RideMapCanvas({
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
-        <RecenterRideMap position={centerPosition} />
-        <FitBounds participants={liveParticipants} request={fitRequest} />
+        <FitBounds participants={liveParticipants} request={fitRequest} initialLoad={initialLoad} setInitialLoad={setInitialLoad} />
         <RideMarkers participants={liveParticipants} currentUserId={currentUserId} />
       </MapContainer>
     </div>
