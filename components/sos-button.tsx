@@ -118,29 +118,36 @@ export function SosButton() {
           onClick={() => setConfirmOpen(true)}
           disabled={sosLoading}
           aria-busy={sosLoading}
-          className={`group relative flex h-72 w-72 items-center justify-center rounded-full border transition duration-300 hover:scale-[1.02] active:scale-[0.98] disabled:cursor-wait sm:h-80 sm:w-80 ${
+          className={`group relative flex h-[17.5rem] w-[17.5rem] items-center justify-center rounded-full transition duration-300 hover:scale-[1.02] active:scale-[0.98] disabled:cursor-wait sm:h-80 sm:w-80 ${
             sosState === "active" || sosState === "sending"
               ? variant.activeShell
               : variant.idleShell
           }`}
           aria-label="Activar SOS"
         >
-          {/* Borde exterior con gradiente */}
-          <span className="absolute inset-[-16px] rounded-full border border-danger/20 bg-[radial-gradient(circle,rgba(255,77,109,.15),transparent_60%)] blur-sm" />
+          <span
+            className={`pointer-events-none absolute inset-[-1.4rem] rounded-full bg-danger/18 blur-2xl transition duration-300 group-hover:bg-danger/24 ${
+              sosState === "active" ? "animate-sos-radar-strong" : "animate-sos-radar-soft"
+            }`}
+          />
           
-          {/* Superficie interna con gradiente premium */}
-          <span className="absolute inset-[16px] rounded-full border border-white/12 bg-[radial-gradient(circle_at_35%_20%,rgba(255,255,255,.22),transparent_45%)] shadow-[inset_0_1px_0_rgba(255,255,255,.20),inset_0_-24px_44px_rgba(0,0,0,.38),0_0_60px_rgba(255,77,109,.25)]" />
+          <span className="pointer-events-none absolute inset-0 rounded-full bg-[radial-gradient(circle_at_34%_20%,rgba(255,255,255,.30),transparent_26%),radial-gradient(circle_at_50%_60%,rgba(255,77,109,.42),transparent_58%),linear-gradient(155deg,rgba(255,96,129,.92),rgba(121,13,42,.96)_52%,rgba(18,5,12,1))] shadow-[inset_0_1px_0_rgba(255,255,255,.24),inset_0_-34px_62px_rgba(0,0,0,.48),0_28px_90px_rgba(255,77,109,.28)]" />
+          <span className="pointer-events-none absolute inset-[1.1rem] rounded-full bg-[linear-gradient(180deg,rgba(255,255,255,.08),rgba(255,255,255,.015)_42%,rgba(0,0,0,.18))] shadow-[inset_0_24px_48px_rgba(255,255,255,.10),inset_0_-26px_52px_rgba(0,0,0,.42)]" />
           
-          {/* Sombra inferior */}
-          <span className="absolute bottom-12 left-16 right-16 h-14 rounded-full bg-black/50 blur-2xl" />
+          <span className="pointer-events-none absolute left-[22%] top-[16%] h-24 w-28 rounded-full bg-white/24 blur-2xl transition duration-300 group-hover:bg-white/30" />
+          <span
+            className={`pointer-events-none absolute inset-[-.35rem] rounded-full bg-danger/12 blur-md ${
+              sosState === "sending" ? "animate-pulse" : ""
+            }`}
+          />
 
           {/* Contenido central */}
           <div
-            className={`relative flex h-[76%] w-[76%] flex-col items-center justify-center rounded-full text-center backdrop-blur-sm shadow-[inset_0_1px_0_rgba(255,255,255,.20),inset_0_-24px_44px_rgba(0,0,0,.40)] ${variant.innerSurface}`}
+            className="relative flex h-[76%] w-[76%] flex-col items-center justify-center rounded-full text-center backdrop-blur-sm"
           >
             {/* Icono con contenedor premium */}
             <div
-              className={`rounded-[1.5rem] border p-4 shadow-[inset_0_1px_0_rgba(255,255,255,.20),0_16px_36px_rgba(0,0,0,.32)] ${variant.iconWrap}`}
+              className="rounded-[1.35rem] bg-white/12 p-4 shadow-[inset_0_1px_0_rgba(255,255,255,.18),0_16px_36px_rgba(0,0,0,.28)]"
             >
               <ShieldExclamationIcon className="h-11 w-11 text-white" />
             </div>
@@ -157,12 +164,12 @@ export function SosButton() {
             
             {/* Badge de estado premium */}
             <span
-              className={`mt-3 rounded-full border px-4 py-1.5 text-[10px] font-bold uppercase tracking-[0.18em] ${
+              className={`mt-3 rounded-full px-4 py-1.5 text-[10px] font-bold uppercase tracking-[0.18em] shadow-[0_10px_28px_rgba(0,0,0,.22)] ${
                 sosState === "active"
-                  ? "border-white/25 bg-white/18 text-white shadow-[0_0_24px_rgba(255,77,109,0.5)]"
+                  ? "bg-white/18 text-white"
                   : sosState === "sending"
-                    ? "border-white/20 bg-white/14 text-white/95"
-                    : "border-white/14 bg-black/20 text-white/75"
+                    ? "bg-white/14 text-white/95"
+                    : "bg-black/28 text-white/78"
               }`}
             >
               {sosStateLabel}

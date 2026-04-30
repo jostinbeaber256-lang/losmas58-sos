@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useMemo } from "react";
 import {
   ArrowRightIcon,
   ClockIcon,
@@ -62,11 +62,6 @@ export function SosAlertCard({
     updateAlertStatus,
     respondToAlert
   } = useRoutePresence();
-  const messageRef = useRef<HTMLParagraphElement | null>(null);
-  const [descriptionExpanded, setDescriptionExpanded] = useState(false);
-  const [canExpandDescription, setCanExpandDescription] = useState(false);
-  const [operationalDataExpanded, setOperationalDataExpanded] = useState(false);
-  const [helperInfoExpanded, setHelperInfoExpanded] = useState(false);
 
   const isOwner = currentUserId === alert.user_id;
   const isActive = alert.status === "active";
@@ -91,16 +86,6 @@ export function SosAlertCard({
     : emergencyMeta.key === "accidente" || emergencyMeta.key === "emergencia medica"
       ? "border-danger/35 bg-danger/15 text-danger"
       : "border-warning/30 bg-warning/12 text-warning";
-
-  useEffect(() => {
-    const element = messageRef.current;
-
-    if (!element) {
-      return;
-    }
-
-    setCanExpandDescription(element.scrollHeight > element.clientHeight + 1);
-  }, [description, descriptionExpanded]);
 
   const heroCopy = useMemo(() => {
     if (isResponding && isActive) {
@@ -150,7 +135,7 @@ export function SosAlertCard({
         />
       ) : null}
 
-      <div className="relative mb-4 flex flex-col items-start gap-2 pl-1 sm:flex-row sm:items-center sm:justify-between">
+      <div className="relative mb-4 flex flex-col items-center gap-2 text-center sm:flex-row sm:items-center sm:justify-center">
         <div className="inline-flex max-w-full items-center gap-2 rounded-full border border-white/8 bg-white/[0.04] px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.16em] text-muted">
           <ClipboardDocumentListIcon className="h-4 w-4 text-accent" />
           {incidentCode}
@@ -162,21 +147,21 @@ export function SosAlertCard({
         </span>
       </div>
 
-      <div className="flex min-w-0 flex-col gap-3 sm:flex-row sm:items-start">
+      <div className="flex min-w-0 flex-col items-center gap-3 text-center">
         <div className={`w-fit shrink-0 rounded-2xl p-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.04),0_2px_12px_rgba(0,0,0,0.06)] ${emergencyMeta.iconClasses}`}>
           <EmergencyIcon className="h-5 w-5" />
         </div>
 
         <div className="min-w-0 flex-1">
-          <div className="flex min-w-0 flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+          <div className="flex min-w-0 flex-col items-center gap-3">
             <div className="min-w-0 flex-1">
               <p className="text-[11px] uppercase tracking-[0.18em] text-muted">
                 {heroCopy}
               </p>
-              <h3 className="mt-1 text-lg font-semibold leading-6 text-ink [overflow-wrap:normal] [word-break:normal]">
+              <h3 className="mx-auto mt-1 max-w-xl text-xl font-semibold leading-7 text-ink [overflow-wrap:normal] [word-break:normal]">
                 {formatAlertName(alert)}
               </h3>
-              <div className="mt-2 flex min-w-0 flex-wrap items-center gap-2">
+              <div className="mt-3 flex min-w-0 flex-wrap items-center justify-center gap-2">
                 <span
                   className={`max-w-full rounded-full px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.12em] ${emergencyMeta.chipClasses}`}
                 >
@@ -191,7 +176,7 @@ export function SosAlertCard({
               </div>
             </div>
 
-            <div className="flex shrink-0 items-start sm:items-end">
+            <div className="flex shrink-0 items-center">
               <span
                 className={`rounded-full px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.14em] ${statusMeta.classes} ${
                   isActive && !isResponding ? "animate-pulse" : ""
@@ -204,167 +189,86 @@ export function SosAlertCard({
         </div>
       </div>
 
-      <div className="mt-5 flex flex-col gap-3 border-t border-white/8 pt-4 sm:flex-row sm:items-center sm:justify-between">
-        <div className="min-w-0">
-          <p className="text-[11px] uppercase tracking-[0.18em] text-muted">
-            Datos operativos
-          </p>
-          <p className="mt-1 text-sm text-muted">
-            Lectura rapida para coordinar respuesta.
-          </p>
-        </div>
-        <button
-          type="button"
-          onClick={() => setOperationalDataExpanded((current) => !current)}
-          className="inline-flex items-center gap-1.5 rounded-full border border-accent/22 bg-accent/8 px-3 py-1 text-sm font-semibold text-accent transition hover:border-accent/32 hover:bg-accent/12"
-        >
-          {operationalDataExpanded ? "Ver menos" : "Ver más"}
-        </button>
-      </div>
-
-      {operationalDataExpanded ? (
-        <div className="mt-5 grid min-w-0 grid-cols-1 gap-3 sm:grid-cols-2">
-          <div className={`rounded-2xl border px-4 py-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.04),0_2px_12px_rgba(0,0,0,0.06)] ${emergencyMeta.panelClasses}`}>
-            <p className="text-[11px] uppercase tracking-[0.16em] text-muted">
-              Tipo de emergencia
-            </p>
-            <p className="mt-1 break-words text-sm font-semibold text-ink">
-              {emergencyMeta.label}
-            </p>
+      <div className="mt-5 border-t border-white/8 pt-4">
+        <p className="text-center text-[11px] uppercase tracking-[0.18em] text-muted">
+          Datos operativos
+        </p>
+        <div className="mt-3 grid min-w-0 grid-cols-1 gap-3 sm:grid-cols-2">
+          <div className={`rounded-xl border px-3 py-2 ${emergencyMeta.panelClasses}`}>
+            <p className="text-[11px] uppercase tracking-[0.14em] text-muted/70">Tipo</p>
+            <p className="text-sm font-medium text-ink">{emergencyMeta.label}</p>
           </div>
-
-          <div className="rounded-2xl border border-white/8 bg-white/[0.04] px-4 py-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.04),0_2px_12px_rgba(0,0,0,0.06)]">
-            <p className="text-[11px] uppercase tracking-[0.16em] text-muted">
-              Moto / modelo
-            </p>
-            <p className="mt-1 break-words text-sm font-medium text-ink">
-              {alert.bike_model || "Sin moto registrada"}
-            </p>
+          <div className="rounded-xl border border-white/8 bg-white/[0.04] px-3 py-2">
+            <p className="text-[11px] uppercase tracking-[0.14em] text-muted/70">Moto</p>
+            <p className="text-sm font-medium text-ink">{alert.bike_model || "Sin moto registrada"}</p>
           </div>
-
-          <div className="rounded-2xl border border-white/8 bg-white/[0.04] px-4 py-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.04),0_2px_12px_rgba(0,0,0,0.06)]">
-            <p className="flex items-center gap-1.5 text-[11px] uppercase tracking-[0.16em] text-muted">
-              <MapPinIcon className="h-3.5 w-3.5 text-accent" />
+          <div className="rounded-xl border border-white/8 bg-white/[0.04] px-3 py-2">
+            <p className="flex items-center gap-1.5 text-[11px] uppercase tracking-[0.14em] text-muted/70">
+              <MapPinIcon className="h-3 w-3 text-accent" />
               Ciudad
             </p>
-            <p className="mt-1 break-words text-sm font-medium text-ink">
-              {alert.city || "Sin ciudad registrada"}
-            </p>
+            <p className="text-sm font-medium text-ink">{alert.city || "Sin ciudad registrada"}</p>
           </div>
-
-          <div className="rounded-2xl border border-white/8 bg-white/[0.04] px-4 py-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.04),0_2px_12px_rgba(0,0,0,0.06)]">
-            <p className="flex items-center gap-1.5 text-[11px] uppercase tracking-[0.16em] text-muted">
-              <PhoneIcon className="h-3.5 w-3.5 text-accent" />
+          <div className="rounded-xl border border-white/8 bg-white/[0.04] px-3 py-2">
+            <p className="flex items-center gap-1.5 text-[11px] uppercase tracking-[0.14em] text-muted/70">
+              <PhoneIcon className="h-3 w-3 text-accent" />
               Contacto
             </p>
-            <p className="mt-1 break-words text-sm font-medium tracking-[0.05em] text-ink">
-              {formatPhoneNumber(alert.emergency_contact)}
-            </p>
+            <p className="text-sm font-medium tracking-[0.02em] text-ink">{formatPhoneNumber(alert.emergency_contact)}</p>
           </div>
         </div>
-      ) : null}
-
-      <div className="mt-3 rounded-2xl border border-accent/16 bg-accent/6 px-4 py-3 shadow-[0_0_24px_rgba(32,211,238,0.06)]">
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex min-w-0 items-center gap-2">
-            <div className="rounded-xl bg-accent/10 p-2 text-accent">
-              <UserGroupIcon className="h-4 w-4" />
-            </div>
-            <div className="min-w-0">
-              <p className="text-[11px] uppercase tracking-[0.16em] text-muted">
-                Apoyo en camino
-              </p>
-              <p className="mt-1 text-sm font-semibold text-ink">
-                {responseCount} {responseCount === 1 ? "motero va" : "moteros van"} en camino
-              </p>
-            </div>
-          </div>
-          <div className="flex items-center gap-2">
-            {isResponding ? (
-              <span className="w-fit shrink-0 rounded-full border border-accent/22 bg-accent/10 px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.14em] text-accent">
-                Tu respuesta
-              </span>
-            ) : null}
-            {alert.helper_names?.length ? (
-              <button
-                type="button"
-                onClick={() => setHelperInfoExpanded((current) => !current)}
-                className="inline-flex items-center gap-1.5 rounded-full border border-accent/22 bg-accent/8 px-3 py-1 text-sm font-semibold text-accent transition hover:border-accent/32 hover:bg-accent/12"
-              >
-                {helperInfoExpanded ? "Ver menos" : "Ver más"}
-              </button>
-            ) : null}
-          </div>
-        </div>
-        {helperInfoExpanded && alert.helper_names?.length ? (
-          <p className="mt-2 break-words text-sm text-muted">
-            {alert.helper_names.slice(0, 3).join(" - ")}
-            {alert.helper_names.length > 3 ? ` +${alert.helper_names.length - 3}` : ""}
-          </p>
-        ) : null}
       </div>
 
-      <div className="mt-3 grid gap-3">
-        <div className="rounded-2xl border border-white/8 bg-white/[0.04] px-4 py-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.04),0_2px_12px_rgba(0,0,0,0.06)]">
-          <p className="text-[11px] uppercase tracking-[0.16em] text-muted">
+      <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
+        <div className="rounded-xl border border-white/8 bg-white/[0.035] px-3 py-2 text-center">
+          <p className="flex items-center justify-center gap-1.5 text-[11px] uppercase tracking-[0.16em] text-muted">
+            <MapPinIcon className="h-3.5 w-3.5 text-accent" />
             Ubicacion
           </p>
-          <p className="mt-1 break-words text-sm font-medium tracking-[0.05em] text-ink">
+          <p className="mt-1 text-sm font-medium tracking-[0.02em] text-ink">
             {formatCoordinatesCompact(alert.latitude, alert.longitude)}
           </p>
         </div>
+        <div className="rounded-xl border border-white/8 bg-white/[0.035] px-3 py-2 text-center">
+          <p className="flex items-center justify-center gap-1.5 text-[11px] uppercase tracking-[0.16em] text-muted">
+            <UserGroupIcon className="h-3.5 w-3.5 text-accent" />
+            Apoyo en camino
+          </p>
+          <p className="mt-1 text-sm font-semibold text-ink">
+            {responseCount} {responseCount === 1 ? "motero" : "moteros"}
+            {alert.helper_names?.length ? ` (${alert.helper_names.slice(0, 3).join(", ")}${alert.helper_names.length > 3 ? ` +${alert.helper_names.length - 3}` : ""})` : ""}
+          </p>
+        </div>
+      </div>
 
-        <div className="rounded-2xl border border-white/8 bg-white/[0.04] px-4 py-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.04),0_2px_12px_rgba(0,0,0,0.06)]">
-          <p className="text-[11px] uppercase tracking-[0.16em] text-muted">
-            {detailLabel}
-          </p>
-          <p
-            ref={messageRef}
-            className={`mt-1 break-words text-sm leading-6 text-ink ${
-              descriptionExpanded ? "" : "line-clamp-4"
-            }`}
-          >
-            {description}
-          </p>
-          {canExpandDescription ? (
-            <button
-              type="button"
-              onClick={() => setDescriptionExpanded((current) => !current)}
-              className="mt-2 rounded-full border border-accent/22 bg-accent/8 px-3 py-1 text-sm font-semibold text-accent transition hover:border-accent/32 hover:bg-accent/12"
-            >
-              {descriptionExpanded ? "Ver menos" : "Ver más"}
-            </button>
-          ) : null}
+      <div className="mt-4 space-y-3 text-center">
+        <div>
+          <p className="text-[11px] uppercase tracking-[0.16em] text-muted">{detailLabel}</p>
+          <p className="mt-1 break-words text-sm leading-6 text-ink">{description}</p>
         </div>
 
         {alert.medical_summary ? (
-          <div className="rounded-2xl border border-danger/18 bg-danger/8 px-4 py-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.04),0_2px_12px_rgba(255,77,109,0.06)]">
-            <p className="text-[11px] uppercase tracking-[0.16em] text-danger">
-              Ficha medica compartida
-            </p>
-            <p className="mt-1 break-words text-sm leading-6 text-ink">
-              {alert.medical_summary}
-            </p>
+          <div className="rounded-xl border border-danger/20 bg-danger/8 px-4 py-3">
+            <p className="text-[11px] uppercase tracking-[0.16em] text-danger">Ficha medica compartida</p>
+            <p className="mt-1 break-words text-sm leading-6 text-ink">{alert.medical_summary}</p>
           </div>
         ) : null}
       </div>
 
-      <div className="mt-5 rounded-[1.35rem] border border-white/8 bg-black/16 p-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.04),0_2px_12px_rgba(0,0,0,0.06)]">
-        <div className="mb-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-          <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-muted">
-            Acciones de respuesta
-          </p>
+      <div className="mt-5 rounded-[1.25rem] border border-white/8 bg-black/16 p-3">
+        <div className="mb-3 flex flex-col items-center gap-2 text-center">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-muted">Acciones de respuesta</p>
           {responseCount > 0 ? (
-            <span className="w-fit rounded-full border border-accent/22 bg-accent/8 px-3 py-1.5 text-[11px] font-semibold text-accent">
+            <span className="w-fit rounded-full border border-accent/22 bg-accent/8 px-3 py-1 text-[11px] font-semibold text-accent">
               {responseCount} en camino
             </span>
           ) : null}
         </div>
 
-        <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap">
+        <div className="flex flex-col justify-center gap-2 sm:flex-row sm:flex-wrap">
           <Link
             href={`/mapa?alerta=${alert.id}`}
-            className="inline-flex items-center justify-center gap-2 rounded-2xl border border-accent/22 bg-accent/8 px-4 py-3 text-sm font-semibold text-accent transition hover:border-accent/32 hover:bg-accent/12 shadow-[inset_0_1px_0_rgba(255,255,255,0.04),0_2px_12px_rgba(32,211,238,0.06)]"
+            className="inline-flex items-center justify-center gap-2 rounded-xl border border-accent/22 bg-accent/8 px-4 py-2.5 text-sm font-semibold text-accent transition hover:border-accent/32 hover:bg-accent/12"
           >
             Ver en mapa
             <ArrowRightIcon className="h-4 w-4" />
@@ -376,7 +280,7 @@ export function SosAlertCard({
                 type="button"
                 onClick={() => updateAlertStatus(alert.id, "resolved")}
                 disabled={isUpdating}
-                className="rounded-2xl bg-accent px-4 py-3 text-sm font-semibold text-background shadow-[0_0_24px_rgba(32,211,238,0.18),inset_0_1px_0_rgba(255,255,255,0.2)] transition hover:brightness-110 disabled:opacity-70"
+                className="rounded-xl bg-accent px-4 py-2.5 text-sm font-semibold text-background transition hover:brightness-110 disabled:opacity-70"
               >
                 {isUpdating ? "Actualizando..." : "Marcar resuelta"}
               </button>
@@ -384,7 +288,7 @@ export function SosAlertCard({
                 type="button"
                 onClick={() => updateAlertStatus(alert.id, "cancelled")}
                 disabled={isUpdating}
-                className="rounded-2xl border border-danger/25 bg-danger/8 px-4 py-3 text-sm font-semibold text-danger transition hover:border-danger/35 hover:bg-danger/12 shadow-[inset_0_1px_0_rgba(255,255,255,0.04),0_2px_12px_rgba(255,77,109,0.06)] disabled:opacity-70"
+                className="rounded-xl border border-danger/25 bg-danger/8 px-4 py-2.5 text-sm font-semibold text-danger transition hover:border-danger/35 hover:bg-danger/12 disabled:opacity-70"
               >
                 Cancelar SOS
               </button>
@@ -396,10 +300,10 @@ export function SosAlertCard({
               type="button"
               onClick={handleResponding}
               disabled={isSubmittingResponse || isResponding}
-              className={`rounded-2xl px-4 py-3 text-sm font-semibold transition ${
+              className={`rounded-xl px-4 py-2.5 text-sm font-semibold transition ${
                 isResponding
                   ? "border border-accent/25 bg-accent/10 text-accent"
-                  : "border border-accent/25 bg-accent/8 text-accent hover:bg-accent/12 hover:border-accent/32"
+                  : "border border-accent/25 bg-accent/8 text-accent hover:bg-accent/12"
               }`}
             >
               {isSubmittingResponse ? (

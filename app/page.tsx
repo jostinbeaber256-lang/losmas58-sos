@@ -53,7 +53,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section className="mx-auto w-full max-w-3xl">
+      <section className="w-full">
         <div className="relative overflow-hidden rounded-[2.2rem] border border-danger/18 bg-[radial-gradient(circle_at_50%_-10%,rgba(255,77,109,0.28),transparent_34%),radial-gradient(circle_at_15%_85%,rgba(136,19,55,0.18),transparent_36%),linear-gradient(155deg,rgba(21,13,25,0.98),rgba(8,12,22,0.98)_52%,rgba(18,7,14,0.98))] px-6 py-7 text-center shadow-[0_28px_80px_rgba(127,29,29,0.16),inset_0_1px_0_rgba(255,255,255,0.04)] md:px-8 md:py-8">
           <div className="pointer-events-none absolute left-1/2 top-8 h-44 w-44 -translate-x-1/2 rounded-full bg-danger/10 blur-3xl" />
           <div className="pointer-events-none absolute -right-16 -top-16 h-48 w-48 rounded-full bg-fuchsia-500/8 blur-3xl" />
@@ -125,9 +125,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section className="los-card">
-        <AlertPreview alerts={alerts} />
-      </section>
+      <AlertPreview alerts={alerts} />
     </main>
   );
 }

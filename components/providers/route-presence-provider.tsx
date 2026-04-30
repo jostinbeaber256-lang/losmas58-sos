@@ -8,7 +8,7 @@ import {
   useRef,
   useState
 } from "react";
-import type { Session } from "@supabase/supabase-js";
+import type { User } from "@supabase/supabase-js";
 import type {
   ActiveRider,
   Coordinates,
@@ -142,8 +142,8 @@ function buildSosMedicalSummary(medicalProfile: MedicalProfile | null) {
   return parts.length > 0 ? parts.join(" | ") : null;
 }
 
-function getDefaultProfileValues(session: Session | null, userId: string) {
-  const metadata = session?.user.user_metadata ?? {};
+function getDefaultProfileValues(user: User | null, userId: string) {
+  const metadata = user?.user_metadata ?? {};
   const rawName =
     typeof metadata.full_name === "string"
       ? metadata.full_name
@@ -216,10 +216,10 @@ function withTimeout<T>(
 
 export function RoutePresenceProvider({
   children,
-  session
+  user
 }: {
   children: React.ReactNode;
-  session: Session | null;
+  user: User | null;
 }) {
   const [supabase] = useState(createClient);
   const [profile, setProfile] = useState<Profile | null>(null);
@@ -247,8 +247,8 @@ export function RoutePresenceProvider({
   const profileRef = useRef<Profile | null>(null);
   const trackingSessionRef = useRef(0);
 
-  const isAuthenticated = Boolean(session?.user.id);
-  const userId = session?.user.id ?? null;
+  const isAuthenticated = Boolean(user?.id);
+  const userId = user?.id ?? null;
 
   useEffect(() => {
     profileRef.current = profile;
@@ -268,7 +268,7 @@ export function RoutePresenceProvider({
       return null;
     }
 
-    const defaults = getDefaultProfileValues(session, userId);
+    const defaults = getDefaultProfileValues(user, userId);
     const { data: insertedProfile, error: insertError } = await supabase
       .from("profiles")
       .insert(defaults)

@@ -70,8 +70,8 @@ export function AlertPreview({
   return (
     <section className="los-card md:p-7">
       <div className="pointer-events-none absolute -right-24 -top-16 h-52 w-52 rounded-full bg-danger/10 blur-3xl" />
-      <div className="relative flex flex-col gap-4 text-center sm:flex-row sm:items-start sm:justify-between sm:text-left">
-        <div className="los-section-head los-section-head-center sm:items-start sm:text-left">
+      <div className="relative flex flex-col items-center gap-4 text-center">
+        <div className="los-section-head los-section-head-center">
           <p className="los-section-kicker text-danger/80">
             Actividad
           </p>
@@ -84,7 +84,7 @@ export function AlertPreview({
               : "Sin emergencias activas ahora mismo"}
           </p>
         </div>
-        <span className="los-chip los-chip-danger mx-auto sm:mx-0">
+        <span className="los-chip los-chip-danger mx-auto">
           <BellAlertIcon className="h-4 w-4" />
           {alerts.length} total
         </span>
@@ -100,7 +100,7 @@ export function AlertPreview({
                 key={filter.id}
                 type="button"
                 onClick={() => setSelectedFilter(filter.id)}
-                className={`rounded-2xl px-3 py-3 text-left text-sm font-medium transition ${
+                className={`rounded-2xl px-3 py-3 text-center text-sm font-medium transition ${
                   isActive
                     ? "border border-accent/30 bg-accent/10 text-accent shadow-[0_0_20px_rgba(32,211,238,0.10)]"
                     : "border border-white/8 bg-white/[0.04] text-muted hover:border-accent/22 hover:bg-white/[0.06] hover:text-ink"
@@ -118,13 +118,13 @@ export function AlertPreview({
         </div>
       ) : null}
 
-      <div className="relative mt-5 grid min-w-0 grid-cols-1 gap-4 xl:grid-cols-2">
+      <div className="relative mt-5 grid min-w-0 grid-cols-1 gap-4">
         {filteredAlerts.map((alert) => (
           <SosAlertCard key={alert.id} alert={alert} compact={!expanded && !filterable} />
         ))}
 
         {!filteredAlerts.length ? (
-          <div className="los-empty xl:col-span-2">
+          <div className="los-empty">
             <div className="mx-auto grid h-14 w-14 place-items-center rounded-2xl border border-accent/18 bg-accent/8 shadow-[0_0_24px_rgba(32,211,238,0.08)]">
               <ShieldCheckIcon className="h-6 w-6 text-accent" />
             </div>

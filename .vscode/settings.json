@@ -1,0 +1,5 @@
+{
+    "[yaml]": {
+        "geminicodeassist.rules": "\n\nname: My Config version: 0.0.1 schema: v1  models:   - name: Gemini 3.1 Pro     provider: gemini     model: gemini-3.1-pro     apiKey: AIzaSyDGlY51Zqly_r85bSoYEP7RuUdQE91CSG8\n\n"
+    }
+}

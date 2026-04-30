@@ -3,20 +3,24 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import type { Session } from "@supabase/supabase-js";
+import type { User } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/browser";
 
-export function AuthStatus({ initialSession }: { initialSession: Session | null }) {
+export function AuthStatus({ initialUser }: { initialUser: User | null }) {
   const router = useRouter();
   const [supabase] = useState(createClient);
-  const [session, setSession] = useState<Session | null>(initialSession);
+  const [user, setUser] = useState<User | null>(initialUser);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     const {
       data: { subscription }
-    } = supabase.auth.onAuthStateChange((_event, nextSession) => {
-      setSession(nextSession);
+    } = supabase.auth.onAuthStateChange(async () => {
+      const {
+        data: { user: verifiedUser }
+      } = await supabase.auth.getUser();
+
+      setUser(verifiedUser);
       router.refresh();
     });
 
@@ -26,7 +30,7 @@ export function AuthStatus({ initialSession }: { initialSession: Session | null 
   async function handleSignOut() {
     setLoading(true);
     await supabase.auth.signOut();
-    setSession(null);
+    setUser(null);
 
     if (typeof window !== "undefined") {
       window.location.replace("/login");
@@ -38,7 +42,7 @@ export function AuthStatus({ initialSession }: { initialSession: Session | null 
     setLoading(false);
   }
 
-  if (!session) {
+  if (!user) {
     return (
       <Link
         href="/login"

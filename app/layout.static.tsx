@@ -53,8 +53,8 @@ export default function RootLayout({
   return (
     <html lang="es">
       <body>
-        <RoutePresenceProvider session={null}>
-          <MobileShell session={null} initialIsAdmin={false}>
+        <RoutePresenceProvider user={null}>
+          <MobileShell user={null} initialIsAdmin={false}>
             {children}
           </MobileShell>
         </RoutePresenceProvider>

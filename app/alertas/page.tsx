@@ -15,8 +15,8 @@ export default function AlertsPage() {
         <div className="pointer-events-none absolute -right-20 -top-24 h-56 w-56 rounded-full bg-danger/15 blur-3xl" />
         <div className="pointer-events-none absolute -bottom-24 left-6 h-56 w-56 rounded-full bg-accent/10 blur-3xl" />
 
-        <div className="relative flex flex-col gap-5 text-center lg:flex-row lg:items-end lg:justify-between lg:text-left">
-          <div className="los-section-head los-section-head-center max-w-xl lg:items-start lg:text-left">
+        <div className="relative flex flex-col items-center gap-5 text-center">
+          <div className="los-section-head los-section-head-center max-w-2xl">
             <div className="los-chip los-chip-danger">
               <BellAlertIcon className="h-4 w-4" />
               Panel SOS
@@ -30,7 +30,7 @@ export default function AlertsPage() {
             </p>
           </div>
 
-          <div className="grid grid-cols-3 gap-2 sm:min-w-[360px]">
+          <div className="grid w-full max-w-xl grid-cols-3 gap-2">
             <div className="los-card-compact text-center">
               <BellAlertIcon className="mx-auto h-5 w-5 text-danger" />
               <p className="mt-2 text-lg font-semibold text-ink">{activeCount}</p>

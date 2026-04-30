@@ -6,7 +6,7 @@ import "leaflet.markercluster/dist/MarkerCluster.Default.css";
 import { MobileShell } from "@/components/mobile-shell";
 import { RoutePresenceProvider } from "@/components/providers/route-presence-provider";
 import { getIsUserAdmin } from "@/lib/admin/access";
-import { getCurrentUser, getCurrentSession } from "@/lib/supabase/auth";
+import { getCurrentUser } from "@/lib/supabase/auth";
 
 export const dynamic = "force-dynamic";
 
@@ -53,15 +53,14 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const session = await getCurrentSession();
   const user = await getCurrentUser();
   const initialIsAdmin = await getIsUserAdmin(user?.id);
 
   return (
     <html lang="es">
       <body>
-        <RoutePresenceProvider session={session}>
-          <MobileShell session={session} initialIsAdmin={initialIsAdmin}>
+        <RoutePresenceProvider user={user}>
+          <MobileShell user={user} initialIsAdmin={initialIsAdmin}>
             {children}
           </MobileShell>
         </RoutePresenceProvider>

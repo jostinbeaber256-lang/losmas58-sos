@@ -77,7 +77,16 @@ export function AuthForm({ mode }: { mode: AuthMode }) {
 
   async function navigateAfterAuth(target: Route) {
     setSuccess("Acceso confirmado. Cargando tu panel Los+58...");
-    await supabase.auth.getSession();
+    const {
+      data: { user },
+      error: userError
+    } = await supabase.auth.getUser();
+
+    if (userError || !user) {
+      setError(userError?.message || "No se pudo verificar el usuario autenticado.");
+      setLoading(false);
+      return;
+    }
 
     if (typeof window !== "undefined") {
       await waitForSessionCookie();
@@ -178,7 +187,7 @@ export function AuthForm({ mode }: { mode: AuthMode }) {
   }
 
   return (
-    <section className="relative mx-auto flex min-h-[calc(100svh-8rem)] w-full max-w-5xl items-center justify-center overflow-hidden rounded-[2.5rem] border border-white/10 bg-[radial-gradient(circle_at_12%_45%,rgba(32,211,238,0.22),transparent_28%),radial-gradient(circle_at_92%_62%,rgba(255,77,109,0.24),transparent_28%),linear-gradient(180deg,rgba(3,10,26,1),rgba(2,6,17,1))] px-4 py-8 shadow-[0_30px_110px_rgba(0,0,0,0.5)] sm:px-6 md:py-10">
+    <section className="relative mx-auto flex min-h-[calc(100svh-5rem)] w-full max-w-5xl items-center justify-center overflow-hidden border-y border-white/10 bg-[radial-gradient(circle_at_12%_45%,rgba(32,211,238,0.22),transparent_28%),radial-gradient(circle_at_92%_62%,rgba(255,77,109,0.24),transparent_28%),linear-gradient(180deg,rgba(3,10,26,1),rgba(2,6,17,1))] px-4 py-8 shadow-[0_30px_110px_rgba(0,0,0,0.5)] sm:rounded-[2.5rem] sm:border sm:px-6 md:py-10">
       <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(115deg,transparent_0%,rgba(32,211,238,0.06)_22%,transparent_43%,rgba(255,77,109,0.06)_74%,transparent_100%)]" />
       <div className="pointer-events-none absolute -left-20 top-1/3 h-72 w-72 rounded-full bg-accent/16 blur-3xl" />
       <div className="pointer-events-none absolute -right-20 bottom-1/4 h-72 w-72 rounded-full bg-danger/16 blur-3xl" />
