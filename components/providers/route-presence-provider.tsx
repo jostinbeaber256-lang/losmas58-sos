@@ -217,6 +217,38 @@ function withTimeout<T>(
   });
 }
 
+function isAuthLockError(error: unknown) {
+  const message = error instanceof Error ? error.message : String(error ?? "");
+
+  return (
+    message.includes("auth-token") ||
+    message.includes("request stole it") ||
+    message.includes("Lock")
+  );
+}
+
+async function withAuthLockRetry<T>(operation: () => Promise<T>) {
+  try {
+    return await operation();
+  } catch (error) {
+    if (!isAuthLockError(error)) {
+      throw error;
+    }
+
+    console.warn("[Los58Auth] Supabase auth lock detected, retrying once.", error);
+    await new Promise((resolve) => setTimeout(resolve, 450));
+    return operation();
+  }
+}
+
+function hasValidCoords(coords: Coordinates | null | undefined): coords is Coordinates {
+  return Boolean(
+    coords &&
+      Number.isFinite(coords.latitude) &&
+      Number.isFinite(coords.longitude)
+  );
+}
+
 export function RoutePresenceProvider({
   children,
   user
@@ -244,6 +276,7 @@ export function RoutePresenceProvider({
   const [medicalProfileSaving, setMedicalProfileSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [sosFeedback, setSosFeedback] = useState<string | null>(null);
+  const [currentUser, setCurrentUser] = useState<User | null>(user);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const rideIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const watchIdRef = useRef<string | number | null>(null);
@@ -251,8 +284,33 @@ export function RoutePresenceProvider({
   const profileRef = useRef<Profile | null>(null);
   const trackingSessionRef = useRef(0);
 
-  const isAuthenticated = Boolean(user?.id);
-  const userId = user?.id ?? null;
+  const isAuthenticated = Boolean(currentUser?.id);
+  const userId = currentUser?.id ?? null;
+
+  useEffect(() => {
+    let mounted = true;
+
+    void supabase.auth.getUser().then(({ data }) => {
+      if (mounted) {
+        setCurrentUser(data.user ?? null);
+      }
+    });
+
+    const {
+      data: { subscription }
+    } = supabase.auth.onAuthStateChange(() => {
+      void supabase.auth.getUser().then(({ data }) => {
+        if (mounted) {
+          setCurrentUser(data.user ?? null);
+        }
+      });
+    });
+
+    return () => {
+      mounted = false;
+      subscription.unsubscribe();
+    };
+  }, [supabase]);
 
   useEffect(() => {
     profileRef.current = profile;
@@ -272,7 +330,7 @@ export function RoutePresenceProvider({
       return null;
     }
 
-    const defaults = getDefaultProfileValues(user, userId);
+    const defaults = getDefaultProfileValues(currentUser, userId);
     const { data: insertedProfile, error: insertError } = await supabase
       .from("profiles")
       .insert(defaults)
@@ -443,6 +501,34 @@ export function RoutePresenceProvider({
       setActiveRideEvent(null);
       setRideParticipants([]);
       return;
+    }
+
+    try {
+      const response = await withTimeout(
+        fetch("/api/rides/active", { cache: "no-store" }),
+        10000,
+        "No se pudo cargar la rodada activa."
+      );
+
+      if (response.ok) {
+        const payload = (await response.json()) as {
+          activeRideEvent: GroupRideEvent | null;
+          rideParticipants: RideParticipant[];
+        };
+
+        setActiveRideEvent(payload.activeRideEvent);
+        setRideParticipants(payload.rideParticipants ?? []);
+        setError(null);
+        return;
+      }
+
+      const result = await response.json().catch(() => null);
+      console.warn("[rides] Active ride API returned non-ok response", {
+        status: response.status,
+        result
+      });
+    } catch (apiError) {
+      console.warn("[rides] Falling back to client query", apiError);
     }
 
     const { data: eventData, error: eventError } = await supabase
@@ -673,12 +759,16 @@ export function RoutePresenceProvider({
         : null
     };
 
-    const { data, error: updateError } = await supabase
-      .from("profiles")
-      .update(payload)
-      .eq("id", userId)
-      .select(profileSelect)
-      .single();
+    const { data, error: updateError } = await withAuthLockRetry(() =>
+      Promise.resolve(
+        supabase
+          .from("profiles")
+          .update(payload)
+          .eq("id", userId)
+          .select(profileSelect)
+          .single()
+      )
+    );
 
     if (updateError) {
       setError(updateError.message);
@@ -695,8 +785,43 @@ export function RoutePresenceProvider({
         : null
     );
     setError(null);
-    await loadActiveRiders();
+    void loadActiveRiders().catch((ridersError) => {
+      console.warn("[routes] Could not refresh active riders after location update", ridersError);
+    });
     return true;
+  }
+
+  async function getSosCoordinates() {
+    try {
+      return await withTimeout(
+        getDevicePosition(),
+        12000,
+        "No se pudo obtener tu ubicacion actual a tiempo."
+      );
+    } catch (locationError) {
+      const profileCoords =
+        typeof profileRef.current?.latitude === "number" &&
+        typeof profileRef.current?.longitude === "number"
+          ? {
+              latitude: profileRef.current.latitude,
+              longitude: profileRef.current.longitude
+            }
+          : null;
+      const fallbackCoords = hasValidCoords(latestPosition)
+        ? latestPosition
+        : hasValidCoords(profileCoords)
+          ? profileCoords
+          : null;
+
+      if (fallbackCoords) {
+        console.warn("[Los58SOS] Using last known location after GPS error", locationError);
+        return fallbackCoords;
+      }
+
+      throw new Error(
+        "No se pudo obtener tu ubicacion actual. Verifica GPS y permisos."
+      );
+    }
   }
 
   function stopTracking() {
@@ -1116,31 +1241,35 @@ export function RoutePresenceProvider({
 
     try {
       console.log("[Los58SOS] Requesting position");
-      const coords = await withTimeout(
-        getDevicePosition(),
-        26000,
-        "No se pudo obtener tu ubicacion actual. Verifica GPS y permisos."
-      );
+      const coords = await getSosCoordinates();
 
-      if (
-        !Number.isFinite(coords.latitude) ||
-        !Number.isFinite(coords.longitude)
-      ) {
+      if (!hasValidCoords(coords)) {
         throw new Error(
           "No se pudo obtener tu ubicacion actual. Verifica GPS y permisos."
         );
       }
 
       console.log("[Los58SOS] Position received", coords);
-      const latestMedicalProfile = await getMedicalProfileForSos();
-
-      const updated = await pushLocationUpdate({
-        routeActive: true,
-        emergencyState: "emergency",
-        emergencyTrackingActive:
-          emergencyType === "Robo" || Boolean(profile?.emergency_tracking_active),
-        coordsOverride: coords
+      const latestMedicalProfile = await withTimeout(
+        getMedicalProfileForSos(),
+        6000,
+        "No se pudo cargar la ficha medica para el SOS."
+      ).catch((medicalError) => {
+        console.warn("[Los58SOS] Medical profile lookup skipped", medicalError);
+        return null;
       });
+
+      const updated = await withTimeout(
+        pushLocationUpdate({
+          routeActive: true,
+          emergencyState: "emergency",
+          emergencyTrackingActive:
+            emergencyType === "Robo" || Boolean(profile?.emergency_tracking_active),
+          coordsOverride: coords
+        }),
+        8000,
+        "No se pudo preparar tu ubicacion para el SOS."
+      );
 
       if (!updated) {
         console.warn("[Los58SOS] Location state update failed before alert insert");
@@ -1151,26 +1280,34 @@ export function RoutePresenceProvider({
       }
 
       console.log("[Los58SOS] Creating sos_alert");
-      const { data, error: alertError } = await supabase
-        .from("sos_alerts")
-        .insert({
-          user_id: userId,
-          full_name: profile?.full_name,
-          username: profile?.username,
-          bike_model: profile?.bike_model,
-          city: profile?.city,
-          emergency_contact: profile?.emergency_contact,
-          emergency_type: emergencyType,
-          emergency_details:
-            emergencyType === "Otros" ? emergencyDetails?.trim() || null : null,
-          medical_summary: buildSosMedicalSummary(latestMedicalProfile),
-          latitude: coords.latitude,
-          longitude: coords.longitude,
-          status: "active",
-          message: buildSosMessage({ emergencyType, emergencyDetails })
-        })
-        .select(alertSelect)
-        .single();
+      const { data, error: alertError } = await withTimeout(
+        withAuthLockRetry(() =>
+          Promise.resolve(
+            supabase
+              .from("sos_alerts")
+              .insert({
+                user_id: userId,
+                full_name: profile?.full_name,
+                username: profile?.username,
+                bike_model: profile?.bike_model,
+                city: profile?.city,
+                emergency_contact: profile?.emergency_contact,
+                emergency_type: emergencyType,
+                emergency_details:
+                  emergencyType === "Otros" ? emergencyDetails?.trim() || null : null,
+                medical_summary: buildSosMedicalSummary(latestMedicalProfile),
+                latitude: coords.latitude,
+                longitude: coords.longitude,
+                status: "active",
+                message: buildSosMessage({ emergencyType, emergencyDetails })
+              })
+              .select(alertSelect)
+              .single()
+          )
+        ),
+        10000,
+        "No se pudo crear la alerta SOS a tiempo."
+      );
 
       if (alertError) {
         console.error("[Los58SOS] Supabase sos_alert insert failed", alertError);
@@ -1184,20 +1321,22 @@ export function RoutePresenceProvider({
         `SOS enviado por ${emergencyType.toLowerCase()}. Tu ubicacion fue compartida con la comunidad.`
       );
       void startTracking();
-      try {
-        await withTimeout(
-          notifyPushEvent({
-            type: "new_sos",
-            alertId: data.id
-          }),
-          8000,
-          "El SOS fue creado, pero la notificacion push tardo demasiado."
+      void withTimeout(
+        notifyPushEvent({
+          type: "new_sos",
+          alertId: data.id
+        }),
+        8000,
+        "El SOS fue creado, pero la notificacion push tardo demasiado."
+      )
+        .then(() => console.log("[Los58SOS] Push event sent", { alertId: data.id }))
+        .catch((pushError) =>
+          console.warn("[Los58SOS] Push event failed after SOS creation", pushError)
         );
-        console.log("[Los58SOS] Push event sent", { alertId: data.id });
-      } catch (pushError) {
-        console.warn("[Los58SOS] Push event failed after SOS creation", pushError);
-      }
-      await Promise.all([loadAlerts(), loadResponses(), loadActiveRiders()]);
+      void Promise.all([loadAlerts(), loadResponses(), loadActiveRiders()]).catch(
+        (refreshError) =>
+          console.warn("[Los58SOS] SOS created but refresh failed", refreshError)
+      );
       return true;
     } catch (sosError) {
       const messageText =
@@ -1480,6 +1619,14 @@ export function RoutePresenceProvider({
     }
 
     void loadActiveRideData();
+
+    const refreshId = setInterval(() => {
+      void loadActiveRideData();
+    }, 10000);
+
+    return () => {
+      clearInterval(refreshId);
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pathname, userId]);
 
