@@ -413,33 +413,17 @@ export function PushNotificationCard() {
       const subscription = await registration.pushManager.getSubscription();
 
       if (!subscription) {
-        if (Notification.permission !== "granted") {
-          setStatus("inactive");
-          setStep("idle");
-          setMessage(null);
-          return;
-        }
-
-        await handleEnableWebPush();
-        return;
-      }
-
-      const { data, error } = await supabase
-        .from("push_subscriptions")
-        .select("enabled")
-        .eq("endpoint", subscription.endpoint)
-        .eq("user_id", currentUserId)
-        .maybeSingle<{ enabled: boolean }>();
-
-      if (error) {
-        setStatus("error");
+        setStatus("inactive");
         setStep("idle");
-        setMessage(error.message);
+        setMessage(
+          Notification.permission === "granted"
+            ? "Permiso concedido. Toca activar para registrar este dispositivo."
+            : null
+        );
         return;
       }
 
-      if (Notification.permission === "granted" && data?.enabled !== false) {
-        await saveWebSubscription(subscription, true);
+      if (Notification.permission === "granted") {
         setStatus("enabled");
         setStep("done");
         setMessage("Notificaciones push activas en este dispositivo.");
@@ -448,7 +432,7 @@ export function PushNotificationCard() {
 
       setStatus("inactive");
       setStep("idle");
-      setMessage(data?.enabled === false ? "Push desactivadas manualmente en este dispositivo." : null);
+      setMessage(null);
     } catch (pushError) {
       setStatus("error");
       setStep("idle");

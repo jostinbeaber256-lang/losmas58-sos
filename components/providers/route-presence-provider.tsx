@@ -99,6 +99,8 @@ const groupRideSelect =
 
 const rideParticipantSelect =
   "id, event_id, user_id, full_name, username, bike_model, city, avatar_url, is_admin, attendance_status, live_route_enabled, current_lat, current_lng, last_seen_at, updated_at";
+const rideParticipantSelectWithoutAvatar =
+  "id, event_id, user_id, full_name, username, bike_model, city, is_admin, attendance_status, live_route_enabled, current_lat, current_lng, last_seen_at, updated_at";
 
 function formatAlertTitle(alert: SosAlert) {
   return alert.full_name || alert.username || "Motero en emergencia";
@@ -464,15 +466,38 @@ export function RoutePresenceProvider({
 
     setActiveRideEvent(eventData);
 
-    const { data: participantData, error: participantError } = await supabase
+    let { data: participantData, error: participantError } = await supabase
       .from("ride_participants")
       .select(rideParticipantSelect)
       .eq("event_id", eventData.id)
       .order("updated_at", { ascending: false });
 
     if (participantError) {
-      setError(participantError.message);
-      return;
+      const missingAvatarColumn =
+        participantError.message.includes("avatar_url") ||
+        participantError.message.includes("schema cache");
+
+      if (!missingAvatarColumn) {
+        setError(participantError.message);
+        return;
+      }
+
+      const fallback = await supabase
+        .from("ride_participants")
+        .select(rideParticipantSelectWithoutAvatar)
+        .eq("event_id", eventData.id)
+        .order("updated_at", { ascending: false });
+
+      participantData = (fallback.data ?? []).map((participant) => ({
+        ...participant,
+        avatar_url: null
+      }));
+      participantError = fallback.error;
+
+      if (participantError) {
+        setError(participantError.message);
+        return;
+      }
     }
 
     setRideParticipants(participantData ?? []);
@@ -494,31 +519,50 @@ export function RoutePresenceProvider({
     const now = new Date().toISOString();
     const nextLiveRouteEnabled =
       liveRouteEnabled ?? false;
-    const { data, error: participantError } = await supabase
+    const payload = {
+      event_id: activeRideEvent.id,
+      user_id: userId,
+      full_name: profileRef.current?.full_name ?? null,
+      username: profileRef.current?.username ?? null,
+      bike_model: profileRef.current?.bike_model ?? null,
+      city: profileRef.current?.city ?? null,
+      avatar_url: profileRef.current?.avatar_url ?? null,
+      is_admin: Boolean(profileRef.current?.is_admin),
+      attendance_status: attendanceStatus,
+      live_route_enabled: nextLiveRouteEnabled,
+      current_lat: nextLiveRouteEnabled ? coords?.latitude ?? null : null,
+      current_lng: nextLiveRouteEnabled ? coords?.longitude ?? null : null,
+      last_seen_at: nextLiveRouteEnabled && coords ? now : null
+    };
+    let { data, error: participantError } = await supabase
       .from("ride_participants")
-      .upsert(
-        {
-          event_id: activeRideEvent.id,
-          user_id: userId,
-          full_name: profileRef.current?.full_name ?? null,
-          username: profileRef.current?.username ?? null,
-          bike_model: profileRef.current?.bike_model ?? null,
-          city: profileRef.current?.city ?? null,
-          avatar_url: profileRef.current?.avatar_url ?? null,
-          is_admin: Boolean(profileRef.current?.is_admin),
-          attendance_status: attendanceStatus,
-          live_route_enabled: nextLiveRouteEnabled,
-          current_lat: nextLiveRouteEnabled ? coords?.latitude ?? null : null,
-          current_lng: nextLiveRouteEnabled ? coords?.longitude ?? null : null,
-          last_seen_at: nextLiveRouteEnabled && coords ? now : null
-        },
-        { onConflict: "event_id,user_id" }
-      )
+      .upsert(payload, { onConflict: "event_id,user_id" })
       .select(rideParticipantSelect)
       .single();
 
+    if (
+      participantError &&
+      (participantError.message.includes("avatar_url") ||
+        participantError.message.includes("schema cache"))
+    ) {
+      const { avatar_url: _avatarUrl, ...payloadWithoutAvatar } = payload;
+      const fallback = await supabase
+        .from("ride_participants")
+        .upsert(payloadWithoutAvatar, { onConflict: "event_id,user_id" })
+        .select(rideParticipantSelectWithoutAvatar)
+        .single();
+
+      data = fallback.data ? { ...fallback.data, avatar_url: null } : null;
+      participantError = fallback.error;
+    }
+
     if (participantError) {
       setError(participantError.message);
+      return false;
+    }
+
+    if (!data) {
+      setError("No se pudo guardar tu participacion en la rodada.");
       return false;
     }
 
@@ -763,15 +807,9 @@ export function RoutePresenceProvider({
       } else {
         const coords = await withTimeout(
           getDevicePosition(),
-          15000,
+          26000,
           "No se pudo iniciar la ruta. Verifica GPS y permisos."
         );
-        const trackingStarted = await startTracking();
-
-        if (!trackingStarted) {
-          return;
-        }
-
         const success = await pushLocationUpdate({
           routeActive: true,
           emergencyState: profile?.emergency_state ?? "normal",
@@ -780,7 +818,10 @@ export function RoutePresenceProvider({
 
         if (!success) {
           stopTracking();
+          return;
         }
+
+        void startTracking();
       }
     } catch (toggleError) {
       const message =
@@ -1077,7 +1118,7 @@ export function RoutePresenceProvider({
       console.log("[Los58SOS] Requesting position");
       const coords = await withTimeout(
         getDevicePosition(),
-        12000,
+        26000,
         "No se pudo obtener tu ubicacion actual. Verifica GPS y permisos."
       );
 
