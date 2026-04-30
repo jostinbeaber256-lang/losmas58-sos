@@ -592,7 +592,11 @@ export function PushNotificationCard() {
 
       setStep("saving");
       setMessage("Guardando este dispositivo como activo...");
-      await saveWebSubscription(subscription, true);
+      await withTimeout(
+        saveWebSubscription(subscription, true),
+        12000,
+        "No se pudo confirmar el guardado del dispositivo. Revisa tu conexion e intenta otra vez."
+      );
 
       setStatus("enabled");
       setStep("done");
