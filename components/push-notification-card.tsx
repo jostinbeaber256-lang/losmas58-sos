@@ -162,21 +162,75 @@ export function PushNotificationCard() {
       throw new Error("Usuario no autenticado.");
     }
 
-    const { error } = await supabase.from("push_subscriptions").upsert(
-      {
-        user_id: currentUserId,
-        endpoint: subscription.endpoint,
-        p256dh: getSubscriptionKey(subscription, "p256dh"),
-        auth: getSubscriptionKey(subscription, "auth"),
-        user_agent: navigator.userAgent,
-        platform: "web",
-        enabled
-      },
-      { onConflict: "endpoint" }
-    );
+    const payload = {
+      user_id: currentUserId,
+      endpoint: subscription.endpoint,
+      p256dh: getSubscriptionKey(subscription, "p256dh"),
+      auth: getSubscriptionKey(subscription, "auth"),
+      user_agent: navigator.userAgent,
+      platform: "web",
+      enabled
+    };
+
+    console.log("[Los58WebPush] Saving web push subscription", {
+      userId: currentUserId,
+      endpointPreview: `${subscription.endpoint.slice(0, 32)}...`,
+      enabled
+    });
+
+    const { error } = await supabase
+      .from("push_subscriptions")
+      .upsert(payload, { onConflict: "endpoint" });
 
     if (error) {
-      throw new Error(error.message);
+      const missingConflictConstraint =
+        error.message.includes("unique or exclusion constraint") ||
+        error.message.includes("ON CONFLICT");
+
+      if (!missingConflictConstraint) {
+        console.error("[Los58WebPush] Subscription upsert failed", error);
+        throw new Error(error.message);
+      }
+
+      console.warn(
+        "[Los58WebPush] Endpoint unique constraint missing, falling back to select/update/insert.",
+        error
+      );
+
+      const { data: existingRows, error: lookupError } = await supabase
+        .from("push_subscriptions")
+        .select("id")
+        .eq("endpoint", subscription.endpoint)
+        .eq("user_id", currentUserId)
+        .limit(1);
+
+      if (lookupError) {
+        throw new Error(lookupError.message);
+      }
+
+      const existingId = existingRows?.[0]?.id;
+
+      if (existingId) {
+        const { error: updateError } = await supabase
+          .from("push_subscriptions")
+          .update(payload)
+          .eq("id", existingId)
+          .eq("user_id", currentUserId);
+
+        if (updateError) {
+          throw new Error(updateError.message);
+        }
+
+        return;
+      }
+
+      const { error: insertError } = await supabase
+        .from("push_subscriptions")
+        .insert(payload);
+
+      if (insertError) {
+        throw new Error(insertError.message);
+      }
     }
   }
 

@@ -8,6 +8,7 @@ import {
   useRef,
   useState
 } from "react";
+import { usePathname } from "next/navigation";
 import type { User } from "@supabase/supabase-js";
 import type {
   ActiveRider,
@@ -222,6 +223,7 @@ export function RoutePresenceProvider({
   user: User | null;
 }) {
   const [supabase] = useState(createClient);
+  const pathname = usePathname();
   const [profile, setProfile] = useState<Profile | null>(null);
   const [medicalProfile, setMedicalProfile] = useState<MedicalProfile | null>(null);
   const [activeRiders, setActiveRiders] = useState<ActiveRider[]>([]);
@@ -490,9 +492,8 @@ export function RoutePresenceProvider({
     }
 
     const now = new Date().toISOString();
-    const shouldDisableLive = attendanceStatus === "declined";
     const nextLiveRouteEnabled =
-      shouldDisableLive ? false : liveRouteEnabled ?? false;
+      liveRouteEnabled ?? false;
     const { data, error: participantError } = await supabase
       .from("ride_participants")
       .upsert(
@@ -823,14 +824,20 @@ export function RoutePresenceProvider({
     setError(null);
 
     try {
-      // Declinar asistencia Y desactivar ruta en vivo automáticamente
+      // Declinar asistencia mantiene la ruta en vivo hasta que el usuario salga de la rodada.
+      const coords = await withTimeout(
+        getDevicePosition(),
+        15000,
+        "No se pudo activar la ruta en vivo. Verifica GPS y permisos."
+      );
       const success = await upsertRideParticipant({
         attendanceStatus: "declined",
-        liveRouteEnabled: false
+        liveRouteEnabled: true,
+        coords
       });
       
-      // Limpiar posición actual al declinar
-      setLatestPosition(null);
+      // Mantener coordenadas visibles para control grupal.
+      setLatestPosition(coords);
       
       await loadActiveRideData();
       return success;
@@ -1406,6 +1413,49 @@ export function RoutePresenceProvider({
   }, [userId]);
 
   useEffect(() => {
+    if (!userId || pathname !== "/rutas") {
+      return;
+    }
+
+    void loadActiveRideData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pathname, userId]);
+
+  useEffect(() => {
+    if (!userId || pathname !== "/mapa") {
+      return;
+    }
+
+    let cancelled = false;
+
+    void (async () => {
+      try {
+        const coords = await withTimeout(
+          getDevicePosition(),
+          15000,
+          "No se pudo obtener tu ubicacion para el mapa."
+        );
+
+        if (!cancelled) {
+          setLatestPosition(coords);
+        }
+      } catch (locationError) {
+        if (!cancelled) {
+          const message =
+            locationError instanceof Error
+              ? locationError.message
+              : "No se pudo obtener tu ubicacion para el mapa.";
+          setError(message);
+        }
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [pathname, userId]);
+
+  useEffect(() => {
     if (!userId) {
       return;
     }
@@ -1651,7 +1701,7 @@ export function RoutePresenceProvider({
             "No se pudo actualizar tu ubicacion de la rodada."
           );
           await upsertRideParticipant({
-            attendanceStatus: "confirmed",
+            attendanceStatus: currentRideParticipant.attendance_status,
             liveRouteEnabled: true,
             coords
           });

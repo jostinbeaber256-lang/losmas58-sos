@@ -43,7 +43,7 @@ export async function startGroupRide(formData: FormData) {
   }
 
   revalidatePath("/admin");
-  revalidatePath("/perfil");
+  revalidatePath("/rutas");
 }
 
 export async function finishGroupRide(formData: FormData) {
@@ -77,5 +77,5 @@ export async function finishGroupRide(formData: FormData) {
   }
 
   revalidatePath("/admin");
-  revalidatePath("/perfil");
+  revalidatePath("/rutas");
 }
