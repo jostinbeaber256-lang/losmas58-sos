@@ -532,6 +532,25 @@ export function RoutePresenceProvider({
     return true;
   }
 
+  async function getRideLiveCoordsOrNull() {
+    try {
+      return await withTimeout(
+        getDevicePosition(),
+        22000,
+        "No se pudo activar la ruta en vivo. Verifica GPS y permisos."
+      );
+    } catch (locationError) {
+      const message =
+        locationError instanceof Error
+          ? locationError.message
+          : "No se pudo activar la ubicacion en vivo.";
+      setError(
+        `${message} Tu asistencia se guardara, pero no apareceras en el mapa hasta activar la ubicacion.`
+      );
+      return null;
+    }
+  }
+
   async function pushLocationUpdate({
     routeActive,
     clearLocation = false,
@@ -783,23 +802,22 @@ export function RoutePresenceProvider({
     setError(null);
 
     try {
-      // Obtener coordenadas actuales para activar ruta en vivo
-      const coords = await withTimeout(
-        getDevicePosition(),
-        15000,
-        "No se pudo activar la ruta en vivo. Verifica GPS y permisos."
-      );
+      const coords = await getRideLiveCoordsOrNull();
       
       // Confirmar asistencia Y activar ruta en vivo automáticamente
       const success = await upsertRideParticipant({
         attendanceStatus: "confirmed",
-        liveRouteEnabled: true,
-        coords
+        liveRouteEnabled: Boolean(coords),
+        coords: coords ?? null
       });
       
       // Actualizar posición actual si se obtuvo correctamente
       if (coords) {
         setLatestPosition(coords);
+      } else if (success) {
+        setError(
+          "Asistencia confirmada. No apareceras en el mapa hasta permitir ubicacion y activar la ruta en vivo."
+        );
       }
       
       await loadActiveRideData();
@@ -826,19 +844,21 @@ export function RoutePresenceProvider({
 
     try {
       // Declinar asistencia mantiene la ruta en vivo hasta que el usuario salga de la rodada.
-      const coords = await withTimeout(
-        getDevicePosition(),
-        15000,
-        "No se pudo activar la ruta en vivo. Verifica GPS y permisos."
-      );
+      const coords = await getRideLiveCoordsOrNull();
       const success = await upsertRideParticipant({
         attendanceStatus: "declined",
-        liveRouteEnabled: true,
-        coords
+        liveRouteEnabled: Boolean(coords),
+        coords: coords ?? null
       });
       
       // Mantener coordenadas visibles para control grupal.
-      setLatestPosition(coords);
+      if (coords) {
+        setLatestPosition(coords);
+      } else if (success) {
+        setError(
+          "Respuesta guardada. No apareceras en el mapa hasta permitir ubicacion y activar la ruta en vivo."
+        );
+      }
       
       await loadActiveRideData();
       return success;
@@ -869,7 +889,7 @@ export function RoutePresenceProvider({
 
       if (currentParticipant?.live_route_enabled) {
         const success = await upsertRideParticipant({
-          attendanceStatus: "confirmed",
+          attendanceStatus: currentParticipant.attendance_status,
           liveRouteEnabled: false
         });
         await loadActiveRideData();
@@ -882,7 +902,7 @@ export function RoutePresenceProvider({
         "No se pudo activar la ruta en vivo. Verifica GPS y permisos."
       );
       const success = await upsertRideParticipant({
-        attendanceStatus: "confirmed",
+        attendanceStatus: currentParticipant?.attendance_status ?? "confirmed",
         liveRouteEnabled: true,
         coords
       });

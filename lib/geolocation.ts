@@ -157,7 +157,7 @@ function mapLocationError(error: unknown) {
   const message = getErrorMessage(error);
   const lowerMessage = message.toLowerCase();
   
-  logLocation("🔍 ANDROID: Mapping location error", {
+  logLocation("Mapping location error", {
     originalMessage: message,
     lowerMessage: lowerMessage
   });
@@ -168,7 +168,7 @@ function mapLocationError(error: unknown) {
     lowerMessage.includes("user denied")
   ) {
     return new Error(
-      "🚫 ANDROID: Permiso de ubicacion denegado. Activalo desde ajustes de Android > Apps > Los+58 > Permisos > Ubicacion."
+      "Permiso de ubicacion denegado. Activalo desde los permisos del navegador para Los+58 y vuelve a intentar."
     );
   }
 
@@ -179,13 +179,13 @@ function mapLocationError(error: unknown) {
     lowerMessage.includes("location unavailable")
   ) {
     return new Error(
-      "📡 ANDROID: La ubicacion del sistema está desactivada. Actívala en Ajustes del teléfono > Ubicacion."
+      "La ubicacion del dispositivo esta desactivada o no disponible. Activa GPS/ubicacion y vuelve a intentar."
     );
   }
 
   if (lowerMessage.includes("timeout") || lowerMessage.includes("timed out")) {
     return new Error(
-      "⏱️ ANDROID: Timeout obteniendo ubicacion. Sal al exterior, alejate de edificios o revisa que el GPS este activo y con buena senal."
+      "No se pudo obtener tu ubicacion a tiempo. Revisa GPS, permisos y senal, y vuelve a intentar."
     );
   }
 
@@ -194,11 +194,36 @@ function mapLocationError(error: unknown) {
     lowerMessage.includes("connection")
   ) {
     return new Error(
-      "📶 ANDROID: Error de red. Verifica tu conexion a internet e intenta nuevamente."
+      "Error de red al obtener ubicacion. Verifica tu conexion e intenta nuevamente."
     );
   }
 
-  return new Error(`❌ ANDROID: No fue posible obtener la ubicacion. ${message}`);
+  return new Error(`No fue posible obtener la ubicacion. ${message}`);
+}
+
+function isLocalDevelopmentHost() {
+  if (typeof window === "undefined") {
+    return false;
+  }
+
+  return ["localhost", "127.0.0.1", "::1"].includes(window.location.hostname);
+}
+
+function getBrowserPosition(options: PositionOptions) {
+  return new Promise<Coordinates>((resolve, reject) => {
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        const coords = toCoordinates(position);
+        logLocation("Browser getCurrentPosition returned coords", coords);
+        resolve(coords);
+      },
+      (error) => {
+        logLocation("Browser getCurrentPosition failed", error);
+        reject(error);
+      },
+      options
+    );
+  });
 }
 
 async function ensureNativeLocationPermission() {
@@ -349,29 +374,45 @@ export async function getDevicePosition() {
     }
   }
 
-  return new Promise<Coordinates>((resolve, reject) => {
-    if (typeof navigator === "undefined" || !navigator.geolocation) {
-      reject(new Error("La geolocalizacion no esta disponible en este dispositivo."));
-      return;
+  if (typeof navigator === "undefined" || !navigator.geolocation) {
+    throw new Error("La geolocalizacion no esta disponible en este dispositivo.");
+  }
+
+  if (
+    typeof window !== "undefined" &&
+    !window.isSecureContext &&
+    !isLocalDevelopmentHost()
+  ) {
+    throw new Error(
+      "La ubicacion solo funciona en HTTPS o localhost. Abre la app desde una URL segura."
+    );
+  }
+
+  try {
+    return await getBrowserPosition({
+      enableHighAccuracy: true,
+      timeout: 20000,
+      maximumAge: 30000
+    });
+  } catch (firstError) {
+    const lowerMessage = getErrorMessage(firstError).toLowerCase();
+
+    if (lowerMessage.includes("permission") || lowerMessage.includes("denied")) {
+      throw mapLocationError(firstError);
     }
 
-    navigator.geolocation.getCurrentPosition(
-      (position) => {
-        const coords = toCoordinates(position);
-        logLocation("Browser getCurrentPosition returned coords", coords);
-        resolve(coords);
-      },
-      (error) => {
-        logLocation("Browser getCurrentPosition failed", error);
-        reject(mapLocationError(error));
-      },
-      {
-        enableHighAccuracy: true,
-        timeout: 10000,
-        maximumAge: 0
-      }
-    );
-  });
+    logLocation("Browser high accuracy failed, trying balanced fallback", firstError);
+
+    try {
+      return await getBrowserPosition({
+        enableHighAccuracy: false,
+        timeout: 15000,
+        maximumAge: 60000
+      });
+    } catch (fallbackError) {
+      throw mapLocationError(fallbackError);
+    }
+  }
 }
 
 export async function watchDevicePosition(
@@ -454,8 +495,8 @@ export async function watchDevicePosition(
     },
     {
       enableHighAccuracy: true,
-      timeout: intervalMs,
-      maximumAge: 0
+      timeout: Math.max(intervalMs, 15000),
+      maximumAge: 30000
     }
   );
   logLocation("Browser watchPosition started", { watchId });
