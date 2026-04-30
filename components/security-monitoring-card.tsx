@@ -211,6 +211,7 @@ export function SecurityMonitoringCard() {
     currentUserId,
     loading,
     error,
+    rideFeedback,
     confirmRideAttendance,
     declineRideAttendance,
     toggleRideLiveRoute,
@@ -292,6 +293,12 @@ export function SecurityMonitoringCard() {
       {error ? (
         <p className="relative mt-4 rounded-2xl border border-danger/22 bg-danger/8 px-4 py-3 text-sm text-danger shadow-[0_0_20px_rgba(255,77,109,0.08)]">
           {error}
+        </p>
+      ) : null}
+
+      {!error && rideFeedback ? (
+        <p className="relative mt-4 rounded-2xl border border-accent/22 bg-accent/8 px-4 py-3 text-sm text-accent shadow-[0_0_20px_rgba(32,211,238,0.08)]">
+          {rideFeedback}
         </p>
       ) : null}
 

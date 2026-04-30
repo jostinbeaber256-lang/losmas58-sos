@@ -54,6 +54,7 @@ type RoutePresenceContextValue = {
   profileSaving: boolean;
   medicalProfileSaving: boolean;
   error: string | null;
+  rideFeedback: string | null;
   sosFeedback: string | null;
   toggleRoute: () => Promise<void>;
   confirmRideAttendance: () => Promise<boolean>;
@@ -275,6 +276,7 @@ export function RoutePresenceProvider({
   const [profileSaving, setProfileSaving] = useState(false);
   const [medicalProfileSaving, setMedicalProfileSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [rideFeedback, setRideFeedback] = useState<string | null>(null);
   const [sosFeedback, setSosFeedback] = useState<string | null>(null);
   const [currentUser, setCurrentUser] = useState<User | null>(user);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -620,11 +622,19 @@ export function RoutePresenceProvider({
       current_lng: nextLiveRouteEnabled ? coords?.longitude ?? null : null,
       last_seen_at: nextLiveRouteEnabled && coords ? now : null
     };
-    let { data, error: participantError } = await supabase
-      .from("ride_participants")
-      .upsert(payload, { onConflict: "event_id,user_id" })
-      .select(rideParticipantSelect)
-      .single();
+    let { data, error: participantError } = await withTimeout(
+      withAuthLockRetry(() =>
+        Promise.resolve(
+          supabase
+            .from("ride_participants")
+            .upsert(payload, { onConflict: "event_id,user_id" })
+            .select(rideParticipantSelect)
+            .single()
+        )
+      ),
+      10000,
+      "No se pudo guardar tu asistencia a tiempo. Revisa tu conexion e intenta nuevamente."
+    );
 
     if (
       participantError &&
@@ -632,11 +642,19 @@ export function RoutePresenceProvider({
         participantError.message.includes("schema cache"))
     ) {
       const { avatar_url: _avatarUrl, ...payloadWithoutAvatar } = payload;
-      const fallback = await supabase
-        .from("ride_participants")
-        .upsert(payloadWithoutAvatar, { onConflict: "event_id,user_id" })
-        .select(rideParticipantSelectWithoutAvatar)
-        .single();
+      const fallback = await withTimeout(
+        withAuthLockRetry(() =>
+          Promise.resolve(
+            supabase
+              .from("ride_participants")
+              .upsert(payloadWithoutAvatar, { onConflict: "event_id,user_id" })
+              .select(rideParticipantSelectWithoutAvatar)
+              .single()
+          )
+        ),
+        10000,
+        "No se pudo guardar tu asistencia a tiempo. Revisa tu conexion e intenta nuevamente."
+      );
 
       data = fallback.data ? { ...fallback.data, avatar_url: null } : null;
       participantError = fallback.error;
@@ -658,7 +676,6 @@ export function RoutePresenceProvider({
         ? current.map((participant) => (participant.id === data.id ? data : participant))
         : [data, ...current];
     });
-    setError(null);
     return true;
   }
 
@@ -666,17 +683,38 @@ export function RoutePresenceProvider({
     try {
       return await withTimeout(
         getDevicePosition(),
-        22000,
+        14000,
         "No se pudo activar la ruta en vivo. Verifica GPS y permisos."
       );
     } catch (locationError) {
+      const profileCoords =
+        typeof profileRef.current?.latitude === "number" &&
+        typeof profileRef.current?.longitude === "number"
+          ? {
+              latitude: profileRef.current.latitude,
+              longitude: profileRef.current.longitude
+            }
+          : null;
+      const fallbackCoords = hasValidCoords(latestPosition)
+        ? latestPosition
+        : hasValidCoords(profileCoords)
+          ? profileCoords
+          : null;
+
+      if (fallbackCoords) {
+        console.warn(
+          "[rides] Using last known location for ride attendance after GPS error",
+          locationError
+        );
+        return fallbackCoords;
+      }
+
       const message =
         locationError instanceof Error
           ? locationError.message
           : "No se pudo activar la ubicacion en vivo.";
-      setError(
-        `${message} Tu asistencia se guardara, pero no apareceras en el mapa hasta activar la ubicacion.`
-      );
+      console.warn("[rides] Ride live location unavailable", locationError);
+      setError(message);
       return null;
     }
   }
@@ -914,6 +952,7 @@ export function RoutePresenceProvider({
 
     setLoading(true);
     setError(null);
+    setRideFeedback(null);
 
     try {
       if (profile?.is_on_route) {
@@ -960,12 +999,23 @@ export function RoutePresenceProvider({
   }
 
   async function confirmRideAttendance() {
-    if (!userId || loading || !activeRideEvent) {
+    if (loading) {
+      return false;
+    }
+
+    if (!userId) {
+      setError("Debes iniciar sesion para confirmar asistencia.");
+      return false;
+    }
+
+    if (!activeRideEvent) {
+      setError("No hay una rodada activa disponible para confirmar asistencia.");
       return false;
     }
 
     setLoading(true);
     setError(null);
+    setRideFeedback(null);
 
     try {
       const coords = await getRideLiveCoordsOrNull();
@@ -973,20 +1023,21 @@ export function RoutePresenceProvider({
       // Confirmar asistencia Y activar ruta en vivo automáticamente
       const success = await upsertRideParticipant({
         attendanceStatus: "confirmed",
-        liveRouteEnabled: Boolean(coords),
+        liveRouteEnabled: true,
         coords: coords ?? null
       });
       
       // Actualizar posición actual si se obtuvo correctamente
       if (coords) {
         setLatestPosition(coords);
+        setRideFeedback("Asistencia confirmada. Tu ubicacion ya esta activa en la rodada.");
       } else if (success) {
-        setError(
-          "Asistencia confirmada. No apareceras en el mapa hasta permitir ubicacion y activar la ruta en vivo."
+        setRideFeedback(
+          "Asistencia confirmada. La ubicacion en vivo quedo activa y se actualizara cuando el navegador entregue coordenadas."
         );
       }
       
-      await loadActiveRideData();
+      void loadActiveRideData();
       return success;
     } catch (rideError) {
       const message =
@@ -1001,32 +1052,44 @@ export function RoutePresenceProvider({
   }
 
   async function declineRideAttendance() {
-    if (!userId || loading || !activeRideEvent) {
+    if (loading) {
+      return false;
+    }
+
+    if (!userId) {
+      setError("Debes iniciar sesion para responder a la rodada.");
+      return false;
+    }
+
+    if (!activeRideEvent) {
+      setError("No hay una rodada activa disponible para responder.");
       return false;
     }
 
     setLoading(true);
     setError(null);
+    setRideFeedback(null);
 
     try {
       // Declinar asistencia mantiene la ruta en vivo hasta que el usuario salga de la rodada.
       const coords = await getRideLiveCoordsOrNull();
       const success = await upsertRideParticipant({
         attendanceStatus: "declined",
-        liveRouteEnabled: Boolean(coords),
+        liveRouteEnabled: true,
         coords: coords ?? null
       });
       
       // Mantener coordenadas visibles para control grupal.
       if (coords) {
         setLatestPosition(coords);
+        setRideFeedback("Respuesta guardada. Tu ubicacion queda visible hasta salir de la rodada.");
       } else if (success) {
-        setError(
-          "Respuesta guardada. No apareceras en el mapa hasta permitir ubicacion y activar la ruta en vivo."
+        setRideFeedback(
+          "Respuesta guardada. La ubicacion en vivo quedo activa y se actualizara cuando el navegador entregue coordenadas."
         );
       }
       
-      await loadActiveRideData();
+      void loadActiveRideData();
       return success;
     } catch (rideError) {
       const message =
@@ -1047,6 +1110,7 @@ export function RoutePresenceProvider({
 
     setLoading(true);
     setError(null);
+    setRideFeedback(null);
 
     try {
       const currentParticipant = rideParticipants.find(
@@ -1094,14 +1158,23 @@ export function RoutePresenceProvider({
 
     setLoading(true);
     setError(null);
+    setRideFeedback(null);
 
     try {
       // Eliminar al participante de la rodada
-      const { error: deleteError } = await supabase
-        .from("ride_participants")
-        .delete()
-        .eq("event_id", activeRideEvent.id)
-        .eq("user_id", userId);
+      const { error: deleteError } = await withTimeout(
+        withAuthLockRetry(() =>
+          Promise.resolve(
+            supabase
+              .from("ride_participants")
+              .delete()
+              .eq("event_id", activeRideEvent.id)
+              .eq("user_id", userId)
+          )
+        ),
+        10000,
+        "No se pudo salir de la rodada a tiempo. Revisa tu conexion e intenta nuevamente."
+      );
 
       if (deleteError) {
         setError(deleteError.message);
@@ -1110,8 +1183,9 @@ export function RoutePresenceProvider({
 
       // Limpiar posición local
       setLatestPosition(null);
+      setRideFeedback("Saliste de la rodada. Tu ubicacion dejo de compartirse en este evento.");
 
-      await loadActiveRideData();
+      void loadActiveRideData();
       return true;
     } catch (rideError) {
       const message =
@@ -2050,6 +2124,7 @@ export function RoutePresenceProvider({
     profileSaving,
     medicalProfileSaving,
     error,
+    rideFeedback,
     sosFeedback,
     toggleRoute,
     confirmRideAttendance,
