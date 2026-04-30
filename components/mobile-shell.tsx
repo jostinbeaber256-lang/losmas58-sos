@@ -7,6 +7,7 @@ import { AlertToastStack } from "@/components/alert-toast-stack";
 import { AuthStatus } from "@/components/auth/auth-status";
 import { BottomNav } from "@/components/bottom-nav";
 import { NotificationCenter } from "@/components/notification-center";
+import { PushAutoManager } from "@/components/push-auto-manager";
 import { AppBadge } from "@/components/ui/app-badge";
 import { cn } from "@/lib/utils";
 
@@ -26,6 +27,7 @@ export function MobileShell({
   return (
     <div className="safe-px-app min-h-screen w-full pb-28 pt-0 md:mx-auto md:max-w-4xl md:pt-6 lg:max-w-6xl xl:max-w-7xl">
       <AlertToastStack />
+      <PushAutoManager />
 
       <div
         className={cn(

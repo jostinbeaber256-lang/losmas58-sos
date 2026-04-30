@@ -29,6 +29,29 @@ type CapacitorBridge = {
   platform?: string;
 };
 
+const PUSH_DISABLED_KEY = "los58-push-disabled";
+
+function setPushDisabledByUser(disabled: boolean) {
+  if (typeof window === "undefined") {
+    return;
+  }
+
+  if (disabled) {
+    window.localStorage.setItem(PUSH_DISABLED_KEY, "true");
+    return;
+  }
+
+  window.localStorage.removeItem(PUSH_DISABLED_KEY);
+}
+
+function isPushDisabledByUser() {
+  if (typeof window === "undefined") {
+    return false;
+  }
+
+  return window.localStorage.getItem(PUSH_DISABLED_KEY) === "true";
+}
+
 function urlBase64ToUint8Array(value: string) {
   const padding = "=".repeat((4 - (value.length % 4)) % 4);
   const base64 = `${value}${padding}`.replace(/-/g, "+").replace(/_/g, "/");
@@ -279,6 +302,14 @@ export function PushNotificationCard() {
     setDebugMessage("Detectando Android nativo y permisos FCM...");
 
     try {
+      if (isPushDisabledByUser()) {
+        setStatus("inactive");
+        setStep("idle");
+        setMessage("Notificaciones desactivadas manualmente en este dispositivo.");
+        setDebugMessage("El usuario desactivo push desde este dispositivo.");
+        return;
+      }
+
       logNativePush("Detected native Android mode", {
         mode,
         platform: getPushMode(),
@@ -364,6 +395,13 @@ export function PushNotificationCard() {
     setStep("checking");
 
     try {
+      if (isPushDisabledByUser()) {
+        setStatus("inactive");
+        setStep("idle");
+        setMessage("Push desactivadas manualmente en este dispositivo.");
+        return;
+      }
+
       if (Notification.permission === "denied") {
         setStatus("denied");
         setStep("idle");
@@ -375,9 +413,14 @@ export function PushNotificationCard() {
       const subscription = await registration.pushManager.getSubscription();
 
       if (!subscription) {
-        setStatus("inactive");
-        setStep("idle");
-        setMessage(null);
+        if (Notification.permission !== "granted") {
+          setStatus("inactive");
+          setStep("idle");
+          setMessage(null);
+          return;
+        }
+
+        await handleEnableWebPush();
         return;
       }
 
@@ -441,6 +484,7 @@ export function PushNotificationCard() {
   }, [currentUserId, isAuthenticated]);
 
   async function handleEnableNativePush() {
+    setPushDisabledByUser(false);
     setStatus("loading");
     setStep("permission");
     setMessage("Solicitando permiso de Android...");
@@ -581,6 +625,7 @@ export function PushNotificationCard() {
   }
 
   async function handleEnableWebPush() {
+    setPushDisabledByUser(false);
     setStatus("loading");
     setStep("registering");
     setMessage(null);
@@ -667,6 +712,7 @@ export function PushNotificationCard() {
   }
 
   async function handleDisablePush() {
+    setPushDisabledByUser(true);
     setStatus("loading");
     setStep("disabling");
     setMessage(isNative ? "Desactivando notificaciones de la app..." : "Desactivando notificaciones push...");
