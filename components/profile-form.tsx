@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   CheckCircleIcon,
   ChevronDownIcon,
@@ -40,7 +40,7 @@ export function ProfileForm() {
   const [editOpen, setEditOpen] = useState(false);
   const [localAvatarUrl, setLocalAvatarUrl] = useState<string | null>(null);
 
-  function createFormValues() {
+  const createFormValues = useCallback(() => {
     return {
       full_name: profile?.full_name ?? "",
       username: profile?.username ?? "",
@@ -48,7 +48,13 @@ export function ProfileForm() {
       city: profile?.city ?? "",
       emergency_contact: profile?.emergency_contact ?? ""
     };
-  }
+  }, [
+    profile?.bike_model,
+    profile?.city,
+    profile?.emergency_contact,
+    profile?.full_name,
+    profile?.username
+  ]);
 
   useEffect(() => {
     if (!profile) {
@@ -61,7 +67,7 @@ export function ProfileForm() {
       setIsDirty(false);
       setLocalAvatarUrl(profile.avatar_url ?? null);
     }
-  }, [initializedProfileId, profile]);
+  }, [createFormValues, initializedProfileId, profile]);
 
   const initials = useMemo(
     () =>

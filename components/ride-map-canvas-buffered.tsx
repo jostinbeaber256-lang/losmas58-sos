@@ -12,10 +12,10 @@ export function RideMapCanvasBuffered({
   currentUserId: string | null;
 }) {
   const [bufferedParticipants, setBufferedParticipants] = useState<RideParticipant[]>([]);
-  const bufferTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const liveParticipantsRef = useRef<RideParticipant[]>([]);
+  const bufferedParticipantsRef = useRef<RideParticipant[]>([]);
   const initialLoadRef = useRef(true);
 
-  // Filtrar participantes con ubicación válida y live_route_enabled
   const liveParticipants = useMemo(
     () =>
       participants.filter(
@@ -30,44 +30,34 @@ export function RideMapCanvasBuffered({
   );
 
   useEffect(() => {
-    // Solo actualizar bufferedParticipants si realmente cambió el contenido
-    const hasChanged = JSON.stringify(bufferedParticipants) !== JSON.stringify(liveParticipants);
-    
-    if (hasChanged) {
+    liveParticipantsRef.current = liveParticipants;
+
+    if (initialLoadRef.current) {
       setBufferedParticipants(liveParticipants);
-    }
-
-    // Configurar actualización cada 20 segundos solo para cambios futuros
-    if (!bufferTimeoutRef.current) {
-      bufferTimeoutRef.current = setInterval(() => {
-        // Verificar si hay cambios antes de actualizar
-        const currentBuffered = JSON.stringify(bufferedParticipants);
-        const newLive = JSON.stringify(liveParticipants);
-        
-        if (currentBuffered !== newLive) {
-          setBufferedParticipants(liveParticipants);
-        }
-      }, 20000);
-    }
-
-    return () => {
-      if (bufferTimeoutRef.current) {
-        clearInterval(bufferTimeoutRef.current);
-        bufferTimeoutRef.current = null;
-      }
-    };
-  }, [liveParticipants]);
-
-  // Marcar que ya no es carga inicial después del primer render
-  useEffect(() => {
-    if (initialLoadRef.current && bufferedParticipants.length > 0) {
       initialLoadRef.current = false;
     }
+  }, [liveParticipants]);
+
+  useEffect(() => {
+    bufferedParticipantsRef.current = bufferedParticipants;
   }, [bufferedParticipants]);
 
+  useEffect(() => {
+    const interval = setInterval(() => {
+      const currentBuffered = JSON.stringify(bufferedParticipantsRef.current);
+      const nextLive = JSON.stringify(liveParticipantsRef.current);
+
+      if (currentBuffered !== nextLive) {
+        setBufferedParticipants(liveParticipantsRef.current);
+      }
+    }, 20000);
+
+    return () => clearInterval(interval);
+  }, []);
+
   return (
-    <RideMapCanvas 
-      participants={bufferedParticipants} 
+    <RideMapCanvas
+      participants={bufferedParticipants}
       currentUserId={currentUserId}
     />
   );

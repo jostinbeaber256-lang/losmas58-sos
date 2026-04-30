@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { UserIcon } from "@heroicons/react/24/solid";
 
 interface AvatarProps {
@@ -43,9 +44,12 @@ export function Avatar({
       <div
         className={`relative shrink-0 overflow-hidden rounded-full border border-white/10 bg-white/[0.045] ${sizeClass} ${className}`}
       >
-        <img
+        <Image
           src={imageUrl}
           alt={name || username || "Avatar"}
+          fill
+          sizes="80px"
+          unoptimized
           className="h-full w-full object-cover"
         />
       </div>
