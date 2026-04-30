@@ -266,12 +266,18 @@ const emergencyRiderIcon = createDotIcon({
 
 export function LeafletMapCanvas({
   latestPosition,
+  currentUserAvatarUrl,
+  currentUserName,
+  currentUserUsername,
   focusedPosition,
   focusedAlertId,
   visibleRiders,
   emergencyAlerts
 }: {
   latestPosition: Coordinates | null;
+  currentUserAvatarUrl: string | null;
+  currentUserName: string | null;
+  currentUserUsername: string | null;
   focusedPosition: Coordinates | null;
   focusedAlertId: string | null;
   visibleRiders: ActiveRider[];
@@ -286,6 +292,21 @@ export function LeafletMapCanvas({
           : [DEFAULT_CENTER.latitude, DEFAULT_CENTER.longitude],
     [focusedPosition, latestPosition]
   );
+  const currentUserIcon = useMemo(
+    () =>
+      currentUserAvatarUrl
+        ? createDotIcon({
+            size: 34,
+            color: "rgba(0,229,168,0.18)",
+            glow: "0 0 28px rgba(0,229,168,.9)",
+            border: "#00e5a8",
+            imageUrl: currentUserAvatarUrl
+          })
+        : userIcon,
+    [currentUserAvatarUrl]
+  );
+  const currentUserLabel =
+    currentUserName || currentUserUsername || "Ubicacion compartida";
 
   return (
     <MapContainer
@@ -309,14 +330,14 @@ export function LeafletMapCanvas({
       />
 
       {latestPosition ? (
-        <Marker position={[latestPosition.latitude, latestPosition.longitude]} icon={userIcon}>
+        <Marker position={[latestPosition.latitude, latestPosition.longitude]} icon={currentUserIcon}>
           <Popup>
             <div className="alert-popup">
               <div className="alert-popup__header">
                 <span className="alert-popup__type">Tu posicion</span>
                 <span className="alert-popup__status">En ruta</span>
               </div>
-              <div className="alert-popup__name">Ubicacion compartida</div>
+              <div className="alert-popup__name">{currentUserLabel}</div>
               <div className="alert-popup__body">
                 <p>{formatCoordinatesCompact(latestPosition.latitude, latestPosition.longitude)}</p>
               </div>

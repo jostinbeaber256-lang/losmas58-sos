@@ -84,9 +84,13 @@ function createRideIcon(participant: RideParticipant, currentUserId: string | nu
   const color = stale ? "#ffb547" : tone.color;
   const glow = stale ? "0 0 24px rgba(255,181,71,.75)" : tone.glow;
 
+  const avatarHtml = participant.avatar_url
+    ? `<img src="${participant.avatar_url}" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:999px;" />`
+    : `<div style="width:${innerSize}px;height:${innerSize}px;border-radius:999px;background:#07101d;border:1px solid rgba(255,255,255,.45);"></div>`;
+
   return L.divIcon({
     className: "",
-    html: `<div style="display:flex;align-items:center;justify-content:center;width:${size}px;height:${size}px;border-radius:999px;background:${color};border:${isCurrentUser ? 3 : 2}px solid ${tone.border};box-shadow:${glow};position:relative;"><div style="width:${innerSize}px;height:${innerSize}px;border-radius:999px;background:#07101d;border:1px solid rgba(255,255,255,.45);"></div>${isCurrentUser ? '<div style="position:absolute;inset:-7px;border:1px solid rgba(255,255,255,.42);border-radius:999px;"></div>' : ""}</div>`,
+    html: `<div style="display:flex;align-items:center;justify-content:center;width:${size}px;height:${size}px;border-radius:999px;background:${color};border:${isCurrentUser ? 3 : 2}px solid ${tone.border};box-shadow:${glow};position:relative;overflow:hidden;">${avatarHtml}${isCurrentUser ? '<div style="position:absolute;inset:-7px;border:1px solid rgba(255,255,255,.42);border-radius:999px;"></div>' : ""}</div>`,
     iconSize: [size, size],
     iconAnchor: [size / 2, size / 2],
     popupAnchor: [0, -size / 2]
@@ -199,7 +203,6 @@ function RideMarkers({
       if (
         participant.current_lat === null ||
         participant.current_lng === null ||
-        participant.attendance_status !== "confirmed" ||
         !participant.live_route_enabled
       ) {
         continue;
@@ -235,7 +238,6 @@ export function RideMapCanvas({
     () =>
       participants.filter(
         (participant) =>
-          participant.attendance_status === "confirmed" &&
           participant.live_route_enabled &&
           typeof participant.current_lat === "number" &&
           typeof participant.current_lng === "number"

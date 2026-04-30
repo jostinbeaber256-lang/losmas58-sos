@@ -98,7 +98,7 @@ const groupRideSelect =
   "id, name, description, meeting_point, starts_at, status, created_at";
 
 const rideParticipantSelect =
-  "id, event_id, user_id, full_name, username, bike_model, city, is_admin, attendance_status, live_route_enabled, current_lat, current_lng, last_seen_at, updated_at";
+  "id, event_id, user_id, full_name, username, bike_model, city, avatar_url, is_admin, attendance_status, live_route_enabled, current_lat, current_lng, last_seen_at, updated_at";
 
 function formatAlertTitle(alert: SosAlert) {
   return alert.full_name || alert.username || "Motero en emergencia";
@@ -504,6 +504,7 @@ export function RoutePresenceProvider({
           username: profileRef.current?.username ?? null,
           bike_model: profileRef.current?.bike_model ?? null,
           city: profileRef.current?.city ?? null,
+          avatar_url: profileRef.current?.avatar_url ?? null,
           is_admin: Boolean(profileRef.current?.is_admin),
           attendance_status: attendanceStatus,
           live_route_enabled: nextLiveRouteEnabled,

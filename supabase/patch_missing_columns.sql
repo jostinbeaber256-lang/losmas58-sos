@@ -111,6 +111,7 @@ create table if not exists public.ride_participants (
 );
 
 alter table public.ride_participants add column if not exists is_admin boolean not null default false;
+alter table public.ride_participants add column if not exists avatar_url text;
 
 create unique index if not exists push_subscriptions_endpoint_idx
 on public.push_subscriptions (endpoint);

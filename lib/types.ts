@@ -77,6 +77,7 @@ export type RideParticipant = {
   username: string | null;
   bike_model: string | null;
   city: string | null;
+  avatar_url: string | null;
   is_admin: boolean;
   attendance_status: "pending" | "confirmed" | "declined";
   live_route_enabled: boolean;

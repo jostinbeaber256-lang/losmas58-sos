@@ -11,6 +11,7 @@ import {
 } from "@heroicons/react/24/solid";
 import type { ProfileFormValues } from "@/lib/types";
 import { useRoutePresence } from "@/components/providers/route-presence-provider";
+import { Avatar } from "@/components/avatar";
 import { AvatarUploader } from "@/components/avatar-uploader";
 
 function getInitials(name: string | null, username: string | null) {
@@ -25,7 +26,7 @@ function getInitials(name: string | null, username: string | null) {
 }
 
 export function ProfileForm() {
-  const { profile, profileSaving, error, updateProfile } = useRoutePresence();
+  const { profile, profileSaving, error, updateProfile, refreshProfile, refreshActiveRiders } = useRoutePresence();
   const [saved, setSaved] = useState<string | null>(null);
   const [values, setValues] = useState<ProfileFormValues>({
     full_name: "",
@@ -112,10 +113,13 @@ export function ProfileForm() {
 
         <div className="relative flex flex-col gap-5 text-center sm:flex-row sm:items-start sm:justify-between sm:text-left">
           <div className="flex items-center gap-4">
-            <div className="relative flex h-20 w-20 shrink-0 items-center justify-center rounded-[1.6rem] border border-accent/25 bg-accent/12 text-2xl font-semibold text-accent shadow-[0_0_36px_rgba(32,211,238,0.16)]">
-              <div className="pointer-events-none absolute inset-2 rounded-[1.2rem] border border-white/10" />
-              {initials}
-            </div>
+            <Avatar
+              imageUrl={localAvatarUrl}
+              name={values.full_name || profile?.full_name || initials}
+              username={values.username || profile?.username}
+              size="xl"
+              className="rounded-[1.6rem] border-accent/25 shadow-[0_0_36px_rgba(32,211,238,0.16)]"
+            />
             <div className="los-section-head min-w-0 sm:items-start">
               <p className="los-section-kicker text-accent/80">
                 Ficha personal
@@ -235,7 +239,11 @@ export function ProfileForm() {
                   currentAvatarUrl={localAvatarUrl}
                   name={values.full_name || profile?.full_name || null}
                   username={values.username || profile?.username || null}
-                  onAvatarChange={(newUrl) => setLocalAvatarUrl(newUrl)}
+                  onAvatarChange={(newUrl) => {
+                    setLocalAvatarUrl(newUrl);
+                    void refreshProfile();
+                    void refreshActiveRiders();
+                  }}
                 />
               </div>
 

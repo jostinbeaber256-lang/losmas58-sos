@@ -230,6 +230,9 @@ export function LiveMap() {
         <div className="relative overflow-hidden rounded-[1.55rem] border border-white/10">
           <LeafletMapCanvas
             latestPosition={latestPosition}
+            currentUserAvatarUrl={profile?.avatar_url ?? null}
+            currentUserName={profile?.full_name ?? null}
+            currentUserUsername={profile?.username ?? null}
             focusedPosition={focusedAlertPosition}
             focusedAlertId={focusedAlertId}
             visibleRiders={visibleRiders}

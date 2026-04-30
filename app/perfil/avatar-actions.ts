@@ -56,10 +56,13 @@ export async function uploadAvatar(formData: FormData) {
 
     const avatarUrl = publicUrlData.publicUrl;
 
-    // Actualizar perfil del usuario con la nueva URL
-    const { error: updateError } = await supabase
+    // Actualizar perfil del usuario con la nueva URL usando admin para evitar bloqueos de RLS.
+    const { error: updateError } = await admin
       .from("profiles")
-      .update({ avatar_url: avatarUrl })
+      .update({
+        avatar_url: avatarUrl,
+        updated_at: new Date().toISOString()
+      })
       .eq("id", user.id);
 
     if (updateError) {
@@ -69,6 +72,7 @@ export async function uploadAvatar(formData: FormData) {
 
     revalidatePath("/perfil");
     revalidatePath("/mapa");
+    revalidatePath("/rutas");
 
     return { success: true, avatarUrl };
   } catch (error) {
@@ -114,10 +118,13 @@ export async function removeAvatar() {
       }
     }
 
-    // Actualizar perfil para eliminar avatar_url
-    const { error: updateError } = await supabase
+    // Actualizar perfil para eliminar avatar_url usando admin para evitar bloqueos de RLS.
+    const { error: updateError } = await admin
       .from("profiles")
-      .update({ avatar_url: null })
+      .update({
+        avatar_url: null,
+        updated_at: new Date().toISOString()
+      })
       .eq("id", user.id);
 
     if (updateError) {
@@ -127,6 +134,7 @@ export async function removeAvatar() {
 
     revalidatePath("/perfil");
     revalidatePath("/mapa");
+    revalidatePath("/rutas");
 
     return { success: true };
   } catch (error) {

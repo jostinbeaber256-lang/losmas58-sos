@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { CameraIcon, XMarkIcon } from "@heroicons/react/24/solid";
 import { Avatar } from "@/components/avatar";
 import { uploadAvatar, removeAvatar } from "@/app/perfil/avatar-actions";
@@ -24,6 +24,10 @@ export function AvatarUploader({
   const [error, setError] = useState<string | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(currentAvatarUrl ?? null);
 
+  useEffect(() => {
+    setPreviewUrl(currentAvatarUrl ?? null);
+  }, [currentAvatarUrl]);
+
   async function handleFileSelect(event: React.ChangeEvent<HTMLInputElement>) {
     const file = event.target.files?.[0];
     if (!file) return;
@@ -38,17 +42,23 @@ export function AvatarUploader({
     const formData = new FormData();
     formData.append("file", file);
 
-    const result = await uploadAvatar(formData);
+    try {
+      const result = await uploadAvatar(formData);
 
-    setIsUploading(false);
+      if (result.error) {
+        setError(result.error);
+        setPreviewUrl(currentAvatarUrl ?? null);
+        return;
+      }
 
-    if (result.error) {
-      setError(result.error);
-      setPreviewUrl(currentAvatarUrl ?? null);
+      if (result.success && result.avatarUrl) {
+        setPreviewUrl(result.avatarUrl);
+        onAvatarChange?.(result.avatarUrl);
+      }
+    } finally {
+      setIsUploading(false);
       URL.revokeObjectURL(objectUrl);
-    } else if (result.success && result.avatarUrl) {
-      setPreviewUrl(result.avatarUrl);
-      onAvatarChange?.(result.avatarUrl);
+      event.target.value = "";
     }
   }
 
@@ -56,15 +66,17 @@ export function AvatarUploader({
     setError(null);
     setIsRemoving(true);
 
-    const result = await removeAvatar();
+    try {
+      const result = await removeAvatar();
 
-    setIsRemoving(false);
-
-    if (result.error) {
-      setError(result.error);
-    } else if (result.success) {
-      setPreviewUrl(null);
-      onAvatarChange?.(null);
+      if (result.error) {
+        setError(result.error);
+      } else if (result.success) {
+        setPreviewUrl(null);
+        onAvatarChange?.(null);
+      }
+    } finally {
+      setIsRemoving(false);
     }
   }
 

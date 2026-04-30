@@ -141,6 +141,7 @@ alter table public.push_subscriptions add column if not exists user_agent text;
 alter table public.native_push_tokens add column if not exists platform text not null default 'android';
 alter table public.native_push_tokens add column if not exists device_info text;
 alter table public.profiles add column if not exists avatar_url text;
+alter table public.ride_participants add column if not exists avatar_url text;
 
 alter table public.profiles enable row level security;
 alter table public.sos_alerts enable row level security;
