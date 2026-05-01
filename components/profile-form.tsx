@@ -37,27 +37,32 @@ export function ProfileForm() {
   const [isDirty, setIsDirty] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
 
-  function createFormValues() {
-    return {
-      full_name: profile?.full_name ?? "",
-      username: profile?.username ?? "",
-      bike_model: profile?.bike_model ?? "",
-      city: profile?.city ?? "",
-      emergency_contact: profile?.emergency_contact ?? ""
-    };
-  }
-
   useEffect(() => {
     if (!profile) {
       return;
     }
 
     if (initializedProfileId !== profile.id) {
-      setValues(createFormValues());
+      setValues({
+        full_name: profile.full_name ?? "",
+        username: profile.username ?? "",
+        bike_model: profile.bike_model ?? "",
+        city: profile.city ?? "",
+        emergency_contact: profile.emergency_contact ?? ""
+      });
       setInitializedProfileId(profile.id);
       setIsDirty(false);
     }
-  }, [initializedProfileId, profile]);
+  }, [
+    initializedProfileId,
+    profile?.bike_model,
+    profile?.city,
+    profile?.emergency_contact,
+    profile?.full_name,
+    profile?.id,
+    profile,
+    profile?.username
+  ]);
 
   const initials = useMemo(
     () =>

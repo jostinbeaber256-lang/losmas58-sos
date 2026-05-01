@@ -193,7 +193,7 @@ export default async function AdminDashboardPage() {
                   Finalizar rodada activa
                 </button>
                 <p className="text-xs leading-5 text-muted">
-                  Al finalizarla, dejará de mostrarse como evento activo en Perfil.
+                  Al finalizarla, dejará de mostrarse como evento activo en Rutas.
                 </p>
               </form>
             ) : (

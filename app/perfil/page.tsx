@@ -1,7 +1,6 @@
 import { MedicalProfileCard } from "@/components/medical-profile-card";
 import { ProfileForm } from "@/components/profile-form";
 import { PushNotificationCard } from "@/components/push-notification-card";
-import { SecurityMonitoringCard } from "@/components/security-monitoring-card";
 import { HeartIcon, ShieldCheckIcon, UserCircleIcon } from "@heroicons/react/24/solid";
 
 export default function ProfilePage() {
@@ -46,7 +45,6 @@ export default function ProfilePage() {
       </section>
 
       <section className="grid gap-5 xl:grid-cols-2">
-        <SecurityMonitoringCard />
         <PushNotificationCard />
       </section>
 
